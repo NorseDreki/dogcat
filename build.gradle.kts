@@ -30,7 +30,11 @@ kotlin {
         }
     }
     sourceSets {
-        val nativeMain by getting
+        val nativeMain by getting {
+            dependencies {
+                implementation("com.kgit2:kommand:1.0.2")
+            }
+        }
         val nativeTest by getting
     }
 }
