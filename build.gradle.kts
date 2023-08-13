@@ -28,6 +28,11 @@ kotlin {
                 entryPoint = "main"
             }
         }
+        compilations["main"].cinterops {
+            val ncurses by creating {
+                //defFile project.file('./src/nativeInterop/cinterop/ncurses.def')
+            }
+        }
     }
     sourceSets {
         val nativeMain by getting {
