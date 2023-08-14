@@ -1,2 +1,4 @@
 headers.osx = /Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk/usr/include/ncurses.h
+#headers.osx = /System/Volumes/Data/usr/local/Cellar/ncurses/6.4/include/ncursesw/ncurses.h
 linkerOpts.osx = -lncurses
+#linkerOpts.osx = -lncursesw
