@@ -38,6 +38,7 @@ kotlin {
         val nativeMain by getting {
             dependencies {
                 implementation("com.kgit2:kommand:1.0.2")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
             }
         }
         val nativeTest by getting

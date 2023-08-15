@@ -5,6 +5,7 @@ import com.kgit2.process.Stdio
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.memScoped
+import kotlinx.coroutines.*
 import ncurses.*
 import platform.posix.*
 
@@ -57,7 +58,7 @@ fun show() {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-fun main() = memScoped {
+fun main(): Unit = memScoped {
     setlocale(LC_CTYPE, "")
     //setlocale(LC_ALL, "en_US.UTF-8");
     initscr();
@@ -85,40 +86,82 @@ fun main() = memScoped {
 
     prefresh(fp,25, 0, 10,0, 40,120);*/
 
-    val child = Command("adb")
-        .args("logcat", "-v", "brief")
-        .stdout(Stdio.Pipe)
-        .spawn()
+    runBlocking {
+        val a2 = async(Dispatchers.Default) {
+            var a=25;
 
-    val stdoutReader: com.kgit2.io.Reader? = child.getChildStdout()
+            while(true) {
+                var key = wgetch(stdscr);
+                //if(key=='w'.code) { y_offset--; }
+//        if(key=='s') { y_offset++; }
+                if(key=='w'.code) {  a--;  }
+                if(key=='s'.code) {  a++; }
+                if(key=='q'.code) {  delwin(fp); exit(0) }
 
-    (0..5000).forEach {
-        val line = stdoutReader!!.readLine()
+                //prefresh(fp,a, 0, 10,0, 40,120);
 
-        waddstr(fp, "$line\n")
+                //mvprintw(0, 0, "Input: $key");
 
-        prefresh(fp, it, 0, 10,0, 40,120)
+                wprintw(stdscr, "Key: $key")
+                wrefresh(stdscr)
+                clrtoeol();
+
+                sleep(1U)
+            }
+        }
+
+        async(Dispatchers.Default) {
+            (0..5000).forEach {
+                waddstr(fp, "$it lkjhlkjhkjhlk lkhjl jlh kjhljh .......\n")
+            }
+            (0..5000).forEach {
+             //   waddstr(fp, "$it lkjhlkjhkjhlk lkhjl jlh kjhljh .......\n")
+
+                prefresh(fp, it, 0, 10, 0, 40, 120)
+                //sleep(1U)
+            }
+        }
+
+        /*val a1 = launch(Dispatchers.Default) {
+            val child = Command("adb")
+                .args("logcat", "-v", "brief")
+                .stdout(Stdio.Pipe)
+                .spawn()
+
+            val stdoutReader: com.kgit2.io.Reader? = child.getChildStdout()
+
+            var i = 0
+            while (true) {
+                val line = stdoutReader!!.readLine()
+
+                waddstr(fp, "$i $line\n")
+
+                prefresh(fp, i, 0, 10,0, 40,120)
+                i++
+            }
+
+            *//*(0..5000).forEach {
+                val line = stdoutReader!!.readLine()
+
+                waddstr(fp, "$line\n")
+
+                prefresh(fp, it, 0, 10,0, 40,120)
+            }*//*
+        }*/
+        //defer {  }
+
+
+
+
+        //awaitAll(a2, a1)
     }
 
     //sleep(1000U)
 
-    var a=25;
-    var b=0;
-    var c=0;
-    var d=40;
-    var e=120
-    var f=12;
+    //getstr(aaa)
+    //mvwprintw(stdscr, 0, 0, "Key: $key")
+    //wrefresh(stdscr)
 
-    while(true) {
-        var key = wgetch(fp);
-        //if(key=='w'.code) { y_offset--; }
-//        if(key=='s') { y_offset++; }
-        if(key=='w'.code) {  a--;  }
-        if(key=='s'.code) {  a++; }
-        if(key=='q'.code) {  delwin(fp); exit(0) }
-
-        prefresh(fp,a, 0, 10,0, 40,120);
-    }
 
     /*(1..100).forEach {
         sleep(1U)
@@ -137,5 +180,4 @@ fun main() = memScoped {
     }*/
 
     //sleep(1000U)
-
 }
