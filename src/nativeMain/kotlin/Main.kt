@@ -68,16 +68,39 @@ fun main() = memScoped {
     clear();    // empty the screen
     timeout(0); // reads do not block
 
+    //nonl() as Unit /* tell curses not to do NL->CR/NL on output */
+    //cbreak() as Unit /* take input chars one at a time, no wait for \n */
+    //noecho() as Unit /* don't echo input */
+    //if (!single_step) nodelay(stdscr, TRUE)
+    //idlok(stdscr, TRUE) /* allow use of insert/delete line */
+
     val fp = newpad(32767, 120)
     scrollok(fp, true)
     //keypad(fp, true)
 
-    (1..100).forEach {
+    /*(1..100).forEach {
         //wprintw(fp, "%d - line ------------------------------------------------------------------------  \n", it);
         waddstr(fp,"*** PROCESS $it *** \n")
     }
 
-    prefresh(fp,25, 0, 10,0, 40,120);
+    prefresh(fp,25, 0, 10,0, 40,120);*/
+
+    val child = Command("adb")
+        .args("logcat", "-v", "brief")
+        .stdout(Stdio.Pipe)
+        .spawn()
+
+    val stdoutReader: com.kgit2.io.Reader? = child.getChildStdout()
+
+    (0..5000).forEach {
+        val line = stdoutReader!!.readLine()
+
+        waddstr(fp, "$line\n")
+
+        prefresh(fp, it, 0, 10,0, 40,120)
+    }
+
+    //sleep(1000U)
 
     var a=25;
     var b=0;
@@ -92,7 +115,7 @@ fun main() = memScoped {
 //        if(key=='s') { y_offset++; }
         if(key=='w'.code) {  a--;  }
         if(key=='s'.code) {  a++; }
-        if(key=='q'.code) {  exit(0) }
+        if(key=='q'.code) {  delwin(fp); exit(0) }
 
         prefresh(fp,a, 0, 10,0, 40,120);
     }
