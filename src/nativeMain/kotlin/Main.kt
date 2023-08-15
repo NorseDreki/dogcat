@@ -64,8 +64,8 @@ fun main() = memScoped {
     savetty();
     noecho();//disable auto-echoing
     cbreak();//making getch() work without a buffer I.E. raw characters
-    //keypad(stdscr, true);//allows use of special keys, namely the arrow keys
-    //clear();    // empty the screen
+    keypad(stdscr, true);//allows use of special keys, namely the arrow keys
+    clear();    // empty the screen
     timeout(0); // reads do not block
 
     val fp = newpad(32767, 120)
@@ -79,7 +79,25 @@ fun main() = memScoped {
 
     prefresh(fp,25, 0, 10,0, 40,120);
 
-    (1..100).forEach {
+    var a=25;
+    var b=0;
+    var c=0;
+    var d=40;
+    var e=120
+    var f=12;
+
+    while(true) {
+        var key = wgetch(fp);
+        //if(key=='w'.code) { y_offset--; }
+//        if(key=='s') { y_offset++; }
+        if(key=='w'.code) {  a--;  }
+        if(key=='s'.code) {  a++; }
+        if(key=='q'.code) {  exit(0) }
+
+        prefresh(fp,a, 0, 10,0, 40,120);
+    }
+
+    /*(1..100).forEach {
         sleep(1U)
         prefresh(fp,25 + it, 0, 10,0, 40,120);
     }
@@ -93,7 +111,7 @@ fun main() = memScoped {
 
         //prefresh(fp,26, 0, 10,0, 40,120);
         wscrl(fp, -1)
-    }
+    }*/
 
     //sleep(1000U)
 
