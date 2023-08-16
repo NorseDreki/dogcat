@@ -6,7 +6,9 @@ import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.memScoped
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.Flow
 import ncurses.*
+import okio.*
 import platform.posix.*
 
 val r2 = """^([A-Z])/(.+?)\( *(\d+)\): (.*?)$""".toRegex()
@@ -110,6 +112,9 @@ fun main(): Unit = memScoped {
             }
         }
 
+        val buffer = Buffer()
+        val b = buffer.peek()
+
         async(Dispatchers.Default) {
             val child = Command("adb")
                 .args("logcat", "-v", "brief")
@@ -118,15 +123,36 @@ fun main(): Unit = memScoped {
 
             val stdoutReader: com.kgit2.io.Reader? = child.getChildStdout()
 
-            var i = 0
-            while (true) {
-                val line = stdoutReader!!.readLine()
+            async {
+                (1..30).forEach {
+                    val line2 = b.readUtf8Line()
 
-                waddstr(fp, "$i $line\n")
+                    waddstr(fp, "$it $line2\n")
+                    println("$line2")
+
+                    prefresh(fp, it, 0, 10, 0, 40, 120)
+                }
+            }
+
+            var i = 0
+
+            while (true) {
+                val line = stdoutReader!!.readLine() ?: break
+
+                buffer.writeUtf8(line!!)
+
+
+                /*val line2 = b.readUtf8Line() ?: break
+
+                waddstr(fp, "$i $line2\n")
+                println("$i")
 
                 prefresh(fp, i, 0, 10,0, 40,120)
-                i++
+                i++*/
             }
+
+
+
             /*(0..5000).forEach {
                 waddstr(fp, "$it lkjhlkjhkjhlk lkhjl jlh kjhljh .......\n")
             }
@@ -136,6 +162,15 @@ fun main(): Unit = memScoped {
                 prefresh(fp, it, 0, 10, 0, 40, 120)
                 //sleep(1U)
             }*/
+        }
+
+        async(Dispatchers.Default) {
+            var i = 0
+            val b = buffer.peek()
+            while (true) {
+
+
+            }
         }
 
         /*val a1 = launch(Dispatchers.Default) {
