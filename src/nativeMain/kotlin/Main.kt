@@ -111,7 +111,23 @@ fun main(): Unit = memScoped {
         }
 
         async(Dispatchers.Default) {
-            (0..5000).forEach {
+            val child = Command("adb")
+                .args("logcat", "-v", "brief")
+                .stdout(Stdio.Pipe)
+                .spawn()
+
+            val stdoutReader: com.kgit2.io.Reader? = child.getChildStdout()
+
+            var i = 0
+            while (true) {
+                val line = stdoutReader!!.readLine()
+
+                waddstr(fp, "$i $line\n")
+
+                prefresh(fp, i, 0, 10,0, 40,120)
+                i++
+            }
+            /*(0..5000).forEach {
                 waddstr(fp, "$it lkjhlkjhkjhlk lkhjl jlh kjhljh .......\n")
             }
             (0..5000).forEach {
@@ -119,7 +135,7 @@ fun main(): Unit = memScoped {
 
                 prefresh(fp, it, 0, 10, 0, 40, 120)
                 //sleep(1U)
-            }
+            }*/
         }
 
         /*val a1 = launch(Dispatchers.Default) {
