@@ -3,13 +3,18 @@
 import com.kgit2.process.Command
 import com.kgit2.process.Stdio
 import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.memScoped
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.flow.*
 import ncurses.*
 import okio.*
 import platform.posix.*
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.microseconds
 
 val r2 = """^([A-Z])/(.+?)\( *(\d+)\): (.*?)$""".toRegex()
 
@@ -128,20 +133,36 @@ fun main(): Unit = memScoped {
             val stdoutReader: com.kgit2.io.Reader? = child.getChildStdout()
 
             while (true) {
-                val line = stdoutReader!!.readLine() ?: break
+                val line2 = stdoutReader!!.readLine() ?: break
 
-                emit(line)
+                /*val time = CValue<timespec> {
+                    tv_sec = 2
+                    tv_nsec = 500000000
+                }*/
+                //delay(1.microseconds)
+                //nanosleep()
+                //usleep(1U)
+
+                emit(line2)
+
+                yield()
             }
         }
-            //.buffer()
-/*            .shareIn(
+            //.buffer(UNLIMITED, BufferOverflow.DROP_OLDEST)
+            .shareIn(
                 this,
-                SharingStarted.WhileSubscribed(),
-                30000
-            )*/
+                SharingStarted.Lazily,
+                50000,
+                //10000
+            )
             .filter { it.contains("GL") }
+            .filter { it.contains("A") }
+            .filter { it.contains("B") }
             .withIndex()
             .onEach {
+                //waddstr(fp, "${it.index} ${it.value}")
+
+                //prefresh(fp, it.index, 0, 10, 0, 40, 120)
                 println("${it.index} ${it.value}\r")
             }
             .launchIn(this)
