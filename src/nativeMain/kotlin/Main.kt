@@ -155,15 +155,15 @@ fun main(): Unit = memScoped {
                 50000,
                 //10000
             )
-            .filter { it.contains("GL") }
-            .filter { it.contains("A") }
-            .filter { it.contains("B") }
+            //.filter { it.contains("GL") }
+            //.filter { it.contains("A") }
+            .filter { it.contains("norse") }
             .withIndex()
             .onEach {
-                //waddstr(fp, "${it.index} ${it.value}")
+                waddstr(fp, "${it.index} ${it.value}\n")
 
-                //prefresh(fp, it.index, 0, 10, 0, 40, 120)
-                println("${it.index} ${it.value}\r")
+                prefresh(fp, it.index, 0, 5, 0, 40, 130)
+                //println("${it.index} ${it.value}\r")
             }
             .launchIn(this)
 
