@@ -6,7 +6,7 @@ import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.memScoped
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.*
 import ncurses.*
 import okio.*
 import platform.posix.*
@@ -123,14 +123,30 @@ fun main(): Unit = memScoped {
 
             val stdoutReader: com.kgit2.io.Reader? = child.getChildStdout()
 
+            val cf : Flow<Int> = flowOf(1)
+
+            coroutineScope {
+
+            }
+
             async {
-                (1..30).forEach {
+                //(1..30).forEach {
+                var i = 0;
+                while (!b.exhausted()) {
+
+                }
+                while (true) {
                     val line2 = b.readUtf8Line()
 
-                    waddstr(fp, "$it $line2\n")
-                    println("$line2")
+                    if (line2 != null) {
+                        waddstr(fp, "$i $line2")
+                        //println("$i $line2\n")
 
-                    prefresh(fp, it, 0, 10, 0, 40, 120)
+                        prefresh(fp, i, 0, 10, 0, 40, 120)
+                        i++
+                    }
+
+                    sleep(1U)
                 }
             }
 
@@ -139,7 +155,7 @@ fun main(): Unit = memScoped {
             while (true) {
                 val line = stdoutReader!!.readLine() ?: break
 
-                buffer.writeUtf8(line!!)
+                buffer.writeUtf8(line)
 
 
                 /*val line2 = b.readUtf8Line() ?: break
