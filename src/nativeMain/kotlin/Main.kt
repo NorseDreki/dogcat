@@ -90,15 +90,19 @@ fun main(): Unit = memScoped {
 
     runBlocking {
         val a2 = async(Dispatchers.Default) {
-            var a=25;
+            var a = 25;
 
-            while(true) {
+            while (true) {
                 var key = wgetch(stdscr);
                 //if(key=='w'.code) { y_offset--; }
 //        if(key=='s') { y_offset++; }
-                if(key=='w'.code) {  a--;  }
-                if(key=='s'.code) {  a++; }
-                if(key=='q'.code) {  delwin(fp); exit(0) }
+                if (key == 'w'.code) {
+                    a--; }
+                if (key == 's'.code) {
+                    a++; }
+                if (key == 'q'.code) {
+                    delwin(fp); exit(0)
+                }
 
                 //prefresh(fp,a, 0, 10,0, 40,120);
 
@@ -115,7 +119,7 @@ fun main(): Unit = memScoped {
         val buffer = Buffer()
         val b = buffer.peek()
 
-        async(Dispatchers.Default) {
+        flow {
             val child = Command("adb")
                 .args("logcat", "-v", "brief")
                 .stdout(Stdio.Pipe)
@@ -123,7 +127,34 @@ fun main(): Unit = memScoped {
 
             val stdoutReader: com.kgit2.io.Reader? = child.getChildStdout()
 
-            val cf : Flow<Int> = flowOf(1)
+            while (true) {
+                val line = stdoutReader!!.readLine() ?: break
+
+                emit(line)
+            }
+        }
+            //.buffer()
+/*            .shareIn(
+                this,
+                SharingStarted.WhileSubscribed(),
+                30000
+            )*/
+            .filter { it.contains("GL") }
+            .withIndex()
+            .onEach {
+                println("${it.index} ${it.value}\r")
+            }
+            .launchIn(this)
+
+/*        async(Dispatchers.Default) {
+            val child = Command("adb")
+                .args("logcat", "-v", "brief")
+                .stdout(Stdio.Pipe)
+                .spawn()
+
+            val stdoutReader: com.kgit2.io.Reader? = child.getChildStdout()
+
+            val cf: Flow<Int> = flowOf(1)
 
             coroutineScope {
 
@@ -146,6 +177,7 @@ fun main(): Unit = memScoped {
                         i++
                     }
 
+                    // try yield()
                     sleep(1U)
                 }
             }
@@ -158,18 +190,17 @@ fun main(): Unit = memScoped {
                 buffer.writeUtf8(line)
 
 
-                /*val line2 = b.readUtf8Line() ?: break
+                *//*val line2 = b.readUtf8Line() ?: break
 
                 waddstr(fp, "$i $line2\n")
                 println("$i")
 
                 prefresh(fp, i, 0, 10,0, 40,120)
-                i++*/
+                i++*//*
             }
 
 
-
-            /*(0..5000).forEach {
+            *//*(0..5000).forEach {
                 waddstr(fp, "$it lkjhlkjhkjhlk lkhjl jlh kjhljh .......\n")
             }
             (0..5000).forEach {
@@ -177,17 +208,17 @@ fun main(): Unit = memScoped {
 
                 prefresh(fp, it, 0, 10, 0, 40, 120)
                 //sleep(1U)
-            }*/
-        }
+            }*//*
+        }*/
 
-        async(Dispatchers.Default) {
+        /*async(Dispatchers.Default) {
             var i = 0
             val b = buffer.peek()
             while (true) {
 
 
             }
-        }
+        }*/
 
         /*val a1 = launch(Dispatchers.Default) {
             val child = Command("adb")
@@ -216,8 +247,6 @@ fun main(): Unit = memScoped {
             }*//*
         }*/
         //defer {  }
-
-
 
 
         //awaitAll(a2, a1)
