@@ -2,10 +2,7 @@
 
 import com.kgit2.process.Command
 import com.kgit2.process.Stdio
-import kotlinx.cinterop.CPointer
-import kotlinx.cinterop.CValue
-import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
@@ -97,7 +94,7 @@ fun show() {
     getch()
 }
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalCoroutinesApi::class)
 fun main(): Unit = memScoped {
     setlocale(LC_CTYPE, "")
     //setlocale(LC_ALL, "en_US.UTF-8");
@@ -127,6 +124,52 @@ fun main(): Unit = memScoped {
     prefresh(fp,25, 0, 10,0, 40,120);*/
 
     runBlocking {
+
+        val lg = flow {
+            val child = Command("adb")
+                .args("logcat", "-v", "brief")
+                .stdout(Stdio.Pipe)
+                .spawn()
+
+            val stdoutReader: com.kgit2.io.Reader? = child.getChildStdout()
+
+            while (true) {
+                val line2 = stdoutReader!!.readLine() ?: break
+                //delay(1.microseconds)
+                emit(line2)
+
+                yield()
+            }
+        }
+            //.buffer(UNLIMITED, BufferOverflow.DROP_OLDEST)
+            .shareIn(
+                this,
+                SharingStarted.Lazily,
+                50000,
+                //10000
+            )
+
+        val st = flow<String> {
+            emit("norse")
+            delay(10000)
+
+            emit("upwork")
+            delay(10000)
+
+            emit("abc")
+            delay(10000)
+
+            emit("11111")
+            delay(10000)
+        }.onEach {
+            println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ ------------------------------------- $it \n")
+        }
+
+        val s = sequence<String> {
+            yield("norse")
+            //delay(10000)
+        }
+
         val a2 = async(Dispatchers.Default) {
             var a = 25;
 
@@ -134,6 +177,58 @@ fun main(): Unit = memScoped {
                 var key = wgetch(stdscr);
                 //if(key=='w'.code) { y_offset--; }
 //        if(key=='s') { y_offset++; }
+
+                //var input: CValuesRef<ByteVar> = CValuesRef<>()
+                //wgetstr(stdscr, input)
+
+
+                if (key == 'z'.code) {
+
+                    val terms = flowOf("norse")//, "upwork", "1111", "abc")
+
+                    terms
+                        //.onEach { delay(10000) }
+                        .flatMapLatest {
+                            qq -> lg.filter { it.contains(qq) }
+                        }
+                        .withIndex()
+                        .onEach {
+                            if (it.value != null) {
+                                println("${it.index} ${it.value} \r\n")
+                                //waddstr(fp, "${it.index} ${it.value}\n")
+
+                                //prefresh(fp, it.index, 0, 5, 0, 40, 130)
+                            }
+                            //
+                        }
+                        .launchIn(this)
+
+                    val fl = flowOf("norse")//.delayEach()//.onEach { delay(10000) }
+
+                    /*val lll: Flow<String?> = combine(lg, fl) { l, r ->
+
+                        if (l.contains(r)) {
+                            l
+                        } else {
+                            null
+                        }
+                    }
+
+                    lll
+                        .withIndex()
+                        .onEach {
+                            if (it.value != null) {
+                                println("${it.index} ${it.value} \r\n")
+                                //waddstr(fp, "${it.index} ${it.value}\n")
+
+                                //prefresh(fp, it.index, 0, 5, 0, 40, 130)
+                            }
+                            //
+                        }
+                        .launchIn(this)*/
+                }
+
+
                 if (key == 'w'.code) {
                     a--; }
                 if (key == 's'.code) {
@@ -157,40 +252,10 @@ fun main(): Unit = memScoped {
         val buffer = Buffer()
         val b = buffer.peek()
 
-        flow {
-            val child = Command("adb")
-                .args("logcat", "-v", "brief")
-                .stdout(Stdio.Pipe)
-                .spawn()
 
-            val stdoutReader: com.kgit2.io.Reader? = child.getChildStdout()
-
-            while (true) {
-                val line2 = stdoutReader!!.readLine() ?: break
-
-                /*val time = CValue<timespec> {
-                    tv_sec = 2
-                    tv_nsec = 500000000
-                }*/
-                //delay(1.microseconds)
-                //nanosleep()
-                //usleep(1U)
-
-                emit(line2)
-
-                yield()
-            }
-        }
-            //.buffer(UNLIMITED, BufferOverflow.DROP_OLDEST)
-            .shareIn(
-                this,
-                SharingStarted.Lazily,
-                50000,
-                //10000
-            )
             //.filter { it.contains("GL") }
             //.filter { it.contains("A") }
-            .filter { it.contains("norse") }
+/*            .filter { it.contains("norse") }
             .withIndex()
             .onEach {
                 waddstr(fp, "${it.index} ${it.value}\n")
@@ -198,7 +263,7 @@ fun main(): Unit = memScoped {
                 prefresh(fp, it.index, 0, 5, 0, 40, 130)
                 //println("${it.index} ${it.value}\r")
             }
-            .launchIn(this)
+            .launchIn(this)*/
 
 /*        async(Dispatchers.Default) {
             val child = Command("adb")
