@@ -25,6 +25,39 @@ val postfix = "\\033[0m"
 val sqWidth = 10
 val sqHeight = 10
 
+// HomeViewModel.kt
+
+/*
+private val currentSearchQuery = MutableStateFlow("")
+private val isLoadingAutofillSuggestions = MutableStateFlow(false)
+private val isLoadingSavedLocations = MutableStateFlow(false)
+// saved locations are fetched from the local database
+private val weatherDetailsOfSavedLocations = weatherRepository.getSavedLocationsListStream()
+// whenever the current search query changes, this flow will fetch the suggested places
+// for that query.
+private val autofillSuggestions = currentSearchQuery.debounce(250)
+    .distinctUntilChanged()
+    .filter { it.isNotBlank() }
+    .mapLatest { query ->
+        isLoadingAutofillSuggestions.value = true
+        locationServicesRepository.fetchSuggestedPlacesForQuery(query)
+            .also { isLoadingAutofillSuggestions.value = false }
+    }
+
+val uiState = combine(
+    isLoadingSavedLocations, // state flow
+    isLoadingAutofillSuggestions, // state flow
+    weatherDetailsOfSavedLocations, // flow
+    autofillSuggestions // flow
+) { isLoadingSavedLocations, isLoadingAutofillSuggestions, weatherDetailsOfSavedLocations, autofillSuggestions ->
+    HomeScreenUiState(.....)
+}.stateIn(
+    scope = viewModelScope,
+    started = SharingStarted.WhileSubscribed(300),
+    initialValue = HomeScreenUiState(isLoadingSavedLocations = true)
+)
+*/
+
 val board = mutableListOf<CPointer<WINDOW>?>()
 
 fun show() {
