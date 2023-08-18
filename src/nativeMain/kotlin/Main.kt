@@ -99,12 +99,52 @@ fun main(): Unit = memScoped {
     setlocale(LC_CTYPE, "")
     //setlocale(LC_ALL, "en_US.UTF-8");
     initscr();
+    intrflush(stdscr, false);
     savetty();
     noecho();//disable auto-echoing
-    cbreak();//making getch() work without a buffer I.E. raw characters
+    /*You've set nodelay so getch will return immediately with ERR if there's no data ready from the terminal. That's why getch is returning -1 (ERR). You haven't set cbreak or raw to disable terminal buffering, so you're still getting that -- no data will come from the terminal until Enter is hit.
+
+    So add a call to cbreak() at the start (just before or after the call to nodelay()) and it should work as you expect.*/
+    //cbreak();//making getch() work without a buffer I.E. raw characters
     keypad(stdscr, true);//allows use of special keys, namely the arrow keys
     clear();    // empty the screen
-    timeout(0); // reads do not block
+    //timeout(0); // reads do not block
+    //nodelay(sdtscr)
+
+    var t  = alloc<ByteVar>()
+
+    /*val argc = alloc<IntVar>()
+    argc.value = args.size
+    val argv = alloc<CPointerVar<CPointerVar<ByteVar>>>()
+    argv.value = args.map { it.cstr.ptr }.toCValues().ptr
+    gtk_init(argc.ptr, argv.ptr)*/
+
+    //val bytePtr = allocArray<ByteVar>(200)
+
+    //wgetnstr(stdscr, bytePtr, 200)
+
+/*
+    alloc()
+
+    val str: StructType = alloc<StructType>()
+    val strPtr: CPointer<StructType> = str.ptr
+
+    val i = alloc<IntVar>()
+    i.value = 5
+    val p = i.ptr
+
+    val stringBuilder = StringBuilder()
+    val stableRef = StableRef.create(stringBuilder)
+    val cPtr = stableRef.asCPointer()
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, cPtr)
+
+    var ggg = CValuesRef<UByteVar>()
+
+    val data = null
+    var dataRef: CValuesRef<ByteVar> = CPointer(t)//cValuesOf(t)
+
+    wgetstr()
+*/
 
     //nonl() as Unit /* tell curses not to do NL->CR/NL on output */
     //cbreak() as Unit /* take input chars one at a time, no wait for \n */
@@ -113,6 +153,11 @@ fun main(): Unit = memScoped {
     //idlok(stdscr, TRUE) /* allow use of insert/delete line */
 
     val fp = newpad(32767, 120)
+
+    //val ttt = cValuesOf(t)
+
+    //wgetstr(fp, ggg)
+
     scrollok(fp, true)
     //keypad(fp, true)
 
@@ -174,7 +219,15 @@ fun main(): Unit = memScoped {
             var a = 25;
 
             while (true) {
-                var key = wgetch(stdscr);
+                val bytePtr = allocArray<ByteVar>(200)
+
+                getnstr(bytePtr, 200)
+
+                println(">>>>>>>>>>>>>\n")
+                println(bytePtr.toKString())
+                println(">>>>>>>>>>>>>\n")
+
+                //var key = wgetch(stdscr);
                 //if(key=='w'.code) { y_offset--; }
 //        if(key=='s') { y_offset++; }
 
@@ -182,28 +235,32 @@ fun main(): Unit = memScoped {
                 //wgetstr(stdscr, input)
 
 
-                if (key == 'z'.code) {
+                //if (key == 'z'.code) {
 
-                    val terms = flowOf("norse")//, "upwork", "1111", "abc")
+                    val terms = flowOf(bytePtr.toKString())//, "upwork", "1111", "abc")
 
-                    terms
+                    /*terms
                         //.onEach { delay(10000) }
                         .flatMapLatest {
                             qq -> lg.filter { it.contains(qq) }
-                        }
+                        }*/
+                yield()
+
+                    lg
+                        .filter { it.contains(bytePtr.toKString()) }
+                        //.take(10)
                         .withIndex()
                         .onEach {
-                            if (it.value != null) {
+                            //if (it.value != null) {
                                 println("${it.index} ${it.value} \r\n")
                                 //waddstr(fp, "${it.index} ${it.value}\n")
 
                                 //prefresh(fp, it.index, 0, 5, 0, 40, 130)
-                            }
+                            //}
                             //
                         }
                         .launchIn(this)
 
-                    val fl = flowOf("norse")//.delayEach()//.onEach { delay(10000) }
 
                     /*val lll: Flow<String?> = combine(lg, fl) { l, r ->
 
@@ -226,22 +283,22 @@ fun main(): Unit = memScoped {
                             //
                         }
                         .launchIn(this)*/
-                }
+                //}
 
 
-                if (key == 'w'.code) {
+                /*if (key == 'w'.code) {
                     a--; }
                 if (key == 's'.code) {
                     a++; }
                 if (key == 'q'.code) {
                     delwin(fp); exit(0)
-                }
+                }*/
 
                 //prefresh(fp,a, 0, 10,0, 40,120);
 
                 //mvprintw(0, 0, "Input: $key");
 
-                wprintw(stdscr, "Key: $key")
+                //wprintw(stdscr, "Key: $key")
                 wrefresh(stdscr)
                 clrtoeol();
 
