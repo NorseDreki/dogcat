@@ -194,31 +194,60 @@ fun main(): Unit = memScoped {
                 //10000
             )
 
-        val st = flow<String> {
-            emit("norse")
-            delay(10000)
-
-            emit("upwork")
-            delay(10000)
-
-            emit("abc")
-            delay(10000)
-
-            emit("11111")
-            delay(10000)
-        }.onEach {
-            println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ ------------------------------------- $it \n")
-        }
-
-        val s = sequence<String> {
-            yield("norse")
-            //delay(10000)
-        }
-
         val a2 = async(Dispatchers.Default) {
             var a = 25;
 
             while (true) {
+                var key = wgetch(stdscr);
+
+                when (key) {
+                    'f'.code -> {
+                        mvwprintw(stdscr, 0, 0, ":")
+                        clrtoeol()
+                        echo()
+
+                        val bytePtr = allocArray<ByteVar>(200)
+
+                        getnstr(bytePtr, 200)
+
+                        noecho()
+
+                        lg
+                            .filter { it.contains(bytePtr.toKString()) }
+                            //.take(10)
+                            //.take(10)
+                            .withIndex()
+                            .onEach {
+                                //if (it.value != null) {
+                                //println("${it.index} ${it.value} \r\n")
+                                waddstr(fp, "${it.index} ${it.value}\n")
+
+                                prefresh(fp, it.index, 0, 5, 0, 55, 130)
+
+                                a = it.index
+
+                                yield()
+                                //}
+                                //
+                            }
+                            .launchIn(this)
+                        yield()
+                    }
+                    'q'.code -> {
+                        delwin(fp); exit(0)
+                    }
+                    'w'.code -> {
+                        a--
+                        prefresh(fp, a, 0, 5,0, 55,130);
+                    }
+                    's'.code -> {
+                        a++
+                        prefresh(fp, a, 0, 5,0, 55,130);
+                    }
+                }
+            }
+
+            while (false) {
                 val bytePtr = allocArray<ByteVar>(200)
 
                 getnstr(bytePtr, 200)
@@ -244,7 +273,8 @@ fun main(): Unit = memScoped {
                         .flatMapLatest {
                             qq -> lg.filter { it.contains(qq) }
                         }*/
-                yield()
+
+
 
                     lg
                         .filter { it.contains(bytePtr.toKString()) }
@@ -305,10 +335,6 @@ fun main(): Unit = memScoped {
                 sleep(1U)
             }
         }
-
-        val buffer = Buffer()
-        val b = buffer.peek()
-
 
             //.filter { it.contains("GL") }
             //.filter { it.contains("A") }
