@@ -115,6 +115,8 @@ fun main(): Unit = memScoped {
     //timeout(0); // reads do not block
     //nodelay(sdtscr)
 
+
+
     var t  = alloc<ByteVar>()
 
     /*val argc = alloc<IntVar>()
@@ -156,7 +158,11 @@ fun main(): Unit = memScoped {
     //if (!single_step) nodelay(stdscr, TRUE)
     //idlok(stdscr, TRUE) /* allow use of insert/delete line */
 
-    val fp = newpad(32767, 120)
+    val sx = getmaxx(stdscr)
+    val sy = getmaxy(stdscr)
+
+
+    val fp = newpad(32767, sx)
     scrollok(fp, true)
 
     //val ttt = cValuesOf(t)
@@ -207,7 +213,10 @@ fun main(): Unit = memScoped {
 
                 when (key) {
                     'f'.code -> {
-                        mvwprintw(stdscr, 0, 0, ":")
+
+
+
+                        mvwprintw(stdscr, 0, 0, "$sx:$sy")
                         clrtoeol()
                         echo()
 
@@ -232,7 +241,7 @@ fun main(): Unit = memScoped {
                                 //println("${it.index} ${it.value} \r\n")
                                 waddstr(fp, "${it.index} ${it.value}\n")
 
-                                prefresh(fp, it.index, 0, 5, 0, 55, 130)
+                                prefresh(fp, it.index, 0, 3, 0, sy-1, sx)
 
                                 a = it.index
 
@@ -248,11 +257,11 @@ fun main(): Unit = memScoped {
                     }
                     'w'.code -> {
                         a--
-                        prefresh(fp, a, 0, 5,0, 55,130);
+                        prefresh(fp, a, 0, 3,0, sy-1, sx);
                     }
                     's'.code -> {
                         a++
-                        prefresh(fp, a, 0, 5,0, 55,130);
+                        prefresh(fp, a, 0, 3,0, sy-1, sx);
                     }
                 }
             }
