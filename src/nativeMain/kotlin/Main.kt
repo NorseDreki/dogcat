@@ -104,8 +104,12 @@ fun main(): Unit = memScoped {
     noecho();//disable auto-echoing
     /*You've set nodelay so getch will return immediately with ERR if there's no data ready from the terminal. That's why getch is returning -1 (ERR). You haven't set cbreak or raw to disable terminal buffering, so you're still getting that -- no data will come from the terminal until Enter is hit.
 
-    So add a call to cbreak() at the start (just before or after the call to nodelay()) and it should work as you expect.*/
+    So add a call to cbreak() at the start (just before or after the call to nodelay()) and it should work as you expect.
+    Applications will also commonly need to react to keys instantly, without requiring the Enter key to be pressed; this is called cbreak mode, as opposed to the usual buffered input mode.
+    */
     //cbreak();//making getch() work without a buffer I.E. raw characters
+
+    //Terminals usually return special keys, such as the cursor keys or navigation keys such as Page Up and Home, as a multibyte escape sequence. While you could write your application to expect such sequences and process them accordingly, curses can do it for you, returning a special value such as curses.KEY_LEFT. To get curses to do the job, you’ll have to enable keypad mode.
     keypad(stdscr, true);//allows use of special keys, namely the arrow keys
     clear();    // empty the screen
     //timeout(0); // reads do not block
@@ -153,12 +157,12 @@ fun main(): Unit = memScoped {
     //idlok(stdscr, TRUE) /* allow use of insert/delete line */
 
     val fp = newpad(32767, 120)
+    scrollok(fp, true)
 
     //val ttt = cValuesOf(t)
 
     //wgetstr(fp, ggg)
 
-    scrollok(fp, true)
     //keypad(fp, true)
 
     /*(1..100).forEach {
@@ -191,11 +195,12 @@ fun main(): Unit = memScoped {
                 this,
                 SharingStarted.Lazily,
                 50000,
-                //10000
             )
 
         val a2 = async(Dispatchers.Default) {
             var a = 25;
+
+            var j: Job? = null
 
             while (true) {
                 var key = wgetch(stdscr);
@@ -212,7 +217,12 @@ fun main(): Unit = memScoped {
 
                         noecho()
 
-                        lg
+                        wclear(fp)
+                        //clear()
+                        yield()
+                        j?.cancelAndJoin()
+
+                        j = lg
                             .filter { it.contains(bytePtr.toKString()) }
                             //.take(10)
                             //.take(10)
