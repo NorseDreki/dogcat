@@ -181,6 +181,14 @@ fun main(): Unit = memScoped {
                     'q'.code -> {
                         delwin(fp); exit(0)
                     }
+                    'a'.code -> {
+                        a = 0
+                        prefresh(fp, 0, 0, 3,0, sy-1, sx);
+                    }
+                    'z'.code -> {
+                        /*a = 0
+                        prefresh(fp, 0, 0, 3,0, sy-1, sx);*/
+                    }
                     'w'.code -> {
                         a--
                         prefresh(fp, a, 0, 3,0, sy-1, sx);
