@@ -18,20 +18,20 @@ val r2 = """^([A-Z])/(.+?)\( *(\d+)\): (.*?)$""".toRegex()
 val prefix = "\\033[31;1;4m"
 val postfix = "\\033[0m"
 
+val greenColor = "\u001b[31;1;4m"
+val reset = "\u001b[0m" // to reset color to the default
+val name = greenColor + "Alex" + reset // Add green only to Alex
+val sm = "\u001b[263a]"
 
-val sqWidth = 10
-val sqHeight = 10
+/*val m = r2.matchEntire(line)
+if (m != null) {
+    //   println("11111 $line")
+    val (level, tag, owner, message) = m.destructured
 
-// HomeViewModel.kt
+    //println(line)
+}*/
 
 /*
-private val currentSearchQuery = MutableStateFlow("")
-private val isLoadingAutofillSuggestions = MutableStateFlow(false)
-private val isLoadingSavedLocations = MutableStateFlow(false)
-// saved locations are fetched from the local database
-private val weatherDetailsOfSavedLocations = weatherRepository.getSavedLocationsListStream()
-// whenever the current search query changes, this flow will fetch the suggested places
-// for that query.
 private val autofillSuggestions = currentSearchQuery.debounce(250)
     .distinctUntilChanged()
     .filter { it.isNotBlank() }
@@ -40,59 +40,7 @@ private val autofillSuggestions = currentSearchQuery.debounce(250)
         locationServicesRepository.fetchSuggestedPlacesForQuery(query)
             .also { isLoadingAutofillSuggestions.value = false }
     }
-
-val uiState = combine(
-    isLoadingSavedLocations, // state flow
-    isLoadingAutofillSuggestions, // state flow
-    weatherDetailsOfSavedLocations, // flow
-    autofillSuggestions // flow
-) { isLoadingSavedLocations, isLoadingAutofillSuggestions, weatherDetailsOfSavedLocations, autofillSuggestions ->
-    HomeScreenUiState(.....)
-}.stateIn(
-    scope = viewModelScope,
-    started = SharingStarted.WhileSubscribed(300),
-    initialValue = HomeScreenUiState(isLoadingSavedLocations = true)
-)
 */
-
-val board = mutableListOf<CPointer<WINDOW>?>()
-
-fun show() {
-    /*initscr()
-    defer { endwin() }
-    noecho()
-    curs_set(0)
-    halfdelay(2)
-*/
-    initscr()
-    noecho()
-    cbreak()
-    refresh()
-
-    var starty = 0
-    for (i in 0..10) {
-        board.add(newwin(sqHeight, sqWidth, starty, i * sqWidth))
-    }
-    starty = sqHeight
-    for (i in 0..10) {
-        board.add(newwin(sqHeight, sqWidth, starty, i * sqWidth))
-    }
-    starty = sqHeight * 2
-    for (i in 0..10) {
-        board.add(newwin(sqHeight, sqWidth, starty, i * sqWidth))
-    }
-
-    for (window in board) {
-        if (window == null) {
-            println("Window was null!!")
-        } else {
-            box(window, 0U, 0U);
-            wrefresh(window);
-        }
-    }
-
-    getch()
-}
 
 @OptIn(ExperimentalForeignApi::class, ExperimentalCoroutinesApi::class)
 fun main(): Unit = memScoped {
@@ -114,20 +62,14 @@ fun main(): Unit = memScoped {
     clear();    // empty the screen
     //timeout(0); // reads do not block
     //nodelay(sdtscr)
-
-
-
-    var t  = alloc<ByteVar>()
+    //curs_set(0)
+    //halfdelay(2)
 
     /*val argc = alloc<IntVar>()
     argc.value = args.size
     val argv = alloc<CPointerVar<CPointerVar<ByteVar>>>()
     argv.value = args.map { it.cstr.ptr }.toCValues().ptr
     gtk_init(argc.ptr, argv.ptr)*/
-
-    //val bytePtr = allocArray<ByteVar>(200)
-
-    //wgetnstr(stdscr, bytePtr, 200)
 
 /*
     alloc()
@@ -161,22 +103,9 @@ fun main(): Unit = memScoped {
     val sx = getmaxx(stdscr)
     val sy = getmaxy(stdscr)
 
-
     val fp = newpad(32767, sx)
     scrollok(fp, true)
-
-    //val ttt = cValuesOf(t)
-
-    //wgetstr(fp, ggg)
-
     //keypad(fp, true)
-
-    /*(1..100).forEach {
-        //wprintw(fp, "%d - line ------------------------------------------------------------------------  \n", it);
-        waddstr(fp,"*** PROCESS $it *** \n")
-    }
-
-    prefresh(fp,25, 0, 10,0, 40,120);*/
 
     runBlocking {
 
@@ -213,9 +142,6 @@ fun main(): Unit = memScoped {
 
                 when (key) {
                     'f'.code -> {
-
-
-
                         mvwprintw(stdscr, 0, 0, "$sx:$sy")
                         clrtoeol()
                         echo()
@@ -271,182 +197,8 @@ fun main(): Unit = memScoped {
                         a -= sy-1-3
                         prefresh(fp, a, 0, 3,0, sy-1, sx);
                     }
-
-                    lll
-                        .withIndex()
-                        .onEach {
-                            if (it.value != null) {
-                                println("${it.index} ${it.value} \r\n")
-                                //waddstr(fp, "${it.index} ${it.value}\n")
-
-                                //prefresh(fp, it.index, 0, 5, 0, 40, 130)
-                            }
-                            //
-                        }
-                        .launchIn(this)*/
-                //}
-
-
-                /*if (key == 'w'.code) {
-                    a--; }
-                if (key == 's'.code) {
-                    a++; }
-                if (key == 'q'.code) {
-                    delwin(fp); exit(0)
-                }*/
-
-                //prefresh(fp,a, 0, 10,0, 40,120);
-
-                //mvprintw(0, 0, "Input: $key");
-
-                //wprintw(stdscr, "Key: $key")
-                wrefresh(stdscr)
-                clrtoeol();
-
-                sleep(1U)
+                }
             }
         }
-
-            //.filter { it.contains("GL") }
-            //.filter { it.contains("A") }
-/*            .filter { it.contains("norse") }
-            .withIndex()
-            .onEach {
-                waddstr(fp, "${it.index} ${it.value}\n")
-
-                prefresh(fp, it.index, 0, 5, 0, 40, 130)
-                //println("${it.index} ${it.value}\r")
-            }
-            .launchIn(this)*/
-
-/*        async(Dispatchers.Default) {
-            val child = Command("adb")
-                .args("logcat", "-v", "brief")
-                .stdout(Stdio.Pipe)
-                .spawn()
-
-            val stdoutReader: com.kgit2.io.Reader? = child.getChildStdout()
-
-            val cf: Flow<Int> = flowOf(1)
-
-            coroutineScope {
-
-            }
-
-            async {
-                //(1..30).forEach {
-                var i = 0;
-                while (!b.exhausted()) {
-
-                }
-                while (true) {
-                    val line2 = b.readUtf8Line()
-
-                    if (line2 != null) {
-                        waddstr(fp, "$i $line2")
-                        //println("$i $line2\n")
-
-                        prefresh(fp, i, 0, 10, 0, 40, 120)
-                        i++
-                    }
-
-                    // try yield()
-                    sleep(1U)
-                }
-            }
-
-            var i = 0
-
-            while (true) {
-                val line = stdoutReader!!.readLine() ?: break
-
-                buffer.writeUtf8(line)
-
-
-                *//*val line2 = b.readUtf8Line() ?: break
-
-                waddstr(fp, "$i $line2\n")
-                println("$i")
-
-                prefresh(fp, i, 0, 10,0, 40,120)
-                i++*//*
-            }
-
-
-            *//*(0..5000).forEach {
-                waddstr(fp, "$it lkjhlkjhkjhlk lkhjl jlh kjhljh .......\n")
-            }
-            (0..5000).forEach {
-             //   waddstr(fp, "$it lkjhlkjhkjhlk lkhjl jlh kjhljh .......\n")
-
-                prefresh(fp, it, 0, 10, 0, 40, 120)
-                //sleep(1U)
-            }*//*
-        }*/
-
-        /*async(Dispatchers.Default) {
-            var i = 0
-            val b = buffer.peek()
-            while (true) {
-
-
-            }
-        }*/
-
-        /*val a1 = launch(Dispatchers.Default) {
-            val child = Command("adb")
-                .args("logcat", "-v", "brief")
-                .stdout(Stdio.Pipe)
-                .spawn()
-
-            val stdoutReader: com.kgit2.io.Reader? = child.getChildStdout()
-
-            var i = 0
-            while (true) {
-                val line = stdoutReader!!.readLine()
-
-                waddstr(fp, "$i $line\n")
-
-                prefresh(fp, i, 0, 10,0, 40,120)
-                i++
-            }
-
-            *//*(0..5000).forEach {
-                val line = stdoutReader!!.readLine()
-
-                waddstr(fp, "$line\n")
-
-                prefresh(fp, it, 0, 10,0, 40,120)
-            }*//*
-        }*/
-        //defer {  }
-
-
-        //awaitAll(a2, a1)
     }
-
-    //sleep(1000U)
-
-    //getstr(aaa)
-    //mvwprintw(stdscr, 0, 0, "Key: $key")
-    //wrefresh(stdscr)
-
-
-    /*(1..100).forEach {
-        sleep(1U)
-        prefresh(fp,25 + it, 0, 10,0, 40,120);
-    }
-
-    sleep(1000U)
-//    exit(0)
-    while (true) {
-        //val ch = getwchar()
-
-        val ll = getch()
-
-        //prefresh(fp,26, 0, 10,0, 40,120);
-        wscrl(fp, -1)
-    }*/
-
-    //sleep(1000U)
 }
