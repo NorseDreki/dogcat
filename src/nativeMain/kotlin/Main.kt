@@ -263,61 +263,13 @@ fun main(): Unit = memScoped {
                         a++
                         prefresh(fp, a, 0, 3,0, sy-1, sx);
                     }
-                }
-            }
-
-            while (false) {
-                val bytePtr = allocArray<ByteVar>(200)
-
-                getnstr(bytePtr, 200)
-
-                println(">>>>>>>>>>>>>\n")
-                println(bytePtr.toKString())
-                println(">>>>>>>>>>>>>\n")
-
-                //var key = wgetch(stdscr);
-                //if(key=='w'.code) { y_offset--; }
-//        if(key=='s') { y_offset++; }
-
-                //var input: CValuesRef<ByteVar> = CValuesRef<>()
-                //wgetstr(stdscr, input)
-
-
-                //if (key == 'z'.code) {
-
-                    val terms = flowOf(bytePtr.toKString())//, "upwork", "1111", "abc")
-
-                    /*terms
-                        //.onEach { delay(10000) }
-                        .flatMapLatest {
-                            qq -> lg.filter { it.contains(qq) }
-                        }*/
-
-
-
-                    lg
-                        .filter { it.contains(bytePtr.toKString()) }
-                        //.take(10)
-                        .withIndex()
-                        .onEach {
-                            //if (it.value != null) {
-                                println("${it.index} ${it.value} \r\n")
-                                //waddstr(fp, "${it.index} ${it.value}\n")
-
-                                //prefresh(fp, it.index, 0, 5, 0, 40, 130)
-                            //}
-                            //
-                        }
-                        .launchIn(this)
-
-
-                    /*val lll: Flow<String?> = combine(lg, fl) { l, r ->
-
-                        if (l.contains(r)) {
-                            l
-                        } else {
-                            null
-                        }
+                    'd'.code -> {
+                        a += sy-1-3
+                        prefresh(fp, a, 0, 3,0, sy-1, sx);
+                    }
+                    'e'.code -> {
+                        a -= sy-1-3
+                        prefresh(fp, a, 0, 3,0, sy-1, sx);
                     }
 
                     lll
