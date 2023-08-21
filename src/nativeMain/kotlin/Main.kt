@@ -112,7 +112,7 @@ fun main(): Unit = memScoped {
 
         val logcat = Logcat()
         logcat
-            .ss
+            .sss
             .withIndex()
             .onEach {
                 //println("${it.index} ${it.value} \r\n")

@@ -7,6 +7,8 @@ import kotlinx.coroutines.flow.*
 @OptIn(ExperimentalCoroutinesApi::class)
 class Logcat {
 
+    //viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED)
+
     private val privateState = MutableStateFlow<LogcatState>(LogcatState.Waiting)
 
     val scope = CoroutineScope(Dispatchers.Default)
@@ -16,28 +18,32 @@ class Logcat {
 
     val startSubject = MutableSharedFlow<Unit>()
 
-    val filterLine = MutableStateFlow<String>("a")
+    val filterLine = MutableStateFlow<String>("")
 
     val ss = startSubject
-        .map { println("jlkhjklhkhjh -- subject") }
         .flatMapLatest {
-            println("111ljkhlkwjhfkljh flatmap")
+            println("to start logcat command")
             startLogcat()
-                .shareIn(
-                    scope,
-                    SharingStarted.Lazily,
-                    50000,
-                )
         }
-        .combine(filterLine) { left, right ->
+        .shareIn(
+            scope,
+            SharingStarted.Eagerly,
+            50000,
+        )
+
+    val sss = filterLine
+        .flatMapLatest { filter ->
+            ss.filter { it.contains(filter) }
+        }
+        /*.combine(filterLine) { left, right ->
             //println("1111111 filter [$right] item $left")
             if (left.contains(right)) {
                 left
             } else {
                 null
             }
-        }
-        .filterNotNull()
+        }*/
+        //.filterNotNull()
         //.map { colorize() }
 
     val ff = ss
