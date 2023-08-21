@@ -1,4 +1,3 @@
-import com.kgit2.io.Reader
 import com.kgit2.process.Command
 import com.kgit2.process.Stdio
 import kotlinx.coroutines.*
@@ -14,7 +13,6 @@ class Logcat {
     val scope = CoroutineScope(Dispatchers.Default)
 
     private val lines = MutableSharedFlow<String>()
-    //.filter {  }
 
     val startSubject = MutableSharedFlow<Unit>()
 
@@ -23,7 +21,7 @@ class Logcat {
     val ss = startSubject
         .flatMapLatest {
             println("to start logcat command")
-            startLogcat()
+            startLogcat().flowOn(Dispatchers.IO)
         }
         .shareIn(
             scope,
@@ -35,44 +33,24 @@ class Logcat {
         .flatMapLatest { filter ->
             ss.filter { it.contains(filter) }
         }
-        /*.combine(filterLine) { left, right ->
-            //println("1111111 filter [$right] item $left")
-            if (left.contains(right)) {
-                left
-            } else {
-                null
-            }
-        }*/
-        //.filterNotNull()
-        //.map { colorize() }
-
-    val ff = ss
-    //.filter { //level W, E }
-
 
     private fun startLogcat(): Flow<String> {
         println("11111 start LOGCAT")
+
         return flow {
+            val child = Command("adb")
+                .args("logcat", "-v", "brief")
+                .stdout(Stdio.Pipe)
+                .spawn()
 
-            println("111111111 jjjjjj")
-            //withContext(Dispatchers.IO) {
-                val child = Command("adb")
-                    .args("logcat", "-v", "brief")
-                    .stdout(Stdio.Pipe)
-                    .spawn()
+            val stdoutReader: com.kgit2.io.Reader? = child.getChildStdout()
 
-                val stdoutReader: com.kgit2.io.Reader? = child.getChildStdout()
-
-                while (true) {
-                    val line2 = stdoutReader!!.readLine() ?: break
-                    //delay(1.microseconds)
-                    emit(line2)
-
-                    //if (isActive)
-
-                    yield()
-                }
-            //}
+            while (true) {
+                val line2 = stdoutReader!!.readLine() ?: break
+                emit(line2)
+                //if (isActive)
+                yield()
+            }
         }
     }
 
@@ -88,7 +66,6 @@ class Logcat {
 
     fun processCommand(cmd: LogcatCommands) {
         println("22222222111111kjlhdf process")
-        //println("kjlhdf")
         when (cmd) {
 
             StartupAs.All -> startupAll()
@@ -127,12 +104,9 @@ class Logcat {
     }
 
     private fun startupAll() {
-        println("222 2 2 2  2  dkjfhalkjdhf")
         scope.launch {
             yield()
-            println("132lkuhgfwkjehf -- start")
             startSubject.emit(Unit)
-            println("132lkuhgfwkjehf -- emitted")
         }
     }
 }

@@ -1,17 +1,14 @@
 @file:OptIn(ExperimentalForeignApi::class)
 
-import com.kgit2.process.Command
-import com.kgit2.process.Stdio
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.withIndex
 import ncurses.*
-import okio.*
-import platform.posix.*
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.microseconds
+import platform.posix.LC_CTYPE
+import platform.posix.exit
+import platform.posix.setlocale
 
 val r2 = """^([A-Z])/(.+?)\( *(\d+)\): (.*?)$""".toRegex()
 
@@ -139,10 +136,8 @@ fun main(): Unit = memScoped {
 
                         val bytePtr = allocArray<ByteVar>(200)
                         getnstr(bytePtr, 200)
-
                         noecho()
                         wclear(fp)
-                        //clear()
 
                         logcat.processCommand(Filter.ByString(bytePtr.toKString()))
                         yield()
