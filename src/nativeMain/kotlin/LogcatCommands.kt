@@ -2,7 +2,7 @@ sealed interface LogcatCommands {
 
 }
 
-sealed interface Filter {
+sealed interface Filter : LogcatCommands {
 
     data class Package(val name: String) : Filter
 
@@ -21,11 +21,11 @@ data class FilterWith(val filter: Filter) : LogcatCommands
 
 data class ClearFilter(val filter: Filter) : LogcatCommands
 
-data class StartupAs(val filter: Filter) : LogcatCommands {
+sealed interface StartupAs : LogcatCommands {
 
     data object WithForegroundApp //: StartupAs()
 
-    data object All
+    data object All : StartupAs
 
     data object WithPackage
 }

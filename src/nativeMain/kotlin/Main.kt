@@ -71,28 +71,28 @@ fun main(): Unit = memScoped {
     argv.value = args.map { it.cstr.ptr }.toCValues().ptr
     gtk_init(argc.ptr, argv.ptr)*/
 
-/*
-    alloc()
+    /*
+        alloc()
 
-    val str: StructType = alloc<StructType>()
-    val strPtr: CPointer<StructType> = str.ptr
+        val str: StructType = alloc<StructType>()
+        val strPtr: CPointer<StructType> = str.ptr
 
-    val i = alloc<IntVar>()
-    i.value = 5
-    val p = i.ptr
+        val i = alloc<IntVar>()
+        i.value = 5
+        val p = i.ptr
 
-    val stringBuilder = StringBuilder()
-    val stableRef = StableRef.create(stringBuilder)
-    val cPtr = stableRef.asCPointer()
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, cPtr)
+        val stringBuilder = StringBuilder()
+        val stableRef = StableRef.create(stringBuilder)
+        val cPtr = stableRef.asCPointer()
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, cPtr)
 
-    var ggg = CValuesRef<UByteVar>()
+        var ggg = CValuesRef<UByteVar>()
 
-    val data = null
-    var dataRef: CValuesRef<ByteVar> = CPointer(t)//cValuesOf(t)
+        val data = null
+        var dataRef: CValuesRef<ByteVar> = CPointer(t)//cValuesOf(t)
 
-    wgetstr()
-*/
+        wgetstr()
+    */
 
     //nonl() as Unit /* tell curses not to do NL->CR/NL on output */
     //cbreak() as Unit /* take input chars one at a time, no wait for \n */
@@ -108,8 +108,33 @@ fun main(): Unit = memScoped {
     //keypad(fp, true)
 
     runBlocking {
+        var a = 25;
 
-        val lg = flow {
+        val logcat = Logcat()
+
+        println("1111111 prepare")
+        logcat
+            .ss
+            .withIndex()
+            .onEach {
+                //if (it.value != null) {
+                //println("${it.index} ${it.value} \r\n")
+                waddstr(fp, "${it.index} ${it.value}\n")
+
+                prefresh(fp, it.index, 0, 3, 0, sy - 1, sx)
+
+                a = it.index
+
+                yield()
+                //}
+                //
+            }
+            .launchIn(this)
+
+        println("1111111 waiting")
+        //yield()
+
+        /*val lg = flow {
             val child = Command("adb")
                 .args("logcat", "-v", "brief")
                 .stdout(Stdio.Pipe)
@@ -130,12 +155,12 @@ fun main(): Unit = memScoped {
                 this,
                 SharingStarted.Lazily,
                 50000,
-            )
+            )*/
 
-        val a2 = async(Dispatchers.Default) {
-            var a = 25;
-
+        launch(Dispatchers.Default) {
             var j: Job? = null
+
+            logcat.processCommand(StartupAs.All)
 
             while (true) {
                 var key = wgetch(stdscr);
@@ -154,8 +179,14 @@ fun main(): Unit = memScoped {
 
                         wclear(fp)
                         //clear()
-                        yield()
-                        j?.cancelAndJoin()
+
+                        //yield()
+
+                        println("3lhlkjhkljhlkjdh")
+
+                        logcat.processCommand(Filter.ByString(bytePtr.toKString()))
+
+                        /*j?.cancelAndJoin()
 
                         j = lg
                             .filter { it.contains(bytePtr.toKString()) }
@@ -175,35 +206,42 @@ fun main(): Unit = memScoped {
                                 //}
                                 //
                             }
-                            .launchIn(this)
+                            .launchIn(this)*/
                         yield()
                     }
+
                     'q'.code -> {
                         delwin(fp); exit(0)
                     }
+
                     'a'.code -> {
                         a = 0
-                        prefresh(fp, 0, 0, 3,0, sy-1, sx);
+                        prefresh(fp, 0, 0, 3, 0, sy - 1, sx);
                     }
+
                     'z'.code -> {
                         /*a = 0
                         prefresh(fp, 0, 0, 3,0, sy-1, sx);*/
                     }
+
                     'w'.code -> {
                         a--
-                        prefresh(fp, a, 0, 3,0, sy-1, sx);
+                        prefresh(fp, a, 0, 3, 0, sy - 1, sx);
                     }
+
                     's'.code -> {
                         a++
-                        prefresh(fp, a, 0, 3,0, sy-1, sx);
+                        prefresh(fp, a, 0, 3, 0, sy - 1, sx);
                     }
+
                     'd'.code -> {
-                        a += sy-1-3
-                        prefresh(fp, a, 0, 3,0, sy-1, sx);
+                        a += sy - 1 - 3
+                        prefresh(fp, a, 0, 3, 0, sy - 1, sx);
                     }
+
                     'e'.code -> {
-                        a -= sy-1-3
-                        prefresh(fp, a, 0, 3,0, sy-1, sx);
+                        a -= sy - 1 - 3
+                        prefresh(fp, a, 0, 3, 0, sy - 1, sx);
                     }
                 }
             }
