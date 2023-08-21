@@ -14,12 +14,6 @@ class Logcat {
     private val lines = MutableSharedFlow<String>()
     //.filter {  }
 
-    val l = lines
-        //.combine(filter) {
-        //
-        //}
-        .map { colorize() }
-
     val startSubject = MutableSharedFlow<Unit>()
 
     val filterLine = MutableStateFlow<String>("a")
@@ -29,11 +23,11 @@ class Logcat {
         .flatMapLatest {
             println("111ljkhlkwjhfkljh flatmap")
             startLogcat()
-                /*.shareIn(
+                .shareIn(
                     scope,
                     SharingStarted.Lazily,
                     50000,
-                )*/
+                )
         }
         .combine(filterLine) { left, right ->
             //println("1111111 filter [$right] item $left")
@@ -120,29 +114,6 @@ class Logcat {
                 println("next filter ${filter.substring}")
             }
         }
-
-
-        /*j?.cancelAndJoin()
-
-        j = lg
-            .filter { it.contains(bytePtr.toKString()) }
-            //.take(10)
-            //.take(10)
-            .withIndex()
-            .onEach {
-                //if (it.value != null) {
-                //println("${it.index} ${it.value} \r\n")
-                waddstr(fp, "${it.index} ${it.value}\n")
-
-                prefresh(fp, it.index, 0, 3, 0, sy - 1, sx)
-
-                a = it.index
-
-                yield()
-                //}
-                //
-            }
-            .launchIn(this)*/
     }
 
     private fun clearLogs() {

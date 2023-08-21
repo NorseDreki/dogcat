@@ -111,55 +111,21 @@ fun main(): Unit = memScoped {
         var a = 25;
 
         val logcat = Logcat()
-
-        println("1111111 prepare")
         logcat
             .ss
             .withIndex()
             .onEach {
-                //if (it.value != null) {
                 //println("${it.index} ${it.value} \r\n")
                 waddstr(fp, "${it.index} ${it.value}\n")
 
                 prefresh(fp, it.index, 0, 3, 0, sy - 1, sx)
-
                 a = it.index
 
                 yield()
-                //}
-                //
             }
             .launchIn(this)
 
-        println("1111111 waiting")
-        //yield()
-
-        /*val lg = flow {
-            val child = Command("adb")
-                .args("logcat", "-v", "brief")
-                .stdout(Stdio.Pipe)
-                .spawn()
-
-            val stdoutReader: com.kgit2.io.Reader? = child.getChildStdout()
-
-            while (true) {
-                val line2 = stdoutReader!!.readLine() ?: break
-                //delay(1.microseconds)
-                emit(line2)
-
-                yield()
-            }
-        }
-            //.buffer(UNLIMITED, BufferOverflow.DROP_OLDEST)
-            .shareIn(
-                this,
-                SharingStarted.Lazily,
-                50000,
-            )*/
-
         launch(Dispatchers.Default) {
-            var j: Job? = null
-
             logcat.processCommand(StartupAs.All)
 
             while (true) {
@@ -172,41 +138,13 @@ fun main(): Unit = memScoped {
                         echo()
 
                         val bytePtr = allocArray<ByteVar>(200)
-
                         getnstr(bytePtr, 200)
 
                         noecho()
-
                         wclear(fp)
                         //clear()
 
-                        //yield()
-
-                        println("3lhlkjhkljhlkjdh")
-
                         logcat.processCommand(Filter.ByString(bytePtr.toKString()))
-
-                        /*j?.cancelAndJoin()
-
-                        j = lg
-                            .filter { it.contains(bytePtr.toKString()) }
-                            //.take(10)
-                            //.take(10)
-                            .withIndex()
-                            .onEach {
-                                //if (it.value != null) {
-                                //println("${it.index} ${it.value} \r\n")
-                                waddstr(fp, "${it.index} ${it.value}\n")
-
-                                prefresh(fp, it.index, 0, 3, 0, sy-1, sx)
-
-                                a = it.index
-
-                                yield()
-                                //}
-                                //
-                            }
-                            .launchIn(this)*/
                         yield()
                     }
 
