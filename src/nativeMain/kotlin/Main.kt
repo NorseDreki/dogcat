@@ -44,6 +44,7 @@ fun main(): Unit = memScoped {
     init_pair(1, COLOR_RED.toShort(), COLOR_BLACK.toShort());
     init_pair(2, COLOR_GREEN.toShort(), COLOR_BLACK.toShort());
     init_pair(3, COLOR_YELLOW.toShort(), COLOR_BLACK.toShort());
+    init_pair(4, COLOR_CYAN.toShort(), COLOR_BLACK.toShort());
 
 
     //nonl() as Unit /* tell curses not to do NL->CR/NL on output */
@@ -79,27 +80,33 @@ fun main(): Unit = memScoped {
                 wattroff(fp, COLOR_PAIR(1))*/
 
                 //wattron(fp, COLOR_PAIR(2));
-                waddstr(fp, "${it.value.owner} || \n")
+                waddstr(fp, "${it.value.owner} ||")
                 //wattroff(fp, COLOR_PAIR(2));
 
-                /*when (it.value.level) {
+                when (it.value.level) {
                     "W" -> {
                         wattron(fp, COLOR_PAIR(3));
                         waddstr(fp, "${it.value.level} ||")
-                        waddstr(fp, "${it.value.owner} ||")
+                        waddstr(fp, "${it.value.message} ||\n")
                         wattroff(fp, COLOR_PAIR(3));
                     }
                     "E" -> {
                         wattron(fp, COLOR_PAIR(1));
                         waddstr(fp, "${it.value.level} ||")
-                        waddstr(fp, "${it.value.owner} ||")
+                        waddstr(fp, "${it.value.message} ||\n")
                         wattroff(fp, COLOR_PAIR(1));
+                    }
+                    "I" -> {
+                        wattron(fp, COLOR_PAIR(4));
+                        waddstr(fp, "${it.value.level} ||")
+                        waddstr(fp, "${it.value.message} ||\n")
+                        wattroff(fp, COLOR_PAIR(4));
                     }
                     else -> {
                         waddstr(fp, "${it.value.level} ||")
-                        waddstr(fp, "${it.value.owner} ||")
+                        waddstr(fp, "${it.value.message} ||\n")
                     }
-                }*/
+                }
                 //waddstr(fp, "${it.value.message} \n")
 
                 prefresh(fp, it.index, 0, 3, 0, sy - 1, sx)
