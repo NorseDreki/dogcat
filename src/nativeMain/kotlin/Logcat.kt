@@ -55,7 +55,7 @@ class Logcat {
         }
     }
 
-    private fun colorize(line: String): String {
+    private fun colorize(line: String): LogLine {
         val r2 = """^([A-Z])/(.+?)\( *(\d+)\): (.*?)$""".toRegex()
 
         val greenColor = "\u001b[31;1;4m"
@@ -69,12 +69,16 @@ class Logcat {
 
             //println(line)
 
-            "$name $level:$greenColor$tag$reset [$owner] /$message/"
+            LogLine(level, tag, owner, message)
 
-            name
+            //"$name $level:$greenColor$tag$reset [$owner] /$message/"
+
+            //name
 
         } else {
-            "ERROR"
+            //"ERROR"
+
+            LogLine("", "", "", "")
         }
     }
 
