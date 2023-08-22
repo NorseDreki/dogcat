@@ -33,6 +33,7 @@ class Logcat {
         .flatMapLatest { filter ->
             ss.filter { it.contains(filter) }
         }
+        .map { colorize(it) }
 
     private fun startLogcat(): Flow<String> {
         println("11111 start LOGCAT")
@@ -54,8 +55,27 @@ class Logcat {
         }
     }
 
-    private fun colorize(): String {
-        TODO("Not yet implemented")
+    private fun colorize(line: String): String {
+        val r2 = """^([A-Z])/(.+?)\( *(\d+)\): (.*?)$""".toRegex()
+
+        val greenColor = "\u001b[31;1;4m"
+        val reset = "\u001b[0m" // to reset color to the default
+        val name = greenColor + "Alex" + reset // Add green only to Alex
+
+        val m = r2.matchEntire(line)
+        return if (m != null) {
+            //   println("11111 $line")
+            val (level, tag, owner, message) = m.destructured
+
+            //println(line)
+
+            "$name $level:$greenColor$tag$reset [$owner] /$message/"
+
+            name
+
+        } else {
+            "ERROR"
+        }
     }
 
     fun addLine(line: String) {

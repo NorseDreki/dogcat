@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalForeignApi::class)
-
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
@@ -10,34 +8,9 @@ import platform.posix.LC_CTYPE
 import platform.posix.exit
 import platform.posix.setlocale
 
-val r2 = """^([A-Z])/(.+?)\( *(\d+)\): (.*?)$""".toRegex()
-
 val prefix = "\\033[31;1;4m"
 val postfix = "\\033[0m"
-
-val greenColor = "\u001b[31;1;4m"
-val reset = "\u001b[0m" // to reset color to the default
-val name = greenColor + "Alex" + reset // Add green only to Alex
 val sm = "\u001b[263a]"
-
-/*val m = r2.matchEntire(line)
-if (m != null) {
-    //   println("11111 $line")
-    val (level, tag, owner, message) = m.destructured
-
-    //println(line)
-}*/
-
-/*
-private val autofillSuggestions = currentSearchQuery.debounce(250)
-    .distinctUntilChanged()
-    .filter { it.isNotBlank() }
-    .mapLatest { query ->
-        isLoadingAutofillSuggestions.value = true
-        locationServicesRepository.fetchSuggestedPlacesForQuery(query)
-            .also { isLoadingAutofillSuggestions.value = false }
-    }
-*/
 
 @OptIn(ExperimentalForeignApi::class, ExperimentalCoroutinesApi::class)
 fun main(): Unit = memScoped {
