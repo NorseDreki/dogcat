@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.withIndex
 import ncurses.*
 import platform.posix.LC_CTYPE
 import platform.posix.exit
+import platform.posix.printf
 import platform.posix.setlocale
 
 val prefix = "\\033[31;1;4m"
@@ -34,41 +35,24 @@ fun main(): Unit = memScoped {
     //nodelay(sdtscr)
     //curs_set(0)
     //halfdelay(2)
+    if(!has_colors()) {
+        endwin();
+        printf("Your terminal does not support color\n");
+        exit(1);
+    }
+    start_color();			/* Start color 			*/
+    init_pair(1, COLOR_RED.toShort(), COLOR_BLACK.toShort());
+    init_pair(2, COLOR_GREEN.toShort(), COLOR_BLACK.toShort());
+    init_pair(3, COLOR_YELLOW.toShort(), COLOR_BLACK.toShort());
 
-    /*val argc = alloc<IntVar>()
-    argc.value = args.size
-    val argv = alloc<CPointerVar<CPointerVar<ByteVar>>>()
-    argv.value = args.map { it.cstr.ptr }.toCValues().ptr
-    gtk_init(argc.ptr, argv.ptr)*/
-
-    /*
-        alloc()
-
-        val str: StructType = alloc<StructType>()
-        val strPtr: CPointer<StructType> = str.ptr
-
-        val i = alloc<IntVar>()
-        i.value = 5
-        val p = i.ptr
-
-        val stringBuilder = StringBuilder()
-        val stableRef = StableRef.create(stringBuilder)
-        val cPtr = stableRef.asCPointer()
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, cPtr)
-
-        var ggg = CValuesRef<UByteVar>()
-
-        val data = null
-        var dataRef: CValuesRef<ByteVar> = CPointer(t)//cValuesOf(t)
-
-        wgetstr()
-    */
 
     //nonl() as Unit /* tell curses not to do NL->CR/NL on output */
     //cbreak() as Unit /* take input chars one at a time, no wait for \n */
     //noecho() as Unit /* don't echo input */
     //if (!single_step) nodelay(stdscr, TRUE)
     //idlok(stdscr, TRUE) /* allow use of insert/delete line */
+
+    //init_color(COLOR_RED, 700, 0, 0);
 
     val sx = getmaxx(stdscr)
     val sy = getmaxy(stdscr)
@@ -85,8 +69,38 @@ fun main(): Unit = memScoped {
             .sss
             .withIndex()
             .onEach {
-                //println("${it.index} ${it.value} \r\n")
-                waddstr(fp, "${it.index} ${it.value}\n")
+                println("${it.index} ${it.value} \r\n")
+
+                waddstr(fp, "${it.index} ")
+                waddstr(fp, "${it.value.tag} ||")
+                /*wattron(fp, COLOR_PAIR(1));
+                waddstr(fp, "${it.value.tag} ||")
+                //wprintw(fp, it.value)
+                wattroff(fp, COLOR_PAIR(1))*/
+
+                //wattron(fp, COLOR_PAIR(2));
+                waddstr(fp, "${it.value.owner} || \n")
+                //wattroff(fp, COLOR_PAIR(2));
+
+                /*when (it.value.level) {
+                    "W" -> {
+                        wattron(fp, COLOR_PAIR(3));
+                        waddstr(fp, "${it.value.level} ||")
+                        waddstr(fp, "${it.value.owner} ||")
+                        wattroff(fp, COLOR_PAIR(3));
+                    }
+                    "E" -> {
+                        wattron(fp, COLOR_PAIR(1));
+                        waddstr(fp, "${it.value.level} ||")
+                        waddstr(fp, "${it.value.owner} ||")
+                        wattroff(fp, COLOR_PAIR(1));
+                    }
+                    else -> {
+                        waddstr(fp, "${it.value.level} ||")
+                        waddstr(fp, "${it.value.owner} ||")
+                    }
+                }*/
+                //waddstr(fp, "${it.value.message} \n")
 
                 prefresh(fp, it.index, 0, 3, 0, sy - 1, sx)
                 a = it.index
@@ -103,7 +117,12 @@ fun main(): Unit = memScoped {
 
                 when (key) {
                     'f'.code -> {
+                        //wprintw(stdscr, name)
+                        //println(name)
                         mvwprintw(stdscr, 0, 0, "$sx:$sy")
+                        //mvwprintw(stdscr, 0, 0, name)
+
+
                         clrtoeol()
                         echo()
 
