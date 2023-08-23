@@ -29,11 +29,15 @@ class Logcat {
             50000,
         )
 
+    val logLevels = mutableSetOf<String>("V", "D", "I", "W", "E")
+
     val sss = filterLine
         .flatMapLatest { filter ->
-            ss.filter { it.contains(filter) }
+            ss
+                .filter { it.contains(filter) }
         }
         .map { colorize(it) }
+        .filter { logLevels.contains(it.level) }
 
     private fun startLogcat(): Flow<String> {
         println("11111 start LOGCAT")
@@ -100,10 +104,18 @@ class Logcat {
 
             is ClearFilter -> clearFilter()
             is Exclude -> TODO()
-            is Filter.ByLogLevel -> TODO()
+            is Filter.ByLogLevel -> filterByLogLevel(cmd)
             is Filter.ByString -> filterWith(cmd)
             is Filter.ByTime -> TODO()
             is Filter.Package -> TODO()
+        }
+    }
+
+    private fun filterByLogLevel(cmd: Filter.ByLogLevel) {
+        if (logLevels.contains(cmd.level)) {
+            logLevels.remove(cmd.level)
+        } else {
+            logLevels.add(cmd.level)
         }
     }
 

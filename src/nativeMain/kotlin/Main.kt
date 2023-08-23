@@ -40,6 +40,7 @@ fun main(): Unit = memScoped {
         printf("Your terminal does not support color\n");
         exit(1);
     }
+    use_default_colors()
     start_color();			/* Start color 			*/
     init_pair(1, COLOR_RED.toShort(), COLOR_BLACK.toShort());
     init_pair(2, COLOR_GREEN.toShort(), COLOR_BLACK.toShort());
@@ -58,6 +59,8 @@ fun main(): Unit = memScoped {
     val sx = getmaxx(stdscr)
     val sy = getmaxy(stdscr)
 
+
+
     val fp = newpad(32767, sx)
     scrollok(fp, true)
     //keypad(fp, true)
@@ -70,7 +73,7 @@ fun main(): Unit = memScoped {
             .sss
             .withIndex()
             .onEach {
-                println("${it.index} ${it.value} \r\n")
+                //println("${it.index} ${it.value} \r\n")
 
                 waddstr(fp, "${it.index} ")
                 waddstr(fp, "${it.value.tag} ||")
@@ -174,6 +177,21 @@ fun main(): Unit = memScoped {
                     'e'.code -> {
                         a -= sy - 1 - 3
                         prefresh(fp, a, 0, 3, 0, sy - 1, sx);
+                    }
+                    '6'.code -> {
+                        logcat.processCommand(Filter.ByLogLevel("V"))
+                    }
+                    '7'.code -> {
+                        logcat.processCommand(Filter.ByLogLevel("D"))
+                    }
+                    '8'.code -> {
+                        logcat.processCommand(Filter.ByLogLevel("I"))
+                    }
+                    '9'.code -> {
+                        logcat.processCommand(Filter.ByLogLevel("W"))
+                    }
+                    '0'.code -> {
+                        logcat.processCommand(Filter.ByLogLevel("E"))
                     }
                 }
             }
