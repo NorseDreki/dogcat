@@ -10,6 +10,17 @@ repositories {
 }
 
 kotlin {
+    /*jvm()
+    js {
+        nodejs()
+        browser()
+    }
+
+    linuxX64()
+    mingwX64()
+    macosX64()
+    macosArm64()*/
+
     val hostOs = System.getProperty("os.name")
     val isArm64 = System.getProperty("os.arch") == "aarch64"
     val isMingwX64 = hostOs.startsWith("Windows")
@@ -42,6 +53,32 @@ kotlin {
                 implementation("com.squareup.okio:okio:3.5.0")
             }
         }
-        val nativeTest by getting
+        val nativeTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+
+                implementation("io.kotest:kotest-assertions-core:5.6.2")
+                implementation("io.mockative:mockative:1.4.1")
+
+                /*implementation(kotlin("test-common"))
+                implementation(kotlin("test-annotations-common"))
+                implementation(Libs.kotest("assertions-core"))*/
+            }
+        }
+
+        /*val commonTest by getting {
+            dependencies {
+                api(kotlin("test"))
+                api("io.kotest:kotest-assertions-core:4.5.0")
+            }
+        }
+
+        val commonTest by getting {
+            dependencies {
+                implementation(libs.kotest.framework.engine)
+                implementation(libs.kotest.assertions.core)
+            }
+        }*/
     }
 }

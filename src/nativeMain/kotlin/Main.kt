@@ -9,10 +9,6 @@ import platform.posix.exit
 import platform.posix.printf
 import platform.posix.setlocale
 
-val prefix = "\\033[31;1;4m"
-val postfix = "\\033[0m"
-val sm = "\u001b[263a]"
-
 @OptIn(ExperimentalForeignApi::class, ExperimentalCoroutinesApi::class)
 fun main(): Unit = memScoped {
     setlocale(LC_CTYPE, "")
