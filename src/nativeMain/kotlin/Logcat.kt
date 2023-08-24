@@ -21,7 +21,7 @@ class Logcat {
     val ss = startSubject
         .flatMapLatest {
             println("to start logcat command")
-            startLogcat()//.flowOn(Dispatchers.IO)
+            startLogcat().flowOn(Dispatchers.IO)
         }
         .shareIn(
             scope,

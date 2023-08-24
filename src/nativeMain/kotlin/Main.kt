@@ -9,7 +9,7 @@ import platform.posix.exit
 import platform.posix.printf
 import platform.posix.setlocale
 
-@OptIn(ExperimentalForeignApi::class, ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalForeignApi::class)
 fun main(): Unit = memScoped {
     setlocale(LC_CTYPE, "")
     //setlocale(LC_ALL, "en_US.UTF-8");
@@ -42,8 +42,6 @@ fun main(): Unit = memScoped {
     init_pair(2, COLOR_GREEN.toShort(), COLOR_BLACK.toShort());
     init_pair(3, COLOR_YELLOW.toShort(), COLOR_BLACK.toShort());
     init_pair(4, COLOR_CYAN.toShort(), COLOR_BLACK.toShort());
-
-
     //nonl() as Unit /* tell curses not to do NL->CR/NL on output */
     //cbreak() as Unit /* take input chars one at a time, no wait for \n */
     //noecho() as Unit /* don't echo input */
@@ -54,8 +52,6 @@ fun main(): Unit = memScoped {
 
     val sx = getmaxx(stdscr)
     val sy = getmaxy(stdscr)
-
-
 
     val fp = newpad(32767, sx)
     scrollok(fp, true)
@@ -127,8 +123,6 @@ fun main(): Unit = memScoped {
                         //println(name)
                         mvwprintw(stdscr, 0, 0, "$sx:$sy")
                         //mvwprintw(stdscr, 0, 0, name)
-
-
                         clrtoeol()
                         echo()
 
