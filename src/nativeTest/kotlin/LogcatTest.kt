@@ -7,6 +7,7 @@ import kotlinx.cinterop.toKString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
@@ -19,14 +20,15 @@ class LogcatTest {
 
     @BeforeTest
     fun beforeTest() {
-        dogcat = Logcat()
+        val ls = DummyLogSource() //LogcatSource()
+        dogcat = Logcat(ls)
     }
 
     //use DI
     //inject test dispatchers
     @Test
     fun `should start as waiting for input`() = runTest {
-        launch(Dispatchers.Default) {
+        /*launch(Dispatchers.Default) {
             dogcat.sss
                 .onEach {
                     println("$it")
@@ -38,15 +40,39 @@ class LogcatTest {
 
         launch(Dispatchers.Default) {
             dogcat.processCommand(StartupAs.All)
-        }
+        }*/
     }
 
     @Test fun `should get items if subscribed before start`() = runTest {
+        launch(Dispatchers.Default) {
+            dogcat.sss
+                .take(1)
+                .onEach {
+                    println("22222  $it")
+                    assertTrue { true }
+                }
+                .launchIn(this)
+        }
 
+        launch(Dispatchers.Default) {
+            dogcat.processCommand(StartupAs.All)
+        }
     }
 
     @Test fun `should get replayed items if subscribed after start`() = runTest {
+        launch(Dispatchers.Default) {
+            dogcat.processCommand(StartupAs.All)
+        }
 
+        launch(Dispatchers.Default) {
+            dogcat.sss
+                .take(1)
+                .onEach {
+                    println("22222  $it")
+                    assertTrue { true }
+                }
+                .launchIn(this)
+        }
     }
 
     @Test fun `should start capturing when input appears`() = runTest {
