@@ -16,14 +16,14 @@ class Logcat(
 
     private val lines = MutableSharedFlow<String>()
 
-    val startSubject = MutableSharedFlow<Unit>()
+    val startSubject = MutableSharedFlow<Unit>(1)
 
     val filterLine = MutableStateFlow<String>("")
 
     val ss = startSubject
         .flatMapLatest {
             println("to start logcat command")
-            logSource.lines()//.flowOn(Dispatchers.IO)
+            logSource.lines().flowOn(Dispatchers.IO)  //Inject instead
         }
         .shareIn(
             scope,
@@ -126,7 +126,7 @@ class Logcat(
         println("jhkjhkjh")
         scope.launch {
             println("jhkjhkjh  11111")
-            yield()
+            //yield()
             startSubject.emit(Unit)
         }
     }

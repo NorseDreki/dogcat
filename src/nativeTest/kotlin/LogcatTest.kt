@@ -5,9 +5,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import kotlinx.cinterop.toKString
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
@@ -43,23 +41,40 @@ class LogcatTest {
         }*/
     }
 
-    @Test fun `should get items if subscribed before start`() = runTest {
-        launch(Dispatchers.Default) {
-            dogcat.sss
-                .take(1)
-                .onEach {
-                    println("22222  $it")
-                    assertTrue { true }
-                }
-                .launchIn(this)
-        }
+    @Test fun `log lines flow does not complete`() = runTest {
 
-        launch(Dispatchers.Default) {
-            dogcat.processCommand(StartupAs.All)
-        }
     }
 
-    @Test fun `should get replayed items if subscribed after start`() = runTest {
+    @Test fun `get log lines if subscribed before launch`() = runTest {
+
+        println("sssss")
+
+
+        val j = launch {
+            println("sssss111")
+            dogcat.sss
+                .take(8)
+                .onEach {
+                    println("22222  $it")
+                    //assertTrue { true }
+                }
+                .onCompletion { println("completed") }
+                .catch {  }
+                .collect()
+        }
+
+        println("pr comm")
+        //launch {
+        dogcat.processCommand(StartupAs.All)
+        //}
+
+        println("after pr comm")
+
+        //yield()
+        j.join()
+    }
+
+    @Test fun `get replayed items if subscribed after start`() = runTest {
         launch(Dispatchers.Default) {
             dogcat.processCommand(StartupAs.All)
         }
