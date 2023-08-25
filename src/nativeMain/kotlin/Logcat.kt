@@ -4,7 +4,9 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class Logcat {
+class Logcat(
+    val logSource: LogSource
+)  {
 
     //viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED)
 
@@ -21,7 +23,7 @@ class Logcat {
     val ss = startSubject
         .flatMapLatest {
             println("to start logcat command")
-            startLogcat().flowOn(Dispatchers.IO)
+            logSource.lines()//.flowOn(Dispatchers.IO)
         }
         .shareIn(
             scope,
@@ -38,26 +40,6 @@ class Logcat {
         }
         .map { colorize(it) }
         .filter { logLevels.contains(it.level) }
-
-    private fun startLogcat(): Flow<String> {
-        println("11111 start LOGCAT")
-
-        return flow {
-            val child = Command("adb")
-                .args("logcat", "-v", "brief")
-                .stdout(Stdio.Pipe)
-                .spawn()
-
-            val stdoutReader: com.kgit2.io.Reader? = child.getChildStdout()
-
-            while (true) {
-                val line2 = stdoutReader!!.readLine() ?: break
-                emit(line2)
-                //if (isActive)
-                yield()
-            }
-        }
-    }
 
     private fun colorize(line: String): LogLine {
         val r2 = """^([A-Z])/(.+?)\( *(\d+)\): (.*?)$""".toRegex()
