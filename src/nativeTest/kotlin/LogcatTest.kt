@@ -158,7 +158,24 @@ class LogcatTest {
     }
 
     @Test fun `should exclude log levels upon filtering`() =  runTest {
+        dogcat.processCommand(StartupAs.All)
+        dogcat.processCommand(Filter.ByLogLevel("D"))
 
+        val job = launch {
+            dogcat.state
+                .take(3)
+                .withIndex()
+                .onEach {
+                    val parsed = it.value
+                    if (parsed is Parsed) {
+                        println(parsed.level)
+                        parsed.level shouldNotBe "D"
+                    }
+                }
+                .collect()
+        }
+
+        job.join()
     }
 
     @Test fun `stop input consumption upon unsubscribing`() = runTest {
