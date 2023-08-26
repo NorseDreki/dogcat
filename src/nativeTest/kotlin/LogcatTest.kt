@@ -1,7 +1,6 @@
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
-import io.kotest.matchers.string.shouldNotContain
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -9,7 +8,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
-
 
 class LogcatTest {
 
@@ -22,23 +20,25 @@ class LogcatTest {
         dogcat = Logcat(ls)
     }
 
+    //Add Turbine
+
     //use DI
     //inject test dispatchers
     @Test
-    fun `should start as waiting for input`() = runTest {
-        /*launch(Dispatchers.Default) {
-            dogcat.sss
+    fun `start as waiting for log lines input`() = runTest {
+        //make sure so subscribe before receiving
+        val job = launch {
+            dogcat.state
+                .take(1)
                 .onEach {
-                    println("$it")
-                    yield()
-                    //assertTrue { true }
+                    it shouldBe LogcatState.WaitingInput
                 }
-                .launchIn(this)
+                .collect()
         }
 
-        launch(Dispatchers.Default) {
-            dogcat.processCommand(StartupAs.All)
-        }*/
+        //dogcat.processCommand(StartupAs.All)
+
+        job.join()
     }
 
     @Test fun `log lines flow does not complete`() = runTest {
@@ -48,7 +48,7 @@ class LogcatTest {
     @Test fun `get log lines if subscribed before launch`() = runTest {
         val j = launch {
             println("sssss111")
-            dogcat.state
+            dogcat.sss
                 .take(8)
                 .onEach {
                     println("22222  $it")
@@ -76,7 +76,7 @@ class LogcatTest {
         }
 
         launch(Dispatchers.Default) {
-            dogcat.state
+            dogcat.sss
                 .take(1)
                 .onEach {
                     println("22222  $it")
@@ -88,7 +88,7 @@ class LogcatTest {
 
     @Test fun `log lines are correctly parsed into segments`() = runTest {
         val job = launch {
-            dogcat.state
+            dogcat.sss
                 .take(DummyLogSource.lines.size)
                 .withIndex()
                 .onEach {
@@ -112,7 +112,7 @@ class LogcatTest {
 
     @Test fun `return log line as is if parsing failed`() = runTest {
         val job = launch {
-            dogcat.state
+            dogcat.sss
                 .take(DummyLogSource.lines.size)
                 .withIndex()
                 .onEach {
@@ -136,6 +136,23 @@ class LogcatTest {
     }
 
     @Test fun `emit 'reset' state when input cleared`() = runTest {
+        val job = launch {
+            dogcat.state
+                .take(2)
+                .onEach {
+                    println(it)
+                    //it shouldBe LogcatState.InputCleared
+                }
+                .collect()
+        }
+
+
+        dogcat.processCommand(ClearLogs)
+
+        job.join()
+    }
+
+    @Test fun `auto re-start log consumption after clearing log input`() {
 
     }
 
@@ -143,7 +160,7 @@ class LogcatTest {
 
     }
 
-
+//double check correct parsing (leaking tags)
 
     @Test fun `should return lines according to input filter`() = runTest {
 
@@ -159,10 +176,10 @@ class LogcatTest {
 
     @Test fun `should exclude log levels upon filtering`() =  runTest {
         dogcat.processCommand(StartupAs.All)
-        dogcat.processCommand(Filter.ByLogLevel("D"))
+        dogcat.processCommand(Filter.ToggleLogLevel("D"))
 
         val job = launch {
-            dogcat.state
+            dogcat.sss
                 .take(3)
                 .withIndex()
                 .onEach {

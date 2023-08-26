@@ -10,11 +10,12 @@ class Logcat(
 
     //viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED)
 
-    private val privateState = MutableStateFlow<LogcatState>(LogcatState.Waiting)
+    private val privateState = MutableStateFlow<LogcatState>(LogcatState.WaitingInput)
 
-    val scope = CoroutineScope(Dispatchers.Default)
+    val state = privateState.asSharedFlow()
 
-    private val lines = MutableSharedFlow<String>()
+
+    val scope = CoroutineScope(Dispatchers.Default) // +Job
 
     val startSubject = MutableSharedFlow<Unit>(1)
 
@@ -33,14 +34,14 @@ class Logcat(
             50000,
         )
 
-    val logLevels = mutableSetOf<String>("V", "D", "I", "W", "E")
+    val logLevels = mutableSetOf<String>("V", "D", "I", "W", "E") //+.WTF()?
 
-    val state = filterLine
+    val sss = filterLine
         .flatMapLatest { filter ->
             ss
                 .filter { it.contains(filter) }
         }
-        .map { colorize(it) }
+        .map { parse(it) }
         .filter {
             if (it is Parsed) {
                 logLevels.contains(it.level)
@@ -49,7 +50,7 @@ class Logcat(
             }
         }
 
-    private fun colorize(line: String): LogLine {
+    private fun parse(line: String): LogLine {
         val r2 = """^([A-Z])/(.+?)\( *(\d+)\): (.*?)$""".toRegex()
 
         val greenColor = "\u001b[31;1;4m"
@@ -79,14 +80,14 @@ class Logcat(
 
             is ClearFilter -> clearFilter()
             is Exclude -> TODO()
-            is Filter.ByLogLevel -> filterByLogLevel(cmd)
+            is Filter.ToggleLogLevel -> filterByLogLevel(cmd)
             is Filter.ByString -> filterWith(cmd)
             is Filter.ByTime -> TODO()
             is Filter.Package -> TODO()
         }
     }
 
-    private fun filterByLogLevel(cmd: Filter.ByLogLevel) {
+    private fun filterByLogLevel(cmd: Filter.ToggleLogLevel) {
         if (logLevels.contains(cmd.level)) {
             logLevels.remove(cmd.level)
         } else {
@@ -132,6 +133,12 @@ class Logcat(
             println("jhkjhkjh  11111")
             //yield()
             startSubject.emit(Unit)
+
+            val ci = LogcatState.CapturingInput(
+                sss
+            )
+
+            privateState.emit(ci)
         }
     }
 }

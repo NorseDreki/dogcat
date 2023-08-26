@@ -8,7 +8,7 @@ sealed interface Filter : LogcatCommands {
 
     data class ByString(val substring: String) : Filter
 
-    data class ByLogLevel(val level: String) : Filter
+    data class ToggleLogLevel(val level: String) : Filter
 
     data class ByTime(val logLevels: Set<String>) : Filter
 
