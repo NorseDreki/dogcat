@@ -23,7 +23,9 @@ class Logcat(
     val ss = startSubject
         .flatMapLatest {
             println("to start logcat command")
-            logSource.lines().flowOn(Dispatchers.IO)  //Inject instead
+            logSource
+                .lines()
+                .flowOn(Dispatchers.IO)  //Inject instead
         }
         .shareIn(
             scope,
@@ -33,13 +35,19 @@ class Logcat(
 
     val logLevels = mutableSetOf<String>("V", "D", "I", "W", "E")
 
-    val sss = filterLine
+    val state = filterLine
         .flatMapLatest { filter ->
             ss
                 .filter { it.contains(filter) }
         }
         .map { colorize(it) }
-        .filter { logLevels.contains(it.level) }
+        .filter {
+            if (it is Parsed) {
+                logLevels.contains(it.level)
+            } else {
+                true
+            }
+        }
 
     private fun colorize(line: String): LogLine {
         val r2 = """^([A-Z])/(.+?)\( *(\d+)\): (.*?)$""".toRegex()
@@ -49,22 +57,14 @@ class Logcat(
         val name = greenColor + "Alex" + reset // Add green only to Alex
 
         val m = r2.matchEntire(line)
+
         return if (m != null) {
-            //   println("11111 $line")
             val (level, tag, owner, message) = m.destructured
 
-            //println(line)
-
-            LogLine(level, tag, owner, message)
-
+            Parsed(level, tag, owner, message)
             //"$name $level:$greenColor$tag$reset [$owner] /$message/"
-
-            //name
-
         } else {
-            //"ERROR"
-
-            LogLine("", "", "", "")
+            Original(line)
         }
     }
 

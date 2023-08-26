@@ -1,4 +1,7 @@
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -43,13 +46,9 @@ class LogcatTest {
     }
 
     @Test fun `get log lines if subscribed before launch`() = runTest {
-
-        println("sssss")
-
-
         val j = launch {
             println("sssss111")
-            dogcat.sss
+            dogcat.state
                 .take(8)
                 .onEach {
                     println("22222  $it")
@@ -77,7 +76,7 @@ class LogcatTest {
         }
 
         launch(Dispatchers.Default) {
-            dogcat.sss
+            dogcat.state
                 .take(1)
                 .onEach {
                     println("22222  $it")
@@ -89,16 +88,19 @@ class LogcatTest {
 
     @Test fun `log lines are correctly parsed into segments`() = runTest {
         val job = launch {
-            dogcat.sss
+            dogcat.state
                 .take(DummyLogSource.lines.size)
                 .withIndex()
                 .onEach {
                     val s = DummyLogSource.lines[it.index]
 
-                    s shouldContain it.value.message
-                    s shouldContain it.value.level
-                    s shouldContain it.value.owner
-                    s shouldContain it.value.tag
+                    val parsed = it.value
+                    if (parsed is Parsed) {
+                        s shouldContain parsed.message
+                        s shouldContain parsed.level
+                        s shouldContain parsed.owner
+                        s shouldContain parsed.tag
+                    }
                 }
                 .collect()
         }
@@ -109,7 +111,24 @@ class LogcatTest {
     }
 
     @Test fun `return log line as is if parsing failed`() = runTest {
+        val job = launch {
+            dogcat.state
+                .take(DummyLogSource.lines.size)
+                .withIndex()
+                .onEach {
+                    val s = DummyLogSource.lines[it.index]
 
+                    val parsed = it.value
+                    if (parsed is Original) {
+                        s shouldBe parsed.line
+                    }
+                }
+                .collect()
+        }
+
+        dogcat.processCommand(StartupAs.All)
+
+        job.join()
     }
 
     @Test fun `should start capturing when input appears`() = runTest {

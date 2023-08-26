@@ -63,47 +63,58 @@ fun main(): Unit = memScoped {
         val ls = LogcatSource()
         val logcat = Logcat(ls)
         logcat
-            .sss
+            .state
             .withIndex()
             .onEach {
                 //println("${it.index} ${it.value} \r\n")
 
                 waddstr(fp, "${it.index} ")
-                waddstr(fp, "${it.value.tag} ||")
-                /*wattron(fp, COLOR_PAIR(1));
+                val logLine = it.value
+
+                if (logLine is Original) {
+                    waddstr(fp, "${logLine}\n")
+
+                } else if (logLine is Parsed) {
+
+                    waddstr(fp, "${logLine.tag} ||")
+                    /*wattron(fp, COLOR_PAIR(1));
                 waddstr(fp, "${it.value.tag} ||")
                 //wprintw(fp, it.value)
                 wattroff(fp, COLOR_PAIR(1))*/
 
-                //wattron(fp, COLOR_PAIR(2));
-                waddstr(fp, "${it.value.owner} ||")
-                //wattroff(fp, COLOR_PAIR(2));
+                    //wattron(fp, COLOR_PAIR(2));
+                    waddstr(fp, "${logLine.owner} ||")
+                    //wattroff(fp, COLOR_PAIR(2));
 
-                when (it.value.level) {
-                    "W" -> {
-                        wattron(fp, COLOR_PAIR(3));
-                        waddstr(fp, "${it.value.level} ||")
-                        waddstr(fp, "${it.value.message} ||\n")
-                        wattroff(fp, COLOR_PAIR(3));
+                    when (logLine.level) {
+                        "W" -> {
+                            wattron(fp, COLOR_PAIR(3));
+                            waddstr(fp, "${logLine.level} ||")
+                            waddstr(fp, "${logLine.message} ||\n")
+                            wattroff(fp, COLOR_PAIR(3));
+                        }
+
+                        "E" -> {
+                            wattron(fp, COLOR_PAIR(1));
+                            waddstr(fp, "${logLine.level} ||")
+                            waddstr(fp, "${logLine.message} ||\n")
+                            wattroff(fp, COLOR_PAIR(1));
+                        }
+
+                        "I" -> {
+                            wattron(fp, COLOR_PAIR(4));
+                            waddstr(fp, "${logLine.level} ||")
+                            waddstr(fp, "${logLine.message} ||\n")
+                            wattroff(fp, COLOR_PAIR(4));
+                        }
+
+                        else -> {
+                            waddstr(fp, "${logLine.level} ||")
+                            waddstr(fp, "${logLine.message} ||\n")
+                        }
                     }
-                    "E" -> {
-                        wattron(fp, COLOR_PAIR(1));
-                        waddstr(fp, "${it.value.level} ||")
-                        waddstr(fp, "${it.value.message} ||\n")
-                        wattroff(fp, COLOR_PAIR(1));
-                    }
-                    "I" -> {
-                        wattron(fp, COLOR_PAIR(4));
-                        waddstr(fp, "${it.value.level} ||")
-                        waddstr(fp, "${it.value.message} ||\n")
-                        wattroff(fp, COLOR_PAIR(4));
-                    }
-                    else -> {
-                        waddstr(fp, "${it.value.level} ||")
-                        waddstr(fp, "${it.value.message} ||\n")
-                    }
+                    //waddstr(fp, "${it.value.message} \n")
                 }
-                //waddstr(fp, "${it.value.message} \n")
 
                 prefresh(fp, it.index, 0, 3, 0, sy - 1, sx)
                 a = it.index

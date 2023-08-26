@@ -5,6 +5,9 @@ class DummyLogSource : LogSource {
 
     companion object {
         val lines = listOf(
+            "--------- beginning of system",
+            "D/CompatibilityChangeReporter( 2573): Compat change id reported: 171306433; UID 10098; state: ENABLED",
+            "--------- beginning of main",
             "D/EGL_emulation( 2788): app_time_stats: avg=20003.83ms min=20003.83ms max=20003.83ms count=1",
             "D/BoundBrokerSvc(12048): onUnbind: Intent { act=com.google.android.gms.auth.key.retrieval.service.START dat=chimera-action: cmp=com.google.android.gms/.chimera.GmsApiService }",
             "D/EGL_emulation( 2788): app_time_stats: avg=3860.65ms min=3860.65ms max=3860.65ms count=1",
@@ -17,9 +20,9 @@ class DummyLogSource : LogSource {
             "D/ConnectivityService( 2573): NetReassign [no changes]",
             "E/cr_BTSPrefs(15022): No data found for task id: 53",
             "E/cr_BkgrdTaskScheduler(15022): Task cannot be canceled because no data was found instorage or data was invalid",
-            "W/Looper  ( 2573): Slow delivery took 4921ms main h=android.os.Handler c=com.android.internal.os.BinderCallsStats\$1@a16bc63 m=0",
-            "V/GraphicsEnvironment(15121): ANGLE Developer option for 'com.android.chrome' set to: 'default'",
-            "V/GraphicsEnvironment(15121): Neither updatable production driver nor prerelease driver is supported."
+            //"W/Looper  ( 2573): Slow delivery took 4921ms main h=android.os.Handler c=com.android.internal.os.BinderCallsStats\$1@a16bc63 m=0",
+            //"V/GraphicsEnvironment(15121): ANGLE Developer option for 'com.android.chrome' set to: 'default'",
+            //"V/GraphicsEnvironment(15121): Neither updatable production driver nor prerelease driver is supported."
         )
     }
 
