@@ -1,14 +1,11 @@
+import io.kotest.matchers.string.shouldContain
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertTrue
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeTypeOf
-import kotlinx.cinterop.toKString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.yield
 
 
 class LogcatTest {
@@ -90,6 +87,31 @@ class LogcatTest {
         }
     }
 
+    @Test fun `log lines are correctly parsed into segments`() = runTest {
+        val job = launch {
+            dogcat.sss
+                .take(DummyLogSource.lines.size)
+                .withIndex()
+                .onEach {
+                    val s = DummyLogSource.lines[it.index]
+
+                    s shouldContain it.value.message
+                    s shouldContain it.value.level
+                    s shouldContain it.value.owner
+                    s shouldContain it.value.tag
+                }
+                .collect()
+        }
+
+        dogcat.processCommand(StartupAs.All)
+
+        job.join()
+    }
+
+    @Test fun `return log line as is if parsing failed`() = runTest {
+
+    }
+
     @Test fun `should start capturing when input appears`() = runTest {
 
     }
@@ -102,13 +124,7 @@ class LogcatTest {
 
     }
 
-    @Test fun `parse log line correctly`() = runTest {
 
-    }
-
-    @Test fun `return log line as is if parsing failed`() = runTest {
-
-    }
 
     @Test fun `should return lines according to input filter`() = runTest {
 

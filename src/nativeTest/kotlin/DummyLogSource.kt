@@ -1,23 +1,29 @@
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flowOf
 
 class DummyLogSource : LogSource {
-    override fun lines() = flowOf(
-        "D/EGL_emulation( 2788): app_time_stats: avg=20003.83ms min=20003.83ms max=20003.83ms count=1",
-        "D/BoundBrokerSvc(12048): onUnbind: Intent { act=com.google.android.gms.auth.key.retrieval.service.START dat=chimera-action: cmp=com.google.android.gms/.chimera.GmsApiService }",
-        "D/EGL_emulation( 2788): app_time_stats: avg=3860.65ms min=3860.65ms max=3860.65ms count=1",
-        "I/ChimeraPrvdrProxy(12048): Shutting down chimera ContentProvider com.google.android.gms.reminders.provider.RemindersChimeraProvider",
-        "D/ConnectivityService( 2573): requestNetwork for uid/pid:10115/15022 activeRequest: null callbackRequest: 1713 [NetworkRequest [ REQUEST id=1714, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10115 RequestorUid: 10115 RequestorPkg: com.android.chrome] ]] callback flags: 0 priority: 2147483647",
-        "D/ConnectivityService( 2573): NetReassign [1714 : null → 105]",
-        "D/WifiNetworkFactory( 2573): got request NetworkRequest [ REQUEST id=1714, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10115 RequestorUid: 10115 RequestorPkg: com.android.chrome] ]",
-        "D/UntrustedWifiNetworkFactory( 2573): got request NetworkRequest [ REQUEST id=1714, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10115 RequestorUid: 10115 RequestorPkg: com.android.chrome] ]",
-        "D/OemPaidWifiNetworkFactory( 2573): got request NetworkRequest [ REQUEST id=1714, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10115 RequestorUid: 10115 RequestorPkg: com.android.chrome] ]",
-        "D/ConnectivityService( 2573): NetReassign [no changes]",
-        "E/cr_BTSPrefs(15022): No data found for task id: 53",
-        "E/cr_BkgrdTaskScheduler(15022): Task cannot be canceled because no data was found instorage or data was invalid",
-        "W/Looper  ( 2573): Slow delivery took 4921ms main h=android.os.Handler c=com.android.internal.os.BinderCallsStats\$1@a16bc63 m=0",
-        "V/GraphicsEnvironment(15121): ANGLE Developer option for 'com.android.chrome' set to: 'default'",
-        "V/GraphicsEnvironment(15121): Neither updatable production driver nor prerelease driver is supported."
+
+    companion object {
+        val lines = listOf(
+            "D/EGL_emulation( 2788): app_time_stats: avg=20003.83ms min=20003.83ms max=20003.83ms count=1",
+            "D/BoundBrokerSvc(12048): onUnbind: Intent { act=com.google.android.gms.auth.key.retrieval.service.START dat=chimera-action: cmp=com.google.android.gms/.chimera.GmsApiService }",
+            "D/EGL_emulation( 2788): app_time_stats: avg=3860.65ms min=3860.65ms max=3860.65ms count=1",
+            "I/ChimeraPrvdrProxy(12048): Shutting down chimera ContentProvider com.google.android.gms.reminders.provider.RemindersChimeraProvider",
+            "D/ConnectivityService( 2573): requestNetwork for uid/pid:10115/15022 activeRequest: null callbackRequest: 1713 [NetworkRequest [ REQUEST id=1714, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10115 RequestorUid: 10115 RequestorPkg: com.android.chrome] ]] callback flags: 0 priority: 2147483647",
+            "D/ConnectivityService( 2573): NetReassign [1714 : null → 105]",
+            "D/WifiNetworkFactory( 2573): got request NetworkRequest [ REQUEST id=1714, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10115 RequestorUid: 10115 RequestorPkg: com.android.chrome] ]",
+            "D/UntrustedWifiNetworkFactory( 2573): got request NetworkRequest [ REQUEST id=1714, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10115 RequestorUid: 10115 RequestorPkg: com.android.chrome] ]",
+            "D/OemPaidWifiNetworkFactory( 2573): got request NetworkRequest [ REQUEST id=1714, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10115 RequestorUid: 10115 RequestorPkg: com.android.chrome] ]",
+            "D/ConnectivityService( 2573): NetReassign [no changes]",
+            "E/cr_BTSPrefs(15022): No data found for task id: 53",
+            "E/cr_BkgrdTaskScheduler(15022): Task cannot be canceled because no data was found instorage or data was invalid",
+            "W/Looper  ( 2573): Slow delivery took 4921ms main h=android.os.Handler c=com.android.internal.os.BinderCallsStats\$1@a16bc63 m=0",
+            "V/GraphicsEnvironment(15121): ANGLE Developer option for 'com.android.chrome' set to: 'default'",
+            "V/GraphicsEnvironment(15121): Neither updatable production driver nor prerelease driver is supported."
+        )
+    }
+
+    override fun lines() = lines.asFlow()
 
 /*
         "D/CompatibilityChangeReporter(15109): Compat change id reported: 171979766; UID 90000; state: DISABLED\n" +
@@ -108,5 +114,4 @@ class DummyLogSource : LogSource {
                 "W/YouTubeMusic(14520): \t... 1 more",
 */
 
-    )
 }
