@@ -63,7 +63,7 @@ fun main(): Unit = memScoped {
         val ls = LogcatSource()
         val logcat = Logcat(ls)
         logcat
-            .state
+            .sss
             .withIndex()
             .onEach {
                 //println("${it.index} ${it.value} \r\n")
@@ -181,19 +181,22 @@ fun main(): Unit = memScoped {
                         prefresh(fp, a, 0, 3, 0, sy - 1, sx);
                     }
                     '6'.code -> {
-                        logcat.processCommand(Filter.ByLogLevel("V"))
+                        logcat.processCommand(Filter.ToggleLogLevel("V"))
                     }
                     '7'.code -> {
-                        logcat.processCommand(Filter.ByLogLevel("D"))
+                        logcat.processCommand(Filter.ToggleLogLevel("D"))
                     }
                     '8'.code -> {
-                        logcat.processCommand(Filter.ByLogLevel("I"))
+                        logcat.processCommand(Filter.ToggleLogLevel("I"))
                     }
                     '9'.code -> {
-                        logcat.processCommand(Filter.ByLogLevel("W"))
+                        logcat.processCommand(Filter.ToggleLogLevel("W"))
                     }
                     '0'.code -> {
-                        logcat.processCommand(Filter.ByLogLevel("E"))
+                        logcat.processCommand(Filter.ToggleLogLevel("E"))
+                    }
+                    'c'.code -> {
+                        logcat.processCommand(ClearLogs)
                     }
                 }
             }

@@ -68,14 +68,7 @@ class Logcat(
         }
     }
 
-    fun addLine(line: String) {
-        scope.launch {
-            lines.emit(line)
-        }
-    }
-
     fun processCommand(cmd: LogcatCommands) {
-        println("22222222111111kjlhdf process")
         when (cmd) {
 
             StartupAs.All -> startupAll()
@@ -102,9 +95,6 @@ class Logcat(
     }
 
     private fun clearFilter() {
-        val child = Command("adb")
-            .args("logcat", "-с")
-            .stdout(Stdio.Pipe)
     }
 
     private fun filterWith(filter: Filter) {
@@ -118,11 +108,25 @@ class Logcat(
     }
 
     private fun clearLogs() {
-        TODO("Not yet implemented")
+        println("to clear logs")
+        scope.launch {
+            println("clearing..")
+
+            val childCode = Command("adb")
+                .args("logcat", "-c")
+                .spawn()
+                .start()
+                //.wait()
+
+            println("exit code: ")
+
+            val ci = LogcatState.InputCleared
+
+            privateState.emit(ci)
+        }
     }
 
     private fun startupAll() {
-
         println("jhkjhkjh")
         scope.launch {
             println("jhkjhkjh  11111")
