@@ -32,4 +32,6 @@ sealed interface StartupAs : LogcatCommands {
 
 data object ClearLogs : LogcatCommands
 
+data object StopEverything : LogcatCommands
+
 data class Exclude(val e: String) : LogcatCommands // or treat as filter

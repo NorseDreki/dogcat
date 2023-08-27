@@ -15,13 +15,14 @@ class Logcat(
     val state = privateState.asSharedFlow()
 
 
-    val scope = CoroutineScope(Dispatchers.Default) // +Job
+    val scope = CoroutineScope(Job())//Dispatchers.Default) // +Job
 
     val startSubject = MutableSharedFlow<Unit>(1)
 
     val filterLine = MutableStateFlow<String>("")
 
     val ss = startSubject
+        //beware of implicit distinctuntilchanged
         .flatMapLatest {
             println("to start logcat command")
             logSource
@@ -49,6 +50,7 @@ class Logcat(
                 true
             }
         }
+        //.takeUnless {  }
 
     private fun parse(line: String): LogLine {
         val r2 = """^([A-Z])/(.+?)\( *(\d+)\): (.*?)$""".toRegex()
@@ -84,6 +86,7 @@ class Logcat(
             is Filter.ByString -> filterWith(cmd)
             is Filter.ByTime -> TODO()
             is Filter.Package -> TODO()
+            StopEverything -> scope.cancel()
         }
     }
 
