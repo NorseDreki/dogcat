@@ -1,9 +1,6 @@
-sealed interface LogcatCommands {
-
-}
+sealed interface LogcatCommands
 
 sealed interface Filter : LogcatCommands {
-
     data class Package(val name: String) : Filter
 
     data class ByString(val substring: String) : Filter
@@ -11,6 +8,8 @@ sealed interface Filter : LogcatCommands {
     data class ToggleLogLevel(val level: String) : Filter
 
     data class ByTime(val logLevels: Set<String>) : Filter
+
+    data class Exclude(val e: String) : LogcatCommands // or treat as filter
 
     //last session
 
@@ -33,5 +32,3 @@ sealed interface StartupAs : LogcatCommands {
 data object ClearLogs : LogcatCommands
 
 data object StopEverything : LogcatCommands
-
-data class Exclude(val e: String) : LogcatCommands // or treat as filter

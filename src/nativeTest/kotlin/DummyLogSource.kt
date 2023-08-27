@@ -29,10 +29,13 @@ class DummyLogSource : LogSource {
     val subject = MutableSharedFlow<String>(100)
 
     override fun lines() = lines.asFlow()
-        /*flow {
-        lines.forEach {
-            emit(it)
-        }*/
+    override fun clear(): Boolean {
+        return true
+    }
+    /*flow {
+    lines.forEach {
+        emit(it)
+    }*/
 
         /*while (true) {
             yield()

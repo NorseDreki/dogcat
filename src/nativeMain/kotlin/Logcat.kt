@@ -7,13 +7,9 @@ import kotlinx.coroutines.flow.*
 class Logcat(
     val logSource: LogSource
 )  {
-
-    //viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED)
-
     private val privateState = MutableStateFlow<LogcatState>(LogcatState.WaitingInput)
 
     val state = privateState.asSharedFlow()
-
 
     val scope = CoroutineScope(Job())//Dispatchers.Default) // +Job
 
@@ -55,17 +51,10 @@ class Logcat(
     private fun parse(line: String): LogLine {
         val r2 = """^([A-Z])/(.+?)\( *(\d+)\): (.*?)$""".toRegex()
 
-        val greenColor = "\u001b[31;1;4m"
-        val reset = "\u001b[0m" // to reset color to the default
-        val name = greenColor + "Alex" + reset // Add green only to Alex
-
         val m = r2.matchEntire(line)
-
         return if (m != null) {
             val (level, tag, owner, message) = m.destructured
-
             Parsed(level, tag, owner, message)
-            //"$name $level:$greenColor$tag$reset [$owner] /$message/"
         } else {
             Original(line)
         }
@@ -81,7 +70,7 @@ class Logcat(
             is FilterWith -> filterWith(cmd.filter)
 
             is ClearFilter -> clearFilter()
-            is Exclude -> TODO()
+            is Filter.Exclude -> TODO()
             is Filter.ToggleLogLevel -> filterByLogLevel(cmd)
             is Filter.ByString -> filterWith(cmd)
             is Filter.ByTime -> TODO()
