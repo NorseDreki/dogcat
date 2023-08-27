@@ -127,6 +127,8 @@ class Logcat(
             val ci = LogcatState.InputCleared
 
             privateState.emit(ci)
+
+            startupAll()
         }
     }
 

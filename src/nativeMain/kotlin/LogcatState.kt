@@ -6,8 +6,6 @@ sealed interface LogcatState {
 
     data object InputCleared: LogcatState
 
-    data object Waiting : LogcatState
-
     data class CapturingInput(
         val lines: Flow<LogLine>,
 

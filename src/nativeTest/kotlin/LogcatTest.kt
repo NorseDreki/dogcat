@@ -1,10 +1,20 @@
+import LogcatState.WaitingInput
+import app.cash.turbine.Turbine
+import app.cash.turbine.test
+import app.cash.turbine.testIn
+import app.cash.turbine.turbineScope
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.kotest.matchers.types.shouldBeSameInstanceAs
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertTrue
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
@@ -14,35 +24,78 @@ class LogcatTest {
     //@Mock
     lateinit var dogcat: Logcat
 
-    @BeforeTest
-    fun beforeTest() {
+    @BeforeTest fun beforeTest() {
         val ls = DummyLogSource() //LogcatSource()
         dogcat = Logcat(ls)
     }
 
-    //Add Turbine
-
     //use DI
     //inject test dispatchers
-    @Test
-    fun `start as waiting for log lines input`() = runTest {
-        //make sure so subscribe before receiving
-        val job = launch {
-            dogcat.state
-                .take(1)
-                .onEach {
-                    it shouldBe LogcatState.WaitingInput
-                }
+    @Test fun `start as waiting for log lines input`() = runTest {
+        val state = dogcat.state.first()
+
+        state shouldBe WaitingInput
+    }
+
+    @Test fun `begin capturing when input appears`() = runTest {
+        dogcat.processCommand(StartupAs.All)
+
+        //use test dispatcher instead
+        delay(10)
+        val state = dogcat.state.first()
+
+        state.shouldBeInstanceOf<LogcatState.CapturingInput>()
+    }
+
+    @Test fun `log lines flow does not complete while input is active`() = runTest {
+        dogcat.processCommand(StartupAs.All)
+
+        //use test dispatcher instead
+        delay(10)
+        val state = dogcat.state.first() as LogcatState.CapturingInput
+        val result = mutableListOf<LogLine>()
+
+        //state.lines.toList(result)
+        //result shouldHaveSize 10
+
+        val j = launch {
+            state.lines
+                .onEach { println(it) }
                 .collect()
         }
 
-        //dogcat.processCommand(StartupAs.All)
+        println("some")
+        delay(70000) // skipped
 
-        job.join()
+        println("delay")
+        j.isActive shouldBe true
+        j.cancelAndJoin()
+        println("done")
     }
 
-    @Test fun `log lines flow does not complete`() = runTest {
+    @Test fun `stop input consumption upon unsubscribing`() = runTest {
+        dogcat.processCommand(StartupAs.All)
 
+        //use test dispatcher instead
+        delay(10)
+        val state = dogcat.state.drop(1).first() as LogcatState.CapturingInput
+        val result = mutableListOf<LogLine>()
+
+        val j = launch {
+            state.lines
+                .onEach { println(it) }
+                .collect()
+        }
+
+        //dogcat.processCommand(StopEverything)
+
+        delay(10)
+
+        //j.isActive shouldBe false
+        /*val job = launch {
+            dogcat.sss
+        }
+        job.join()*/
     }
 
     @Test fun `get log lines if subscribed before launch`() = runTest {
@@ -131,9 +184,6 @@ class LogcatTest {
         job.join()
     }
 
-    @Test fun `should start capturing when input appears`() = runTest {
-
-    }
 
     @Test fun `emit 'reset' state when input cleared`() = runTest {
         val job = launch {
@@ -145,19 +195,42 @@ class LogcatTest {
                 }
                 .collect()
         }
-
-
         dogcat.processCommand(ClearLogs)
 
         job.join()
     }
 
-    @Test fun `auto re-start log consumption after clearing log input`() {
+    @Test fun `auto re-start log consumption after clearing log input`() = runTest {
+        dogcat.processCommand(StartupAs.All)
+
+        turbineScope {
+
+            val t1 = dogcat.state.testIn(backgroundScope)
+
+            t1.awaitItem().shouldBeInstanceOf<LogcatState.CapturingInput>()
+
+            dogcat.processCommand(ClearLogs)
+
+            t1.awaitItem() shouldBe LogcatState.InputCleared
+            t1.awaitItem().shouldBeInstanceOf<LogcatState.CapturingInput>()
+        }
+
+        /*delay(100)
+
+        dogcat.state.test {
+            awaitItem().shouldBeInstanceOf<LogcatState.CapturingInput>()
+
+            awaitItem() shouldBe LogcatState.InputCleared
+
+            awaitItem().shouldBeInstanceOf<LogcatState.CapturingInput>()
+        }*/
+
 
     }
 
     @Test fun `emit correct indices for warnings and errors`() = runTest {
 
+        //maybe model as sequence -- on receiving side
     }
 
 //double check correct parsing (leaking tags)
@@ -195,7 +268,8 @@ class LogcatTest {
         job.join()
     }
 
-    @Test fun `stop input consumption upon unsubscribing`() = runTest {
+    //handle logcat restarts / emulator breaks
+    @Test fun `reset to 'waiting input' if input source breaks`() {
 
     }
 }

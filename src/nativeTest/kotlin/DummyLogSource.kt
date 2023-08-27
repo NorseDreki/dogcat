@@ -1,5 +1,5 @@
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.yield
 
 class DummyLogSource : LogSource {
 
@@ -26,7 +26,17 @@ class DummyLogSource : LogSource {
         )
     }
 
+    val subject = MutableSharedFlow<String>(100)
+
     override fun lines() = lines.asFlow()
+        /*flow {
+        lines.forEach {
+            emit(it)
+        }*/
+
+        /*while (true) {
+            yield()
+        }*/
 
 /*
         "D/CompatibilityChangeReporter(15109): Compat change id reported: 171979766; UID 90000; state: DISABLED\n" +
