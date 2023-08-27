@@ -60,6 +60,7 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
 
                 implementation("io.kotest:kotest-assertions-core:5.6.2")
+                implementation("app.cash.turbine:turbine:1.0.0")
                 implementation("io.mockative:mockative:1.4.1")
 
                 /*implementation(kotlin("test-common"))
