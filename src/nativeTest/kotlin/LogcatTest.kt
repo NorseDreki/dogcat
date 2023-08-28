@@ -1,23 +1,21 @@
 import LogcatState.WaitingInput
-import app.cash.turbine.Turbine
 import app.cash.turbine.test
 import app.cash.turbine.testIn
 import app.cash.turbine.turbineScope
-import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.kotest.matchers.types.shouldBeSameInstanceAs
+import kotlinx.coroutines.*
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertTrue
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestCoroutineScheduler
+import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlin.coroutines.CoroutineContext
 
 class LogcatTest {
 
@@ -26,7 +24,7 @@ class LogcatTest {
 
     @BeforeTest fun beforeTest() {
         val ls = DummyLogSource() //LogcatSource()
-        dogcat = Logcat(ls)
+        dogcat = Logcat(ls,)
     }
 
     //use DI
@@ -270,8 +268,82 @@ class LogcatTest {
         job.join()
     }
 
-    //handle logcat restarts / emulator breaks
-    @Test fun `reset to 'waiting input' if input source breaks and re-start logcat`() {
+    val scheduler = TestCoroutineScheduler()
+    val dispatcher = StandardTestDispatcher(scheduler)
 
+    //handle logcat restarts / emulator breaks
+    @Test fun `reset to 'waiting input' if input source breaks and re-start logcat`() = runTest {
+
+        //Dispatchers.se
+        val ls = DummyLogSource()
+        val dogcat = Logcat(ls, dispatcher, dispatcher)
+
+
+        val t = dogcat.state.testIn(backgroundScope)
+
+
+        //testScheduler.
+
+    }
+
+    @Test fun `should`() = runTest {
+        var i = 0
+
+        (1..5).asFlow().cancellable().collect { value ->
+            if (value == 3) cancel()
+            println(value)
+        }
+
+        val f = flow {
+            while (true) {
+                if (i == 3) {
+                    println("break")
+                    //break
+                }
+
+                i++
+                emit(i)
+
+                delay(100)
+            }
+        }
+            /*.retry { e ->
+                val shallRetry = e is IOException // other exception are bugs - handle them
+                if (shallRetry) delay(1000)
+                shallRetry
+            }*/
+            //.onCompletion { cause -> if (cause == null) emit(UpstreamHasCompletedMessage) }
+            // .onStart { emit(UpstreamIsStartingMessage) }
+            .onEach { println("1111 $it") }
+            .shareIn(
+                backgroundScope,
+                SharingStarted.Eagerly,
+                500,
+            )
+
+        /*f.collect {
+            println("222222 $it")
+        }*/
+
+        f.test {
+            awaitItem() shouldBe 1
+            awaitItem() shouldBe 2
+            awaitItem() shouldBe 3
+        }
+
+        //backgroundScope.cancel()
+
+        //delay(1000)
+
+        f.collect {
+            println("2222 $it")
+            delay(3000)
+            cancel()
+
+        }
+
+        println()
+
+        //f.activ
     }
 }

@@ -1,17 +1,18 @@
 import com.kgit2.process.Command
-import com.kgit2.process.Stdio
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class Logcat(
-    val logSource: LogSource
+    val logSource: LogSource,
+    dispatcherCpu: CoroutineDispatcher = Dispatchers.Default,
+    dispatcherIo: CoroutineDispatcher = Dispatchers.IO,
 )  {
     private val privateState = MutableStateFlow<LogcatState>(LogcatState.WaitingInput)
 
     val state = privateState.asSharedFlow()
 
-    val scope = CoroutineScope(Job())//Dispatchers.Default) // +Job
+    val scope = CoroutineScope(dispatcherCpu) // +Job
 
     val startSubject = MutableSharedFlow<Unit>(1)
 
@@ -23,7 +24,7 @@ class Logcat(
             println("to start logcat command")
             logSource
                 .lines()
-                .flowOn(Dispatchers.IO)  //Inject instead
+                .flowOn(dispatcherIo)  //Inject instead
         }
         .shareIn(
             scope,

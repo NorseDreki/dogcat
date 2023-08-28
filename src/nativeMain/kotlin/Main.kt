@@ -61,7 +61,7 @@ fun main(): Unit = memScoped {
         var a = 25;
 
         val ls = LogcatSource()
-        val logcat = Logcat(ls)
+        val logcat = Logcat(ls,)
         logcat
             .sss
             .withIndex()
