@@ -28,7 +28,6 @@ class LogcatSource : LogSource {
                 emit(line2)
                 //if (isActive)
 
-
                 yield()
             }
         }

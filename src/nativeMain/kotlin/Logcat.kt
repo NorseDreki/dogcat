@@ -24,7 +24,16 @@ class Logcat(
             println("to start logcat command")
             logSource
                 .lines()
-                .flowOn(dispatcherIo)  //Inject instead
+                //.catch { cause -> emit("Emit on error") } // deal with malformed UTF-8 'expected one more byte'
+                .retry(3) { e ->
+                    println("retrying...")
+                    val shallRetry = e is RuntimeException
+                    if (shallRetry) delay(100)
+                    println("retrying... $shallRetry")
+                    shallRetry
+                }
+                .onCompletion { cause -> if (cause == null) emit("INPUT HAS EXITED") }
+                .flowOn(dispatcherIo)
         }
         .shareIn(
             scope,

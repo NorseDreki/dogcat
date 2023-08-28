@@ -16,6 +16,7 @@ import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration
 
 class LogcatTest {
 
@@ -273,17 +274,32 @@ class LogcatTest {
 
     //handle logcat restarts / emulator breaks
     @Test fun `reset to 'waiting input' if input source breaks and re-start logcat`() = runTest {
-
         //Dispatchers.se
-        val ls = DummyLogSource()
-        val dogcat = Logcat(ls, dispatcher, dispatcher)
+        val ls = FakeLogSource()
+        val dogcat = Logcat(ls)
 
+        turbineScope {
+            val t = dogcat.state.testIn(backgroundScope)
+            t.awaitItem() shouldBe WaitingInput
 
-        val t = dogcat.state.testIn(backgroundScope)
+            dogcat.processCommand(StartupAs.All)
+            val c = t.awaitItem() as LogcatState.CapturingInput
 
-
-        //testScheduler.
-
+            c.lines.test {
+                awaitItem() shouldBe Original("1")
+                awaitItem() shouldBe Original("2")
+                awaitItem() shouldBe Original("1")
+                awaitItem() shouldBe Original("2")
+                awaitItem() shouldBe Original("1")
+                awaitItem() shouldBe Original("2")
+                awaitItem() shouldBe Original("1")
+                awaitItem() shouldBe Original("2")
+                awaitItem() shouldBe Original("1")
+                awaitItem() shouldBe Original("2")
+                awaitItem() shouldBe Original("1")
+                awaitItem() shouldBe Original("2")
+            }
+        }
     }
 
     @Test fun `should`() = runTest {
