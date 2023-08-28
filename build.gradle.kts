@@ -50,7 +50,6 @@ kotlin {
             dependencies {
                 implementation("com.kgit2:kommand:1.0.2")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-                implementation("com.squareup.okio:okio:3.5.0")
             }
         }
         val nativeTest by getting {

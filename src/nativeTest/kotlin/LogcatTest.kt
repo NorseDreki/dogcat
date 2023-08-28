@@ -235,6 +235,8 @@ class LogcatTest {
 
 //double check correct parsing (leaking tags)
 
+    //Tip: If your class creates coroutines that don't complete on their own and should be canceled at the end of the test, you can inject TestScope.backgroundScope instead of the TestScope itself.
+
     @Test fun `should return lines according to input filter`() = runTest {
 
     }
@@ -269,7 +271,7 @@ class LogcatTest {
     }
 
     //handle logcat restarts / emulator breaks
-    @Test fun `reset to 'waiting input' if input source breaks`() {
+    @Test fun `reset to 'waiting input' if input source breaks and re-start logcat`() {
 
     }
 }
