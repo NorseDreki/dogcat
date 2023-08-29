@@ -4,13 +4,46 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.withIndex
 import ncurses.*
+import org.kodein.di.DI
+import org.kodein.di.bindSingleton
+import org.kodein.di.instance
+import org.kodein.di.newInstance
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import org.koin.core.context.startKoin
+import org.koin.dsl.module
+//import org.koin.ext.*
 import platform.posix.LC_CTYPE
 import platform.posix.exit
 import platform.posix.printf
 import platform.posix.setlocale
 
+/*val dogcatModule = module {
+    single<LogSource> { LogcatSource() }
+    single<Logcat> { Logcat(get()) }
+}*/
+
+val dogcatModule = DI.Module("dogcat") {
+    bindSingleton<LogSource> { LogcatSource() }
+    bindSingleton<Logcat> { Logcat(instance()) }
+}
+
+val di = DI {
+    import(dogcatModule)
+}
+
 @OptIn(ExperimentalForeignApi::class)
 fun main(): Unit = memScoped {
+/*
+    startKoin {
+        modules(dogcatModule)
+    }
+*/
+
+    //dogcatModule.scope<> {  }
+
+    val logcat: Logcat by di.instance()
+
     setlocale(LC_CTYPE, "")
     //setlocale(LC_ALL, "en_US.UTF-8");
     initscr();
@@ -61,7 +94,7 @@ fun main(): Unit = memScoped {
         var a = 25;
 
         val ls = LogcatSource()
-        val logcat = Logcat(ls,)
+        //val logcat = Logcat(ls,)
         logcat
             .sss
             .withIndex()
