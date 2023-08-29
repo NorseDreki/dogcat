@@ -50,6 +50,7 @@ kotlin {
             dependencies {
                 implementation("com.kgit2:kommand:1.0.2")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+                implementation("io.insert-koin:koin-core:3.4.3")
             }
         }
         val nativeTest by getting {
@@ -61,6 +62,7 @@ kotlin {
                 implementation("io.kotest:kotest-assertions-core:5.6.2")
                 implementation("app.cash.turbine:turbine:1.0.0")
                 implementation("io.mockative:mockative:1.4.1")
+                implementation("io.insert-koin:koin-core:3.4.3")
 
                 /*implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
