@@ -1,3 +1,4 @@
+import LogcatState.CapturingInput
 import LogcatState.WaitingInput
 import app.cash.turbine.test
 import app.cash.turbine.testIn
@@ -11,11 +12,9 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertTrue
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.TestCoroutineScheduler
-import kotlinx.coroutines.test.TestDispatcher
-import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.*
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Duration
 
 class LogcatTest {
@@ -25,25 +24,40 @@ class LogcatTest {
 
     @BeforeTest fun beforeTest() {
         val ls = DummyLogSource() //LogcatSource()
-        dogcat = Logcat(ls,)
+        //use test dispatcher instead
+        dogcat = Logcat(ls)
     }
 
     //use DI
-    //inject test dispatchers
     @Test fun `start as waiting for log lines input`() = runTest {
-        val state = dogcat.state.first()
-
-        state shouldBe WaitingInput
+        dogcat.state.test {
+            awaitItem() shouldBe WaitingInput
+        }
     }
 
     @Test fun `begin capturing when input appears`() = runTest {
-        dogcat.processCommand(StartupAs.All)
+        dogcat.state.test {
+            dogcat.processCommand(StartupAs.All)
+            //ordering??
+            skipItems(1)
 
-        //use test dispatcher instead
-        delay(10)
-        val state = dogcat.state.first()
+            //assert a call to lines() has occured?
+            awaitItem().shouldBeInstanceOf<CapturingInput>()
+        }
+    }
 
-        state.shouldBeInstanceOf<LogcatState.CapturingInput>()
+    @Test fun `capture all input lines without loss`() = runTest {
+        dogcat.state.test {
+            dogcat.processCommand(StartupAs.All)
+
+            skipItems(1)
+            val input = awaitItem() as CapturingInput
+
+            input.lines.test {
+                awaitItem()
+                awaitItem()
+            }
+        }
     }
 
     @Test fun `log lines flow does not complete while input is active`() = runTest {
@@ -51,7 +65,7 @@ class LogcatTest {
 
         //use test dispatcher instead
         delay(10)
-        val state = dogcat.state.first() as LogcatState.CapturingInput
+        val state = dogcat.state.first() as CapturingInput
         val result = mutableListOf<LogLine>()
 
         //state.lines.toList(result)
@@ -77,7 +91,7 @@ class LogcatTest {
 
         //use test dispatcher instead
         delay(10)
-        val state = dogcat.state.drop(1).first() as LogcatState.CapturingInput
+        val state = dogcat.state.drop(1).first() as CapturingInput
         val result = mutableListOf<LogLine>()
 
         val j = launch {
@@ -206,12 +220,12 @@ class LogcatTest {
 
             val t1 = dogcat.state.testIn(backgroundScope)
 
-            t1.awaitItem().shouldBeInstanceOf<LogcatState.CapturingInput>()
+            t1.awaitItem().shouldBeInstanceOf<CapturingInput>()
 
             dogcat.processCommand(ClearLogs)
 
             t1.awaitItem() shouldBe LogcatState.InputCleared
-            t1.awaitItem().shouldBeInstanceOf<LogcatState.CapturingInput>()
+            t1.awaitItem().shouldBeInstanceOf<CapturingInput>()
         }
 
         /*delay(100)
@@ -270,7 +284,7 @@ class LogcatTest {
     }
 
     val scheduler = TestCoroutineScheduler()
-    val dispatcher = StandardTestDispatcher(scheduler)
+    val dispatcher : CoroutineDispatcher = StandardTestDispatcher(scheduler)
 
     //handle logcat restarts / emulator breaks
     @Test fun `reset to 'waiting input' if input source breaks and re-start logcat`() = runTest {
@@ -283,7 +297,7 @@ class LogcatTest {
             t.awaitItem() shouldBe WaitingInput
 
             dogcat.processCommand(StartupAs.All)
-            val c = t.awaitItem() as LogcatState.CapturingInput
+            val c = t.awaitItem() as CapturingInput
 
             c.lines.test {
                 awaitItem() shouldBe Original("1")
@@ -302,6 +316,56 @@ class LogcatTest {
         }
     }
 
+/*
+    suspend fun expectOn(flow: Flow<ByteArray>, expectedCommand: String): Flow<String> = flow {
+        val collectedSoFar = StringBuilder()
+        try {
+            withTimeout(1000L) {
+                flow.map { String(it) }
+                    .filter { it.isNotEmpty() }
+                    .onEach { collectedSoFar.append(it) }
+                    .first { collectedSoFar.toString() == expectedCommand }
+                    .let { emit(it) }
+            }
+        } catch (e: TimeoutCancellationException) {
+            throw RuntimeException(
+                "Timeout during collecting data. Collected $collectedSoFar, expected $expectedCommand", e
+            )
+        }
+    }
+
+    class ServiceWrapper {
+        @Volatile
+        private var deferredUntilConnected = CompletableDeferred<Unit>()
+
+        private val service = Service(object : ConnectionCallback {
+            override fun onConnected() {
+                deferredUntilConnected.complete(Unit)
+            }
+
+            override fun onConnectionSuspended() {
+                deferredUntilConnected = CompletableDeferred()
+            }
+        })
+
+        private suspend fun suspendUntilConnected() = deferredUntilConnected.await()
+
+        ...
+    }
+*/
+
+    val context = EmptyCoroutineContext
+    val newContext = context + dispatcher
+
+    val d: CoroutineDispatcher = UnconfinedTestDispatcher(scheduler)
+
+    @Test
+    fun unconfinedTest() = runTest(d) {
+    }
+
+
+    /*val threadPool = Executors.newFixedThreadPool(4)
+    val dispatcher = threadPool.asCoroutineDispatcher()*/
     @Test fun `should`() = runTest {
         var i = 0
 

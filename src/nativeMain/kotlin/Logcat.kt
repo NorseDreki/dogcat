@@ -142,7 +142,10 @@ class Logcat(
                 sss
             )
 
+            println("prepare to emit capturing")
             privateState.emit(ci)
+
+            println("emitted capturing")
         }
     }
 }
