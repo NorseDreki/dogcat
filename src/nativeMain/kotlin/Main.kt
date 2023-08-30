@@ -1,27 +1,19 @@
 import kotlinx.cinterop.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.withIndex
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.yield
 import ncurses.*
 import org.kodein.di.DI
 import org.kodein.di.bindSingleton
 import org.kodein.di.instance
-import org.kodein.di.newInstance
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
-import org.koin.core.context.startKoin
-import org.koin.dsl.module
-//import org.koin.ext.*
 import platform.posix.LC_CTYPE
 import platform.posix.exit
 import platform.posix.printf
 import platform.posix.setlocale
-
-/*val dogcatModule = module {
-    single<LogSource> { LogcatSource() }
-    single<Logcat> { Logcat(get()) }
-}*/
 
 val dogcatModule = DI.Module("dogcat") {
     bindSingleton<LogSource> { LogcatSource() }
@@ -34,13 +26,6 @@ val di = DI {
 
 @OptIn(ExperimentalForeignApi::class)
 fun main(): Unit = memScoped {
-/*
-    startKoin {
-        modules(dogcatModule)
-    }
-*/
-
-    //dogcatModule.scope<> {  }
 
     val logcat: Logcat by di.instance()
 

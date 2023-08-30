@@ -9,7 +9,7 @@ sealed interface Filter : LogcatCommands {
 
     data class ByTime(val logLevels: Set<String>) : Filter
 
-    data class Exclude(val e: String) : LogcatCommands // or treat as filter
+    data class Exclude(val e: String) : LogcatCommands
 
     //last session
 
