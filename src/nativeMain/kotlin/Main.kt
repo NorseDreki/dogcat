@@ -93,8 +93,6 @@ fun main(): Unit = memScoped {
     runBlocking {
         var a = 25;
 
-        val ls = LogcatSource()
-        //val logcat = Logcat(ls,)
         logcat
             .sss
             .withIndex()

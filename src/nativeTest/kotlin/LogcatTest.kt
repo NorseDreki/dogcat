@@ -7,12 +7,13 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestCoroutineScheduler
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
-import kotlin.test.assertTrue
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.test.*
-import kotlin.coroutines.EmptyCoroutineContext
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class LogcatTest {
@@ -29,14 +30,11 @@ class LogcatTest {
 
     //@Mock
     private lateinit var dogcat: Logcat
-
     private val scheduler = TestCoroutineScheduler()
     private val dispatcher : CoroutineDispatcher = StandardTestDispatcher(scheduler)
 
-
     @BeforeTest fun beforeTest() {
-        val ls = DummyLogSource() //LogcatSource()
-        //use test dispatcher instead
+        val ls = DummyLogSource()
         dogcat = Logcat(ls, dispatcher, dispatcher)
     }
 
@@ -68,18 +66,62 @@ class LogcatTest {
     }
 
     @Test fun `capture all input lines without loss`() = runTest(dispatcher) {
-        dogcat.state.test {
-            dogcat.processCommand(StartupAs.All)
+        dogcat.processCommand(StartupAs.All)
+        advanceUntilIdle()
 
-            skipItems(1)
+        dogcat.state.test {
             val input = awaitItem() as CapturingInput
 
             input.lines.test {
+                DummyLogSource.lines.forEach {
+                    val logLine = awaitItem()
+
+                    when (logLine) {
+                        is Parsed -> {
+                            it shouldContain logLine.message
+                            it shouldContain logLine.level
+                            it shouldContain logLine.owner
+                            it shouldContain logLine.tag
+                        }
+                        is Original -> {
+                            it shouldBe logLine.line
+                        }
+                    }
+                }
                 awaitItem()
-                awaitItem()
+                //awaitComplete()
+                expectNoEvents()
+                this.ensureAllEventsConsumed()
             }
         }
     }
+
+    @Test fun `collectors should receive respective events`() = runTest(dispatcher) {
+        launch {
+            dogcat.state.test {
+                awaitItem() shouldBe WaitingInput
+                awaitItem().shouldBeInstanceOf<CapturingInput>()
+                ensureAllEventsConsumed()
+            }
+        }
+        advanceUntilIdle() //maybe not needed
+
+        dogcat.processCommand(StartupAs.All)
+        advanceUntilIdle()
+
+        dogcat.state.test {
+            awaitItem().shouldBeInstanceOf<CapturingInput>()
+            ensureAllEventsConsumed()
+        }
+    }
+
+    @Test fun `return log line as is if parsing failed`() = runTest {
+
+    }
+
+    @Test fun `log lines are correctly parsed into segments`() = runTest {
+    }
+
 
     @Test fun `log lines flow does not complete while input is active`() = runTest {
         dogcat.processCommand(StartupAs.All)
@@ -132,51 +174,6 @@ class LogcatTest {
         job.join()*/
     }
 
-    @Test fun `log lines are correctly parsed into segments`() = runTest {
-        val job = launch {
-            dogcat.sss
-                .take(DummyLogSource.lines.size)
-                .withIndex()
-                .onEach {
-                    val s = DummyLogSource.lines[it.index]
-
-                    val parsed = it.value
-                    if (parsed is Parsed) {
-                        s shouldContain parsed.message
-                        s shouldContain parsed.level
-                        s shouldContain parsed.owner
-                        s shouldContain parsed.tag
-                    }
-                }
-                .collect()
-        }
-
-        dogcat.processCommand(StartupAs.All)
-
-        job.join()
-    }
-
-    @Test fun `return log line as is if parsing failed`() = runTest {
-        val job = launch {
-            dogcat.sss
-                .take(DummyLogSource.lines.size)
-                .withIndex()
-                .onEach {
-                    val s = DummyLogSource.lines[it.index]
-
-                    val parsed = it.value
-                    if (parsed is Original) {
-                        s shouldBe parsed.line
-                    }
-                }
-                .collect()
-        }
-
-        dogcat.processCommand(StartupAs.All)
-
-        job.join()
-    }
-
 
     @Test fun `emit 'reset' state when input cleared`() = runTest {
         val job = launch {
@@ -195,10 +192,9 @@ class LogcatTest {
 
     @Test fun `auto re-start log consumption after clearing log input`() = runTest(dispatcher) {
         dogcat.processCommand(StartupAs.All)
+        advanceUntilIdle()
 
         dogcat.state.test {
-            awaitItem() shouldBe WaitingInput
-
             awaitItem().shouldBeInstanceOf<CapturingInput>()
 
             dogcat.processCommand(ClearLogs)
@@ -206,30 +202,6 @@ class LogcatTest {
             awaitItem() shouldBe LogcatState.InputCleared
             awaitItem().shouldBeInstanceOf<CapturingInput>()
         }
-
-        /*turbineScope {
-
-            val t1 = dogcat.state.testIn(backgroundScope)
-
-            t1.awaitItem() shouldBe WaitingInput
-
-            t1.awaitItem().shouldBeInstanceOf<CapturingInput>()
-
-            dogcat.processCommand(ClearLogs)
-
-            t1.awaitItem() shouldBe LogcatState.InputCleared
-            t1.awaitItem().shouldBeInstanceOf<CapturingInput>()
-        }*/
-
-        /*delay(100)
-
-        dogcat.state.test {
-            awaitItem().shouldBeInstanceOf<LogcatState.CapturingInput>()
-
-            awaitItem() shouldBe LogcatState.InputCleared
-
-            awaitItem().shouldBeInstanceOf<LogcatState.CapturingInput>()
-        }*/
     }
 
     @Test fun `emit correct indices for warnings and errors`() = runTest {
@@ -253,31 +225,30 @@ class LogcatTest {
 
     }
 
-    @Test fun `should exclude log levels upon filtering`() =  runTest {
+    @Test fun `should exclude log levels upon filtering`() =  runTest(dispatcher) {
         dogcat.processCommand(StartupAs.All)
         dogcat.processCommand(Filter.ToggleLogLevel("D"))
+        advanceUntilIdle()
 
-        val job = launch {
-            dogcat.sss
+        dogcat.state.test {
+            //skipItems(1)
+
+            val lines = (awaitItem() as CapturingInput).lines
+
+            lines
                 .take(3)
-                .withIndex()
                 .onEach {
-                    val parsed = it.value
+                    val parsed = it
                     if (parsed is Parsed) {
                         println(parsed.level)
                         parsed.level shouldNotBe "D"
                     }
                 }
-                .collect()
         }
-
-        job.join()
     }
-
 
     //handle logcat restarts / emulator breaks
     @Test fun `reset to 'waiting input' if input source breaks and re-start logcat`() = runTest {
-        //Dispatchers.se
         val ls = FakeLogSource()
         val dogcat = Logcat(ls)
 
@@ -303,131 +274,5 @@ class LogcatTest {
                 awaitItem() shouldBe Original("2")
             }
         }
-    }
-
-/*
-    suspend fun expectOn(flow: Flow<ByteArray>, expectedCommand: String): Flow<String> = flow {
-        val collectedSoFar = StringBuilder()
-        try {
-            withTimeout(1000L) {
-                flow.map { String(it) }
-                    .filter { it.isNotEmpty() }
-                    .onEach { collectedSoFar.append(it) }
-                    .first { collectedSoFar.toString() == expectedCommand }
-                    .let { emit(it) }
-            }
-        } catch (e: TimeoutCancellationException) {
-            throw RuntimeException(
-                "Timeout during collecting data. Collected $collectedSoFar, expected $expectedCommand", e
-            )
-        }
-    }
-
-    class ServiceWrapper {
-        @Volatile
-        private var deferredUntilConnected = CompletableDeferred<Unit>()
-
-        private val service = Service(object : ConnectionCallback {
-            override fun onConnected() {
-                deferredUntilConnected.complete(Unit)
-            }
-
-            override fun onConnectionSuspended() {
-                deferredUntilConnected = CompletableDeferred()
-            }
-        })
-
-        private suspend fun suspendUntilConnected() = deferredUntilConnected.await()
-
-        ...
-    }
-*/
-
-    val context = EmptyCoroutineContext
-    val newContext = context + dispatcher
-
-    val d: CoroutineDispatcher = UnconfinedTestDispatcher(scheduler)
-
-    @Test
-    fun unconfinedTest() = runTest(d) {
-    }
-
-
-    /*val threadPool = Executors.newFixedThreadPool(4)
-    val dispatcher = threadPool.asCoroutineDispatcher()*/
-    @Test fun `should`() = runTest {
-        var i = 0
-
-        (1..5).asFlow().cancellable().collect { value ->
-            if (value == 3) cancel()
-            println(value)
-        }
-
-        val f = flow {
-            while (true) {
-                if (i == 3) {
-                    println("break")
-                    //break
-                }
-
-                i++
-                emit(i)
-
-                delay(100)
-            }
-        }
-            /*.retry { e ->
-                val shallRetry = e is IOException // other exception are bugs - handle them
-                if (shallRetry) delay(1000)
-                shallRetry
-            }*/
-            //.onCompletion { cause -> if (cause == null) emit(UpstreamHasCompletedMessage) }
-            // .onStart { emit(UpstreamIsStartingMessage) }
-            .onEach { println("1111 $it") }
-            .shareIn(
-                backgroundScope,
-                SharingStarted.Eagerly,
-                500,
-            )
-
-        /*f.collect {
-            println("222222 $it")
-        }*/
-
-        //wbkgd(stdscr, COLOR_PAIR(1))
-        //printw("My terminal supports %d colors.\n", COLORS);
-
-        /*void
-        print_status(const char *text)
-        {
-            move(LINES - 1, 0);
-            clrtoeol();
-
-            attron(A_REVERSE);
-            mvaddstr(LINES - 1, 0, text);
-            attroff(A_REVERSE);
-            refresh();
-        }*/
-
-        f.test {
-            awaitItem() shouldBe 1
-            awaitItem() shouldBe 2
-            awaitItem() shouldBe 3
-        }
-
-        //backgroundScope.cancel()
-
-        //delay(1000)
-
-        f.collect {
-            println("2222 $it")
-            delay(3000)
-            cancel()
-
-        }
-
-        println()
-
-        //f.activ
     }
 }
