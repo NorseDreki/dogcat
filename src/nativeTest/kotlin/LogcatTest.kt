@@ -1,7 +1,6 @@
 import LogcatState.CapturingInput
 import LogcatState.WaitingInput
 import app.cash.turbine.test
-import app.cash.turbine.testIn
 import app.cash.turbine.turbineScope
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -13,40 +12,62 @@ import kotlin.test.Test
 import kotlin.test.assertTrue
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.*
-import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
-import kotlin.time.Duration
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class LogcatTest {
+/*
+    val dogcatModule = DI.Module("dogcat") {
+        bindSingleton<LogSource> { DummyLogSource() }
+        bind<Logcat> { Logcat(instance()) }
+    }
+
+    val di = DI {
+        import(dogcatModule)
+    }
+*/
 
     //@Mock
-    lateinit var dogcat: Logcat
+    private lateinit var dogcat: Logcat
+
+    private val scheduler = TestCoroutineScheduler()
+    private val dispatcher : CoroutineDispatcher = StandardTestDispatcher(scheduler)
+
 
     @BeforeTest fun beforeTest() {
         val ls = DummyLogSource() //LogcatSource()
         //use test dispatcher instead
-        dogcat = Logcat(ls)
+        dogcat = Logcat(ls, dispatcher, dispatcher)
     }
 
-    //use DI
-    @Test fun `start as waiting for log lines input`() = runTest {
+    @Test fun `start as waiting for log lines input`() = runTest(dispatcher) {
         dogcat.state.test {
             awaitItem() shouldBe WaitingInput
         }
     }
 
-    @Test fun `begin capturing when input appears`() = runTest {
-        dogcat.state.test {
-            dogcat.processCommand(StartupAs.All)
-            //ordering??
-            skipItems(1)
+    @Test fun `begin capturing when input appears`() = runTest(dispatcher) {
+        dogcat.processCommand(StartupAs.All)
+        advanceUntilIdle()
 
+        dogcat.state.test {
             //assert a call to lines() has occured?
             awaitItem().shouldBeInstanceOf<CapturingInput>()
         }
     }
 
-    @Test fun `capture all input lines without loss`() = runTest {
+    @Test fun `get log lines if subscribed before launch`() = runTest(dispatcher) {
+        launch {
+            val expectCapturingInput = dogcat.state.drop(1).first()
+
+            expectCapturingInput.shouldBeInstanceOf<CapturingInput>()
+        }
+        advanceUntilIdle()
+
+        dogcat.processCommand(StartupAs.All)
+    }
+
+    @Test fun `capture all input lines without loss`() = runTest(dispatcher) {
         dogcat.state.test {
             dogcat.processCommand(StartupAs.All)
 
@@ -111,47 +132,6 @@ class LogcatTest {
         job.join()*/
     }
 
-    @Test fun `get log lines if subscribed before launch`() = runTest {
-        val j = launch {
-            println("sssss111")
-            dogcat.sss
-                .take(8)
-                .onEach {
-                    println("22222  $it")
-                    //assertTrue { true }
-                }
-                .onCompletion { println("completed") }
-                .catch {  }
-                .collect()
-        }
-
-        println("pr comm")
-        //launch {
-        dogcat.processCommand(StartupAs.All)
-        //}
-
-        println("after pr comm")
-
-        //yield()
-        j.join()
-    }
-
-    @Test fun `get replayed items if subscribed after start`() = runTest {
-        launch(Dispatchers.Default) {
-            dogcat.processCommand(StartupAs.All)
-        }
-
-        launch(Dispatchers.Default) {
-            dogcat.sss
-                .take(1)
-                .onEach {
-                    println("22222  $it")
-                    assertTrue { true }
-                }
-                .launchIn(this)
-        }
-    }
-
     @Test fun `log lines are correctly parsed into segments`() = runTest {
         val job = launch {
             dogcat.sss
@@ -213,12 +193,25 @@ class LogcatTest {
         job.join()
     }
 
-    @Test fun `auto re-start log consumption after clearing log input`() = runTest {
+    @Test fun `auto re-start log consumption after clearing log input`() = runTest(dispatcher) {
         dogcat.processCommand(StartupAs.All)
 
-        turbineScope {
+        dogcat.state.test {
+            awaitItem() shouldBe WaitingInput
+
+            awaitItem().shouldBeInstanceOf<CapturingInput>()
+
+            dogcat.processCommand(ClearLogs)
+
+            awaitItem() shouldBe LogcatState.InputCleared
+            awaitItem().shouldBeInstanceOf<CapturingInput>()
+        }
+
+        /*turbineScope {
 
             val t1 = dogcat.state.testIn(backgroundScope)
+
+            t1.awaitItem() shouldBe WaitingInput
 
             t1.awaitItem().shouldBeInstanceOf<CapturingInput>()
 
@@ -226,7 +219,7 @@ class LogcatTest {
 
             t1.awaitItem() shouldBe LogcatState.InputCleared
             t1.awaitItem().shouldBeInstanceOf<CapturingInput>()
-        }
+        }*/
 
         /*delay(100)
 
@@ -237,8 +230,6 @@ class LogcatTest {
 
             awaitItem().shouldBeInstanceOf<LogcatState.CapturingInput>()
         }*/
-
-
     }
 
     @Test fun `emit correct indices for warnings and errors`() = runTest {
@@ -283,8 +274,6 @@ class LogcatTest {
         job.join()
     }
 
-    val scheduler = TestCoroutineScheduler()
-    val dispatcher : CoroutineDispatcher = StandardTestDispatcher(scheduler)
 
     //handle logcat restarts / emulator breaks
     @Test fun `reset to 'waiting input' if input source breaks and re-start logcat`() = runTest {
@@ -403,6 +392,21 @@ class LogcatTest {
 
         /*f.collect {
             println("222222 $it")
+        }*/
+
+        //wbkgd(stdscr, COLOR_PAIR(1))
+        //printw("My terminal supports %d colors.\n", COLORS);
+
+        /*void
+        print_status(const char *text)
+        {
+            move(LINES - 1, 0);
+            clrtoeol();
+
+            attron(A_REVERSE);
+            mvaddstr(LINES - 1, 0, text);
+            attroff(A_REVERSE);
+            refresh();
         }*/
 
         f.test {

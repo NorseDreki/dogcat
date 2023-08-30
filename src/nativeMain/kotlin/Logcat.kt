@@ -146,6 +146,7 @@ class Logcat(
             privateState.emit(ci)
 
             println("emitted capturing")
+            //yield()
         }
     }
 }
