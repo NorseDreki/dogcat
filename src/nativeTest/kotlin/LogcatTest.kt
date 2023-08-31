@@ -14,7 +14,6 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
-import kotlin.test.assertFailsWith
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class LogcatTest {
@@ -33,8 +32,6 @@ class LogcatTest {
     private lateinit var dogcat: Logcat
     private val scheduler = TestCoroutineScheduler()
     private val dispatcher : CoroutineDispatcher = StandardTestDispatcher(scheduler)
-    val handler = CoroutineExceptionHandler { _, t -> println("999999 ${t.message}") }
-    var thr: Throwable? = null
 
     @BeforeTest fun beforeTest() {
         val ls = DummyLogSource()
@@ -77,9 +74,7 @@ class LogcatTest {
 
             input.lines.test {
                 DummyLogSource.lines.forEach {
-                    val logLine = awaitItem()
-
-                    when (logLine) {
+                    when (val logLine = awaitItem()) {
                         is Parsed -> {
                             it shouldContain logLine.message
                             it shouldContain logLine.level
@@ -96,6 +91,48 @@ class LogcatTest {
                 expectNoEvents()
                 this.ensureAllEventsConsumed()
             }
+        }
+    }
+
+    @Test fun `complete previous 'lines' upon emission of new ones`() = runTest(dispatcher) {
+        dogcat(StartupAs.All)
+        advanceUntilIdle()
+
+        dogcat.state.test {
+            val input = awaitItem() as CapturingInput
+
+            //launch {
+                input.lines.test {
+                    DummyLogSource.lines.forEach {
+                        awaitItem()
+                    }
+                    awaitItem()
+
+                    dogcat(ClearLogs)
+                    //awaitItem()
+                    awaitComplete()
+                    ensureAllEventsConsumed()
+                    //expectNoEvents()
+                    //this.ensureAllEventsConsumed()
+                }
+            //}
+            awaitItem()
+            awaitItem()
+
+            /*println("clear logs zzzzzzzz")
+            dogcat(ClearLogs)
+            awaitItem() as LogcatState.InputCleared
+            val input1 = awaitItem() as CapturingInput
+
+            input1.lines.test {
+                DummyLogSource.lines.forEach {
+                    awaitItem()
+                }
+                awaitItem()
+                //awaitComplete()
+                expectNoEvents()
+                this.ensureAllEventsConsumed()
+            }*/
         }
     }
 
@@ -180,14 +217,12 @@ class LogcatTest {
 
     }
 
-    @Test fun `should exclude log levels upon filtering`() =  runTest(dispatcher) {
+    @Test fun `exclude log levels upon filtering`() =  runTest(dispatcher) {
         dogcat(StartupAs.All)
         dogcat(Filter.ToggleLogLevel("D"))
         advanceUntilIdle()
 
         dogcat.state.test {
-            //skipItems(1)
-
             val lines = (awaitItem() as CapturingInput).lines
 
             lines

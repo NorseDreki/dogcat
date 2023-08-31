@@ -9,6 +9,31 @@ class Logcat(
     dispatcherCpu: CoroutineDispatcher = Dispatchers.Default,
     dispatcherIo: CoroutineDispatcher = Dispatchers.IO,
 )  {
+
+    internal class ClosedException(val owner: FlowCollector<*>) :
+        Exception("Flow was aborted, no more elements needed")
+
+    internal fun ClosedException.checkOwnership(owner: FlowCollector<*>) {
+        if (this.owner !== owner) throw this
+    }
+
+    public fun <T> Flow<T>.takeUntil(notifier: Flow<Any?>): Flow<T> = flow {
+        try {
+            coroutineScope {
+                val job = launch(start = CoroutineStart.UNDISPATCHED) {
+                    notifier.take(1).collect()
+                    throw ClosedException(this@flow)
+                }
+
+                collect { emit(it) }
+                job.cancel()
+            }
+        } catch (e: ClosedException) {
+            e.checkOwnership(this@flow)
+        }
+    }
+
+
     val handler = CoroutineExceptionHandler { _, t -> println("999999 ${t.message}") }
     private val scope = CoroutineScope(dispatcherCpu + handler) // +Job +SupervisorJob +handler
 
@@ -41,13 +66,14 @@ class Logcat(
     val state = privateState.asStateFlow()
 
     private val startSubject = MutableSharedFlow<Unit>(1)
+    private val stopSubject = MutableSharedFlow<Unit>()
     private val filterLine = MutableStateFlow<String>("")
     private val logLevels = mutableSetOf<String>("V", "D", "I", "W", "E") //+.WTF()?
 
-    private val sharedLines = startSubject //should not be needed
+    private val sharedLines = //startSubject //should not be needed
         //beware of implicit distinctuntilchanged
-        .flatMapLatest {
-            println("to start logcat command")
+        /*.flatMapLatest {
+            println("to start logcat command")*/
             logSource
                 .lines()
                 //.catch { cause -> emit("Emit on error") } // deal with malformed UTF-8 'expected one more byte'
@@ -60,7 +86,7 @@ class Logcat(
                 }
                 .onCompletion { cause -> if (cause == null) emit("INPUT HAS EXITED") }
                 .flowOn(dispatcherIo)
-        }
+        //}
         .shareIn(
             scope,
             //SharingStarted.WhileSubscribed()
@@ -73,6 +99,7 @@ class Logcat(
     private val filteredLines = filterLine
         .flatMapLatest { filter ->
             sharedLines
+                .onEach { println("each $it") }
                 .filter { it.contains(filter) }
         }
         .map { parse(it) }
@@ -83,11 +110,12 @@ class Logcat(
                 true
             }
         }
-    // takeUntil -- make sure no collector is subscribed
+        .onCompletion { println("COMPLETION") }
+        .takeUntil(stopSubject)
+
         //.onCompletion { println("filtered completed") }
         //.flowOn(scope.coroutineContext)
         //.cancellable()
-        //.takeUnless {  }
 
     private fun parse(line: String): LogLine {
         val r2 = """^([A-Z])/(.+?)\( *(\d+)\): (.*?)$""".toRegex()
@@ -118,14 +146,6 @@ class Logcat(
             is Filter.Package -> TODO()
             StopEverything -> {
 
-                //currentCoroutineContext()
-                scope.coroutineContext.job.children.iterator().next().invokeOnCompletion { println("children completed") }
-
-                println("parent ${scope.coroutineContext.job.parent}")
-                println("children ${scope.coroutineContext.job.children.iterator().next()}")
-
-                scope.coroutineContext.job.children.onEach { println("child $it") }
-
                 scope.ensureActive()
                 scope.cancel()
                 println("cancelled scope ${scope.coroutineContext.isActive}")
@@ -146,7 +166,6 @@ class Logcat(
     }
 
     private fun filterWith(filter: Filter) {
-        println("filter lkjshdkjlfhskjdlhfkljdsh 1213123")
         scope.launch {
             if (filter is Filter.ByString) {
                 filterLine.emit(filter.substring)
@@ -160,39 +179,21 @@ class Logcat(
         scope.launch {
             println("clearing..")
 
-
-            val childCode = Command("adb")
-                .args("logcat", "-c")
-                .spawn()
-                .start()
-                //.wait()
-
-            println("exit code: ")
+            logSource.clear()
 
             val ci = LogcatState.InputCleared
 
             privateState.emit(ci)
+
+            stopSubject.emit(Unit)
 
             startupAll()
         }
     }
 
     private fun startupAll() {
-        println("jhkjhkjh")
-
-        /*val jj = scope.launch {
-            var i = 0
-            while (true) {
-                println(i)
-                i++
-                delay(10)
-            }
-
-        }*/
-
-        val j = scope.launch {
+        scope.launch {
             println("jhkjhkjh  11111")
-            //yield()
             startSubject.emit(Unit)
 
             val ci = LogcatState.CapturingInput(
@@ -203,7 +204,6 @@ class Logcat(
             privateState.emit(ci)
 
             println("emitted capturing")
-            //yield()
         }
     }
 }
