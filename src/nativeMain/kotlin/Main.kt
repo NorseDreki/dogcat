@@ -1,11 +1,8 @@
+@file:OptIn(ExperimentalCoroutinesApi::class)
+
 import kotlinx.cinterop.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.withIndex
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.yield
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import ncurses.*
 import org.kodein.di.DI
 import org.kodein.di.bindSingleton
@@ -79,7 +76,9 @@ fun main(): Unit = memScoped {
         var a = 25;
 
         logcat
-            .sss
+            .state
+            .filterIsInstance<LogcatState.CapturingInput>()
+            .flatMapMerge { it.lines }
             .withIndex()
             .onEach {
                 //println("${it.index} ${it.value} \r\n")
@@ -140,7 +139,7 @@ fun main(): Unit = memScoped {
             .launchIn(this)
 
         launch(Dispatchers.Default) {
-            logcat.processCommand(StartupAs.All)
+            logcat(StartupAs.All)
 
             while (true) {
                 var key = wgetch(stdscr);
@@ -159,7 +158,7 @@ fun main(): Unit = memScoped {
                         noecho()
                         wclear(fp)
 
-                        logcat.processCommand(Filter.ByString(bytePtr.toKString()))
+                        logcat(Filter.ByString(bytePtr.toKString()))
                         yield()
                     }
 
@@ -197,22 +196,22 @@ fun main(): Unit = memScoped {
                         prefresh(fp, a, 0, 3, 0, sy - 1, sx);
                     }
                     '6'.code -> {
-                        logcat.processCommand(Filter.ToggleLogLevel("V"))
+                        logcat(Filter.ToggleLogLevel("V"))
                     }
                     '7'.code -> {
-                        logcat.processCommand(Filter.ToggleLogLevel("D"))
+                        logcat(Filter.ToggleLogLevel("D"))
                     }
                     '8'.code -> {
-                        logcat.processCommand(Filter.ToggleLogLevel("I"))
+                        logcat(Filter.ToggleLogLevel("I"))
                     }
                     '9'.code -> {
-                        logcat.processCommand(Filter.ToggleLogLevel("W"))
+                        logcat(Filter.ToggleLogLevel("W"))
                     }
                     '0'.code -> {
-                        logcat.processCommand(Filter.ToggleLogLevel("E"))
+                        logcat(Filter.ToggleLogLevel("E"))
                     }
                     'c'.code -> {
-                        logcat.processCommand(ClearLogs)
+                        logcat(ClearLogs)
                     }
                 }
             }

@@ -1,24 +1,25 @@
+import LogcatState.WaitingInput
 import com.kgit2.process.Command
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class Logcat(
-    val logSource: LogSource,
+    private val logSource: LogSource,
     dispatcherCpu: CoroutineDispatcher = Dispatchers.Default,
     dispatcherIo: CoroutineDispatcher = Dispatchers.IO,
 )  {
-    private val privateState = MutableStateFlow<LogcatState>(LogcatState.WaitingInput)
+    val handler = CoroutineExceptionHandler { _, t -> println("999999 ${t.message}") }
+    private val scope = CoroutineScope(dispatcherCpu + handler) // +Job +SupervisorJob +handler
 
+    private val privateState = MutableStateFlow<LogcatState>(WaitingInput)
     val state = privateState.asSharedFlow()
 
-    val scope = CoroutineScope(dispatcherCpu) // +Job
+    private val startSubject = MutableSharedFlow<Unit>(1)
+    private val filterLine = MutableStateFlow<String>("")
+    private val logLevels = mutableSetOf<String>("V", "D", "I", "W", "E") //+.WTF()?
 
-    val startSubject = MutableSharedFlow<Unit>(1)
-
-    val filterLine = MutableStateFlow<String>("")
-
-    val ss = startSubject
+    private val ss = startSubject
         //beware of implicit distinctuntilchanged
         .flatMapLatest {
             println("to start logcat command")
@@ -41,9 +42,7 @@ class Logcat(
             50000,
         )
 
-    val logLevels = mutableSetOf<String>("V", "D", "I", "W", "E") //+.WTF()?
-
-    val sss = filterLine
+    private val sss = filterLine
         .flatMapLatest { filter ->
             ss
                 .filter { it.contains(filter) }
@@ -70,7 +69,7 @@ class Logcat(
         }
     }
 
-    fun processCommand(cmd: LogcatCommands) {
+    operator fun invoke(cmd: LogcatCommands) {
         when (cmd) {
 
             StartupAs.All -> startupAll()

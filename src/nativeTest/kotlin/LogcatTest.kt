@@ -14,6 +14,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.test.assertFailsWith
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class LogcatTest {
@@ -32,6 +33,8 @@ class LogcatTest {
     private lateinit var dogcat: Logcat
     private val scheduler = TestCoroutineScheduler()
     private val dispatcher : CoroutineDispatcher = StandardTestDispatcher(scheduler)
+    val handler = CoroutineExceptionHandler { _, t -> println("999999 ${t.message}") }
+    var thr: Throwable? = null
 
     @BeforeTest fun beforeTest() {
         val ls = DummyLogSource()
@@ -45,7 +48,7 @@ class LogcatTest {
     }
 
     @Test fun `begin capturing when input appears`() = runTest(dispatcher) {
-        dogcat.processCommand(StartupAs.All)
+        dogcat(StartupAs.All)
         advanceUntilIdle()
 
         dogcat.state.test {
@@ -62,11 +65,11 @@ class LogcatTest {
         }
         advanceUntilIdle()
 
-        dogcat.processCommand(StartupAs.All)
+        dogcat(StartupAs.All)
     }
 
     @Test fun `capture all input lines without loss`() = runTest(dispatcher) {
-        dogcat.processCommand(StartupAs.All)
+        dogcat(StartupAs.All)
         advanceUntilIdle()
 
         dogcat.state.test {
@@ -106,7 +109,7 @@ class LogcatTest {
         }
         advanceUntilIdle() //maybe not needed
 
-        dogcat.processCommand(StartupAs.All)
+        dogcat(StartupAs.All)
         advanceUntilIdle()
 
         dogcat.state.test {
@@ -124,7 +127,7 @@ class LogcatTest {
 
 
     @Test fun `log lines flow does not complete while input is active`() = runTest {
-        dogcat.processCommand(StartupAs.All)
+        dogcat(StartupAs.All)
 
         //use test dispatcher instead
         delay(10)
@@ -150,7 +153,7 @@ class LogcatTest {
     }
 
     @Test fun `stop input consumption upon unsubscribing`() = runTest {
-        dogcat.processCommand(StartupAs.All)
+        dogcat(StartupAs.All)
 
         //use test dispatcher instead
         delay(10)
@@ -185,19 +188,19 @@ class LogcatTest {
                 }
                 .collect()
         }
-        dogcat.processCommand(ClearLogs)
+        dogcat(ClearLogs)
 
         job.join()
     }
 
     @Test fun `auto re-start log consumption after clearing log input`() = runTest(dispatcher) {
-        dogcat.processCommand(StartupAs.All)
+        dogcat(StartupAs.All)
         advanceUntilIdle()
 
         dogcat.state.test {
             awaitItem().shouldBeInstanceOf<CapturingInput>()
 
-            dogcat.processCommand(ClearLogs)
+            dogcat(ClearLogs)
 
             awaitItem() shouldBe LogcatState.InputCleared
             awaitItem().shouldBeInstanceOf<CapturingInput>()
@@ -226,8 +229,8 @@ class LogcatTest {
     }
 
     @Test fun `should exclude log levels upon filtering`() =  runTest(dispatcher) {
-        dogcat.processCommand(StartupAs.All)
-        dogcat.processCommand(Filter.ToggleLogLevel("D"))
+        dogcat(StartupAs.All)
+        dogcat(Filter.ToggleLogLevel("D"))
         advanceUntilIdle()
 
         dogcat.state.test {
@@ -248,30 +251,30 @@ class LogcatTest {
     }
 
     //handle logcat restarts / emulator breaks
-    @Test fun `reset to 'waiting input' if input source breaks and re-start logcat`() = runTest {
+    @Test fun `reset to 'waiting input' if input source breaks and re-start logcat`() = runTest(dispatcher) {
         val ls = FakeLogSource()
-        val dogcat = Logcat(ls)
+        val dogcat = Logcat(ls, dispatcher, dispatcher)
+        println("zzzzzzz ${this.coroutineContext[CoroutineExceptionHandler]}")
 
-        turbineScope {
-            val t = dogcat.state.testIn(backgroundScope)
-            t.awaitItem() shouldBe WaitingInput
+        launch(handler) {
+            turbineScope {
+                val t = dogcat.state.testIn(backgroundScope)
+                t.awaitItem() shouldBe WaitingInput
 
-            dogcat.processCommand(StartupAs.All)
-            val c = t.awaitItem() as CapturingInput
+                dogcat(StartupAs.All)
+                val c = t.awaitItem() as CapturingInput
 
-            c.lines.test {
-                awaitItem() shouldBe Original("1")
-                awaitItem() shouldBe Original("2")
-                awaitItem() shouldBe Original("1")
-                awaitItem() shouldBe Original("2")
-                awaitItem() shouldBe Original("1")
-                awaitItem() shouldBe Original("2")
-                awaitItem() shouldBe Original("1")
-                awaitItem() shouldBe Original("2")
-                awaitItem() shouldBe Original("1")
-                awaitItem() shouldBe Original("2")
-                awaitItem() shouldBe Original("1")
-                awaitItem() shouldBe Original("2")
+                c.lines.test {
+                    awaitItem() shouldBe Original("1")
+                    awaitItem() shouldBe Original("2")
+                    awaitItem() shouldBe Original("1")
+                    awaitItem() shouldBe Original("2")
+                    awaitItem() shouldBe Original("1")
+                    awaitItem() shouldBe Original("2")
+                    awaitItem() shouldBe Original("1")
+                    awaitItem() shouldBe Original("2")
+                    //awaitError()
+                }
             }
         }
     }
