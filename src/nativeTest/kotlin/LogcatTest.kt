@@ -127,9 +127,18 @@ class LogcatTest {
 
 
     @Test fun `log lines flow does not complete while input is active`() = runTest {
+        ////
     }
 
-    @Test fun `stop input consumption upon unsubscribing`() = runTest {
+    @Test fun `stop input consumption upon unsubscribing`() = runTest(dispatcher) {
+        dogcat(StartupAs.All)
+        //advanceUntilIdle()
+
+        delay(1000)
+
+        dogcat(StopEverything)
+        advanceUntilIdle()
+
     }
 
 
