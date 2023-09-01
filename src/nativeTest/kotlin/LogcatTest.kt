@@ -117,7 +117,16 @@ class LogcatTest {
                 }
             //}
             awaitItem()
-            awaitItem()
+            val input1 = awaitItem() as CapturingInput
+
+            input1.lines.test {
+                DummyLogSource.lines.forEach {
+                    awaitItem()
+                }
+                awaitItem()
+                expectNoEvents()
+                //awaitComplete()
+            }
 
             /*println("clear logs zzzzzzzz")
             dogcat(ClearLogs)
@@ -154,14 +163,14 @@ class LogcatTest {
             ensureAllEventsConsumed()
         }
     }
-
+/*
     @Test fun `return log line as is if parsing failed`() = runTest {
 
     }
 
     @Test fun `log lines are correctly parsed into segments`() = runTest {
     }
-
+*/
 
     @Test fun `log lines flow does not complete while input is active`() = runTest {
         ////
@@ -178,10 +187,6 @@ class LogcatTest {
 
     }
 
-
-    @Test fun `emit 'reset' state when input cleared`() = runTest {
-    }
-
     @Test fun `auto re-start log consumption after clearing log input`() = runTest(dispatcher) {
         dogcat(StartupAs.All)
         advanceUntilIdle()
@@ -192,7 +197,27 @@ class LogcatTest {
             dogcat(ClearLogs)
 
             awaitItem() shouldBe LogcatState.InputCleared
-            awaitItem().shouldBeInstanceOf<CapturingInput>()
+            //awaitItem().shouldBeInstanceOf<CapturingInput>()
+
+            val input = awaitItem() as CapturingInput
+
+            input.lines.test {
+                DummyLogSource.lines.forEach {
+                    when (val logLine = awaitItem()) {
+                        is Parsed -> {
+                            it shouldContain logLine.message
+                            it shouldContain logLine.level
+                            it shouldContain logLine.owner
+                            it shouldContain logLine.tag
+                        }
+
+                        is Original -> {
+                            it shouldBe logLine.line
+                        }
+                    }
+                }
+                awaitItem()
+            }
         }
     }
 

@@ -1,5 +1,4 @@
 import LogcatState.WaitingInput
-import com.kgit2.process.Command
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
@@ -33,7 +32,6 @@ class Logcat(
         }
     }
 
-
     val handler = CoroutineExceptionHandler { _, t -> println("999999 ${t.message}") }
     private val scope = CoroutineScope(dispatcherCpu + handler) // +Job +SupervisorJob +handler
 
@@ -65,9 +63,10 @@ class Logcat(
     //private val privateState = flowOf(WaitingInput).stateIn(scope)
     val state = privateState.asStateFlow()
 
-    private val startSubject = MutableSharedFlow<Unit>(1)
+    //private val startSubject = MutableSharedFlow<Unit>(1)
     private val stopSubject = MutableSharedFlow<Unit>()
     private val filterLine = MutableStateFlow<String>("")
+
     private val logLevels = mutableSetOf<String>("V", "D", "I", "W", "E") //+.WTF()?
 
     private val sharedLines = //startSubject //should not be needed
@@ -89,8 +88,8 @@ class Logcat(
         //}
         .shareIn(
             scope,
-            //SharingStarted.WhileSubscribed()
-            SharingStarted.Eagerly, //should use lazy or subscribed instead
+            SharingStarted.WhileSubscribed(replayExpirationMillis = 0),
+            //SharingStarted.Eagerly, //should use lazy or subscribed instead
             50000,
         )
         //.onEach { currentCoroutineContext().ensureActive() }
@@ -110,8 +109,8 @@ class Logcat(
                 true
             }
         }
-        .onCompletion { println("COMPLETION") }
-        .takeUntil(stopSubject)
+        //.onCompletion { println("COMPLETION") }
+        //.takeUntil(stopSubject)
 
         //.onCompletion { println("filtered completed") }
         //.flowOn(scope.coroutineContext)
@@ -131,9 +130,7 @@ class Logcat(
 
     operator fun invoke(cmd: LogcatCommands) {
         when (cmd) {
-
             StartupAs.All -> startupAll()
-
             ClearLogs -> clearLogs()
 
             is FilterWith -> filterWith(cmd.filter)
@@ -145,6 +142,9 @@ class Logcat(
             is Filter.ByTime -> TODO()
             is Filter.Package -> TODO()
             StopEverything -> {
+                scope.launch {
+                    stopSubject.emit(Unit)
+                }
 
                 scope.ensureActive()
                 scope.cancel()
@@ -179,13 +179,13 @@ class Logcat(
         scope.launch {
             println("clearing..")
 
-            logSource.clear()
+            stopSubject.emit(Unit)
+            println("called stop subject..")
 
+            logSource.clear()
             val ci = LogcatState.InputCleared
 
             privateState.emit(ci)
-
-            stopSubject.emit(Unit)
 
             startupAll()
         }
@@ -194,10 +194,12 @@ class Logcat(
     private fun startupAll() {
         scope.launch {
             println("jhkjhkjh  11111")
-            startSubject.emit(Unit)
+            //startSubject.emit(Unit)
 
             val ci = LogcatState.CapturingInput(
                 filteredLines
+                    .onCompletion { println("COMPLETION $it") } //called when scope is cancelled as well
+                    .takeUntil(stopSubject)
             )
 
             println("prepare to emit capturing")

@@ -10,14 +10,6 @@ class FakeLogSource : LogSource {
         source.emit(line)
     }
 
-    suspend fun complete() {
-
-        /*source1.cancel()
-        flow<String> {
-            this.
-        }*/
-    }
-
     override fun lines() = flow {
         println("emitting lines")
         emit("1")
