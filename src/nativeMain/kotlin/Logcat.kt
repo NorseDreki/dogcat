@@ -75,6 +75,7 @@ class Logcat(
             println("to start logcat command")*/
             logSource
                 .lines()
+                .onEach { println("each $it") }
                 //.catch { cause -> emit("Emit on error") } // deal with malformed UTF-8 'expected one more byte'
                 .retry(3) { e ->
                     println("retrying...")
@@ -83,19 +84,26 @@ class Logcat(
                     println("retrying... $shallRetry")
                     shallRetry
                 }
-                .onCompletion { cause -> if (cause == null) emit("INPUT HAS EXITED") }
+                .onCompletion { cause -> if (cause == null) emit("INPUT HAS EXITED") else println("EXIT COMPLETE $cause")}
                 .flowOn(dispatcherIo)
         //}
+                .onEmpty { println("empty") }
+                .onStart { println("start") }
         .shareIn(
             scope,
             SharingStarted.WhileSubscribed(replayExpirationMillis = 0),
-            //SharingStarted.Eagerly, //should use lazy or subscribed instead
+            //SharingStarted.Lazily, //should use lazy or subscribed instead
             50000,
         )
+                .onSubscription {
+                    println("subscr")
+                }
+                .onCompletion { println("shared compl") }
         //.onEach { currentCoroutineContext().ensureActive() }
         //.onCompletion { println("shared completed") }
 
     private val filteredLines = filterLine
+        .onCompletion { println("fl compl") }
         .flatMapLatest { filter ->
             sharedLines
                 .onEach { println("each $it") }
@@ -109,6 +117,7 @@ class Logcat(
                 true
             }
         }
+        .onCompletion { println("outer compl") }
         //.onCompletion { println("COMPLETION") }
         //.takeUntil(stopSubject)
 
@@ -142,7 +151,11 @@ class Logcat(
             is Filter.ByTime -> TODO()
             is Filter.Package -> TODO()
             StopEverything -> {
+
+
                 scope.launch {
+                    privateState.emit(LogcatState.Terminated)
+
                     stopSubject.emit(Unit)
                 }
 

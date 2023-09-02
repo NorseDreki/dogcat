@@ -8,10 +8,7 @@ import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.TestCoroutineScheduler
-import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.*
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
@@ -28,7 +25,6 @@ class LogcatTest {
     }
 */
 
-    //@Mock
     private lateinit var dogcat: Logcat
     private val scheduler = TestCoroutineScheduler()
     private val dispatcher : CoroutineDispatcher = StandardTestDispatcher(scheduler)
@@ -41,6 +37,7 @@ class LogcatTest {
     @Test fun `start as waiting for log lines input`() = runTest(dispatcher) {
         dogcat.state.test {
             awaitItem() shouldBe WaitingInput
+            expectNoEvents()
         }
     }
 
@@ -49,6 +46,7 @@ class LogcatTest {
         advanceUntilIdle()
 
         dogcat.state.test {
+            // if input fails upon 3 attempts, re-throw that exception into shared flow
             //assert a call to lines() has occured?
             awaitItem().shouldBeInstanceOf<CapturingInput>()
         }
@@ -87,9 +85,7 @@ class LogcatTest {
                     }
                 }
                 awaitItem()
-                //awaitComplete()
                 expectNoEvents()
-                this.ensureAllEventsConsumed()
             }
         }
     }
@@ -111,9 +107,7 @@ class LogcatTest {
                     dogcat(ClearLogs)
                     //awaitItem()
                     awaitComplete()
-                    ensureAllEventsConsumed()
                     //expectNoEvents()
-                    //this.ensureAllEventsConsumed()
                 }
             //}
             awaitItem()
@@ -127,21 +121,6 @@ class LogcatTest {
                 expectNoEvents()
                 //awaitComplete()
             }
-
-            /*println("clear logs zzzzzzzz")
-            dogcat(ClearLogs)
-            awaitItem() as LogcatState.InputCleared
-            val input1 = awaitItem() as CapturingInput
-
-            input1.lines.test {
-                DummyLogSource.lines.forEach {
-                    awaitItem()
-                }
-                awaitItem()
-                //awaitComplete()
-                expectNoEvents()
-                this.ensureAllEventsConsumed()
-            }*/
         }
     }
 
@@ -172,19 +151,58 @@ class LogcatTest {
     }
 */
 
-    @Test fun `log lines flow does not complete while input is active`() = runTest {
-        ////
+    @Test fun `log lines flow does not complete while input is active`() = runTest(dispatcher) {
+        val ls = Fake2LogSource()
+        val dogcat1 = Logcat(ls, dispatcher, dispatcher)
+
+        dogcat1(StartupAs.All)
+        advanceUntilIdle()
+
+        dogcat1.state.test {
+            val items = awaitItem() as CapturingInput
+
+            val j = launch {
+                items.lines
+                    .collect {
+                        println("collected")
+                    }
+            }
+            advanceUntilIdle()
+            ls.emitLine("1")
+
+            delay(5000)
+            j.isActive shouldBe true
+            println("active")
+            j.cancelAndJoin()
+
+            /*items.lines.test {
+                advanceUntilIdle()
+
+                ls.emitLine("1")
+                awaitItem()
+            }*/
+        }
     }
 
     @Test fun `stop input consumption upon unsubscribing`() = runTest(dispatcher) {
         dogcat(StartupAs.All)
-        //advanceUntilIdle()
-
-        delay(1000)
-
-        dogcat(StopEverything)
         advanceUntilIdle()
 
+        dogcat.state.test {
+            val items = awaitItem() as CapturingInput
+
+            launch(UnconfinedTestDispatcher(testScheduler)) {
+                items.lines.collect {
+                    println("coll $it")
+                }
+                println("end")
+            }
+
+            dogcat(StopEverything)
+            advanceUntilIdle()
+
+            awaitItem() shouldBe LogcatState.Terminated
+        }
     }
 
     @Test fun `auto re-start log consumption after clearing log input`() = runTest(dispatcher) {
@@ -197,8 +215,6 @@ class LogcatTest {
             dogcat(ClearLogs)
 
             awaitItem() shouldBe LogcatState.InputCleared
-            //awaitItem().shouldBeInstanceOf<CapturingInput>()
-
             val input = awaitItem() as CapturingInput
 
             input.lines.test {
@@ -262,11 +278,9 @@ class LogcatTest {
         }
     }
 
-    //handle logcat restarts / emulator breaks
-    @Test fun `reset to 'waiting input' if input source breaks and re-start logcat`() = runTest(dispatcher) {
+    @Test fun `reset to 'waiting input' if emulator breaks and re-start logcat`() = runTest(dispatcher) {
         val ls = FakeLogSource()
         val dogcat = Logcat(ls, dispatcher, dispatcher)
-        println("zzzzzzz ${this.coroutineContext[CoroutineExceptionHandler]}")
 
         turbineScope {
             val t = dogcat.state.testIn(backgroundScope)
@@ -284,7 +298,6 @@ class LogcatTest {
                 awaitItem() shouldBe Original("2")
                 awaitItem() shouldBe Original("1")
                 awaitItem() shouldBe Original("2")
-                //awaitError()
             }
         }
     }
