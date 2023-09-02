@@ -11,9 +11,7 @@ sealed interface Filter : LogcatCommands {
 
     data class Exclude(val e: String) : LogcatCommands
 
-    //last session
-
-    //previous session
+    //last session --- //previous session
 }
 
 data class FilterWith(val filter: Filter) : LogcatCommands

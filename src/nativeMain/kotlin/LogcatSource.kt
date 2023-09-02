@@ -6,11 +6,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.yield
 
 class LogcatSource : LogSource {
-    val greenColor = "\u001b[31;1;4m"
-    val reset = "\u001b[0m" // to reset color to the default
-    val name = greenColor + "Alex" + reset // Add green only to Alex
-//viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED)
-
     override fun lines(): Flow<String> {
         println("11111 start LOGCAT")
 
@@ -27,7 +22,6 @@ class LogcatSource : LogSource {
                 val line2 = stdoutReader!!.readLine() ?: break
                 emit(line2)
                 //if (isActive)
-
                 yield()
             }
         }
