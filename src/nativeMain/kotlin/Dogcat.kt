@@ -3,10 +3,11 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class Logcat(
+class Dogcat(
     private val logSource: LogSource,
     dispatcherCpu: CoroutineDispatcher = Dispatchers.Default,
     dispatcherIo: CoroutineDispatcher = Dispatchers.IO,
+    private val lineParser: LogLineParser = LogcatBriefParser()
 )  {
     val handler = CoroutineExceptionHandler { _, t -> println("999999 ${t.message}") }
     private val scope = CoroutineScope(dispatcherCpu + handler) // +Job +SupervisorJob +handler
@@ -38,10 +39,8 @@ class Logcat(
             SharingStarted.WhileSubscribed(replayExpirationMillis = 0),
             Config.LogLinesBufferCount,
         )
-                .onSubscription {
-                    println("subscr")
-                }
-                .onCompletion { println("shared compl") }
+        .onSubscription {println("subscr") }
+        .onCompletion { println("shared compl") }
 
 
     private val filteredLines = filterLine
@@ -51,7 +50,7 @@ class Logcat(
                 .onEach { println("each $it") }
                 .filter { it.contains(filter) }
         }
-        .map { parse(it) }
+        .map { lineParser.parse(it) }
         .filter {
             if (it is Parsed) {
                 logLevels.contains(it.level)
@@ -60,18 +59,6 @@ class Logcat(
             }
         }
         .onCompletion { println("outer compl") }
-
-    private fun parse(line: String): LogLine {
-        val r2 = """^([A-Z])/(.+?)\( *(\d+)\): (.*?)$""".toRegex()
-
-        val m = r2.matchEntire(line)
-        return if (m != null) {
-            val (level, tag, owner, message) = m.destructured
-            Parsed(level, tag, owner, message)
-        } else {
-            Original(line)
-        }
-    }
 
     operator fun invoke(cmd: LogcatCommands) {
         when (cmd) {
@@ -87,7 +74,6 @@ class Logcat(
             StopEverything -> {
                 scope.launch {
                     privateState.emit(LogcatState.Terminated)
-
                     stopSubject.emit(Unit)
                 }
                 scope.ensureActive()

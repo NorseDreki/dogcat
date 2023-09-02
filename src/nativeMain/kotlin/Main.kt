@@ -13,14 +13,14 @@ import platform.posix.setlocale
 
 val dogcatModule = DI.Module("dogcat") {
     bindSingleton<LogSource> { LogcatSource() }
-    bindSingleton<Logcat> { Logcat(instance()) }
+    bindSingleton<Dogcat> { Dogcat(instance()) }
 }
 
 val di = DI {
     import(dogcatModule)
 }
 
-val logcat: Logcat by di.instance()
+val logcat: Dogcat by di.instance()
 
 @OptIn(ExperimentalForeignApi::class, ExperimentalCoroutinesApi::class)
 fun main(): Unit = memScoped {

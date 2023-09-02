@@ -25,13 +25,13 @@ class LogcatTest {
     }
 */
 
-    private lateinit var dogcat: Logcat
+    private lateinit var dogcat: Dogcat
     private val scheduler = TestCoroutineScheduler()
     private val dispatcher : CoroutineDispatcher = StandardTestDispatcher(scheduler)
 
     @BeforeTest fun beforeTest() {
         val ls = DummyLogSource()
-        dogcat = Logcat(ls, dispatcher, dispatcher)
+        dogcat = Dogcat(ls, dispatcher, dispatcher)
     }
 
     @Test fun `start as waiting for log lines input`() = runTest(dispatcher) {
@@ -153,7 +153,7 @@ class LogcatTest {
 
     @Test fun `log lines flow does not complete while input is active`() = runTest(dispatcher) {
         val ls = Fake2LogSource()
-        val dogcat1 = Logcat(ls, dispatcher, dispatcher)
+        val dogcat1 = Dogcat(ls, dispatcher, dispatcher)
 
         dogcat1(StartupAs.All)
         advanceUntilIdle()
@@ -280,7 +280,7 @@ class LogcatTest {
 
     @Test fun `reset to 'waiting input' if emulator breaks and re-start logcat`() = runTest(dispatcher) {
         val ls = FakeLogSource()
-        val dogcat = Logcat(ls, dispatcher, dispatcher)
+        val dogcat = Dogcat(ls, dispatcher, dispatcher)
 
         turbineScope {
             val t = dogcat.state.testIn(backgroundScope)
