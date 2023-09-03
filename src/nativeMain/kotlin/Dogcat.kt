@@ -9,7 +9,7 @@ class Dogcat(
     dispatcherIo: CoroutineDispatcher = Dispatchers.IO,
     private val lineParser: LogLineParser = LogcatBriefParser()
 )  {
-    val handler = CoroutineExceptionHandler { _, t -> println("999999 ${t.message}") }
+    val handler = CoroutineExceptionHandler { _, t -> println("999999 ${t.message}\r") }
     private val scope = CoroutineScope(dispatcherCpu + handler) // +Job +SupervisorJob +handler
 
     private val privateState = MutableStateFlow<LogcatState>(WaitingInput)
@@ -20,34 +20,36 @@ class Dogcat(
 
     private val logLevels = mutableSetOf<String>("V", "D", "I", "W", "E") //+.WTF()?
 
+    //re-create each time clearing occurs
     private val sharedLines = logSource // deal with malformed UTF-8 'expected one more byte'
         .lines()
-        .onEach { println("each $it") }
+        //.onEach { println("----- >> each $it\r") }
         .retry(3) { e ->
-            println("retrying...")
+            println("retrying...\r")
             val shallRetry = e is RuntimeException
             if (shallRetry) delay(100)
-            println("retrying... $shallRetry")
+            println("retrying... $shallRetry\r")
             shallRetry
         }
-        .onCompletion { cause -> if (cause == null) emit("INPUT HAS EXITED") else println("EXIT COMPLETE $cause")}
+        .onCompletion { cause -> if (cause == null) emit("INPUT HAS EXITED") else println("EXIT COMPLETE $cause\r")}
         .flowOn(dispatcherIo)
-        .onEmpty { println("empty") }
-        .onStart { println("start") }
+        .onEmpty { println("empty\r") }
+        .onStart { println("start logcat lines\r") }
         .shareIn(
             scope,
-            SharingStarted.WhileSubscribed(replayExpirationMillis = 0),
+            SharingStarted.Lazily,
+            //SharingStarted.WhileSubscribed(replayExpirationMillis = 100),
             Config.LogLinesBufferCount,
         )
-        .onSubscription {println("subscr") }
-        .onCompletion { println("shared compl") }
+        .onSubscription { println("subscr to shared lines\r") }
+        .onCompletion { println("shared compl!\r") }
 
 
     private val filteredLines = filterLine
-        .onCompletion { println("fl compl") }
+        .onCompletion { println("fl compl\r") }
         .flatMapLatest { filter ->
             sharedLines
-                .onEach { println("each $it") }
+                //.onEach { println("each $it") }
                 .filter { it.contains(filter) }
         }
         .map { lineParser.parse(it) }
@@ -58,7 +60,7 @@ class Dogcat(
                 true
             }
         }
-        .onCompletion { println("outer compl") }
+        .onCompletion { println("outer compl\r") }
 
     operator fun invoke(cmd: LogcatCommands) {
         when (cmd) {
@@ -78,7 +80,7 @@ class Dogcat(
                 }
                 scope.ensureActive()
                 scope.cancel()
-                println("cancelled scope ${scope.coroutineContext.isActive}")
+                println("cancelled scope ${scope.coroutineContext.isActive}\r")
             }
         }
     }
@@ -99,18 +101,18 @@ class Dogcat(
         scope.launch {
             if (filter is Filter.ByString) {
                 filterLine.emit(filter.substring)
-                println("next filter ${filter.substring}")
+                //println("next filter ${filter.substring}")
             }
         }
     }
 
     private fun clearLogs() {
-        println("to clear logs")
+        println("to clear logs\r")
         scope.launch {
-            println("clearing..")
+            println("clearing..\r")
 
             stopSubject.emit(Unit)
-            println("called stop subject..")
+            println("called stop subject..\r")
 
             logSource.clear()
             val ci = LogcatState.InputCleared
@@ -123,17 +125,17 @@ class Dogcat(
 
     private fun startupAll() {
         scope.launch {
-            println("jhkjhkjh  11111")
+            //println("jhkjhkjh  11111")
             val ci = LogcatState.CapturingInput(
                 filteredLines
-                    .onCompletion { println("COMPLETION $it") } //called when scope is cancelled as well
+                    .onCompletion { println("COMPLETION $it\r") } //called when scope is cancelled as well
                     .takeUntil(stopSubject)
             )
 
-            println("prepare to emit capturing")
+            //println("prepare to emit capturing")
             privateState.emit(ci)
 
-            println("emitted capturing")
+            //println("emitted capturing")
         }
     }
 }

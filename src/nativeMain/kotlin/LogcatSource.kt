@@ -7,8 +7,6 @@ import kotlinx.coroutines.yield
 
 class LogcatSource : LogSource {
     override fun lines(): Flow<String> {
-        println("11111 start LOGCAT")
-
         return flow {
             val child = Command("adb")
                 .args("logcat", "-v", "brief")
