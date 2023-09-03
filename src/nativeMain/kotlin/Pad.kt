@@ -44,6 +44,7 @@ class Pad(val position: PadPosition) {
 
     fun end() {
         firstVisibleLine = linesCount - (position.endY - 1 - position.startY)
+        refresh()
     }
 
     fun clear() {

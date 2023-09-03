@@ -1,4 +1,4 @@
-import LogcatState.CapturingInput
+import LogcatState.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -20,7 +20,7 @@ val di = DI {
     import(dogcatModule)
 }
 
-val logcat: Dogcat by di.instance()
+val dogcat: Dogcat by di.instance()
 
 @OptIn(ExperimentalForeignApi::class, ExperimentalCoroutinesApi::class)
 fun main(): Unit = memScoped {
@@ -29,7 +29,7 @@ fun main(): Unit = memScoped {
     intrflush(stdscr, false)
     savetty()
     noecho()
-    //cbreak() //making getch() work without a buffer I.E. raw characters
+    cbreak() //making getch() work without a buffer I.E. raw characters
     keypad(stdscr, true) //allows use of special keys, namely the arrow keys
     clear()
 
@@ -47,119 +47,123 @@ fun main(): Unit = memScoped {
 
     val sx = getmaxx(stdscr)
     val sy = getmaxy(stdscr)
-    val fp = newpad(Config.LogLinesBufferCount, sx)
-    scrollok(fp, true)
-    //keypad(fp, true)
+
+    val padPosition = PadPosition(0, 5, sx, sy - 1)
+    val pad = Pad(padPosition)
+
 
     runBlocking {
-        var a = 25;
-
-        logcat
-            .state
-            .filterIsInstance<CapturingInput>()
-            .flatMapMerge { it.lines }
-            .withIndex()
-            .onEach {
-                processLogLine(fp, it, sy, sx, a)
-            }
-            .launchIn(this)
-
         launch(Dispatchers.Default) {
-            logcat(StartupAs.All)
+            dogcat
+                .state
+                .flatMapLatest {
+                    when (it) {
+                        is WaitingInput -> {
+                            println("Waiting for log lines...\r")
+                            emptyFlow()
+                        }
 
+                        is CapturingInput -> {
+                            println(">>>>>> NEXT Capturing...")
+                            pad.clear()
+                            it.lines.withIndex()
+                        }
+
+                        InputCleared -> {
+                            println("Cleared Logcat and re-started\r")
+                            emptyFlow()
+                        }
+
+                        Terminated -> {
+                            cancel()
+                            println("No more reading lines, terminated\r")
+                            emptyFlow()
+                        }
+                    }
+                }
+                .onEach {
+                    pad.recordLine()
+                    //println("${it.index} ${it.value} \r\n")
+                    processLogLine(pad.fp, it)
+                    pad.refresh()
+                }
+                .collect()
+        }
+
+        //what if there is only one thread at runtime?
+        launch(Dispatchers.Default) {
             while (true) {
-                var key = wgetch(stdscr);
+                //Maybe change to non-blocking reading and use Main instead
+                // Read char and amke a delay
+                val key = wgetch(stdscr);
 
-                processInputKey(key, stdscr, sx, sy, fp, a)
+                processInputKey(key, pad)
             }
         }
+
+        dogcat(StartupAs.All)
     }
 }
 
 @OptIn(ExperimentalForeignApi::class)
 private suspend fun MemScope.processInputKey(
     key: Int,
-    stdscr: CPointer<WINDOW>?,
-    sx: Int,
-    sy: Int,
-    fp: CPointer<WINDOW>?,
-    a: Int
+    pad: Pad
 ) {
-    var a1 = a
     when (key) {
         'f'.code -> {
-            //wprintw(stdscr, name)
-            //println(name)
-            mvwprintw(stdscr, 0, 0, "$sx:$sy")
-            //mvwprintw(stdscr, 0, 0, name)
+            mvwprintw(stdscr, 0, 0, ":")
             clrtoeol()
             echo()
 
             val bytePtr = allocArray<ByteVar>(200)
             getnstr(bytePtr, 200)
             noecho()
-            wclear(fp)
+            pad.clear()
 
-            logcat(Filter.ByString(bytePtr.toKString()))
-            yield()
+            dogcat(Filter.ByString(bytePtr.toKString()))
         }
 
         'q'.code -> {
-            delwin(fp); exit(0)
+            dogcat(StopEverything)
+            pad.terminate()
+            exit(0)
         }
 
-        'a'.code -> {
-            a1 = 0
-            prefresh(fp, 0, 0, 3, 0, sy - 1, sx);
-        }
+        'a'.code -> pad.home()
 
-        'z'.code -> {
-            /*a = 0
-                        prefresh(fp, 0, 0, 3,0, sy-1, sx);*/
-        }
+        'z'.code -> pad.end()
 
-        'w'.code -> {
-            a1--
-            prefresh(fp, a1, 0, 3, 0, sy - 1, sx);
-        }
+        'w'.code -> pad.lineUp()
 
-        's'.code -> {
-            a1++
-            prefresh(fp, a1, 0, 3, 0, sy - 1, sx);
-        }
+        's'.code -> pad.lineDown()
 
-        'd'.code -> {
-            a1 += sy - 1 - 3
-            prefresh(fp, a1, 0, 3, 0, sy - 1, sx);
-        }
+        'd'.code -> pad.pageDown()
 
-        'e'.code -> {
-            a1 -= sy - 1 - 3
-            prefresh(fp, a1, 0, 3, 0, sy - 1, sx);
-        }
+        'e'.code -> pad.pageUp()
 
         '6'.code -> {
-            logcat(Filter.ToggleLogLevel("V"))
+            dogcat(Filter.ToggleLogLevel("V"))
         }
 
         '7'.code -> {
-            logcat(Filter.ToggleLogLevel("D"))
+            dogcat(Filter.ToggleLogLevel("D"))
         }
 
         '8'.code -> {
-            logcat(Filter.ToggleLogLevel("I"))
+            dogcat(Filter.ToggleLogLevel("I"))
         }
 
         '9'.code -> {
-            logcat(Filter.ToggleLogLevel("W"))
+            dogcat(Filter.ToggleLogLevel("W"))
         }
 
         '0'.code -> {
-            logcat(Filter.ToggleLogLevel("E"))
+            dogcat(Filter.ToggleLogLevel("E"))
         }
 
         'c'.code -> {
-            logcat(ClearLogs)
+            dogcat(ClearLogs)
         }
     }
 }
@@ -168,16 +172,12 @@ private suspend fun MemScope.processInputKey(
 private suspend fun processLogLine(
     fp: CPointer<WINDOW>?,
     it: IndexedValue<LogLine>,
-    sy: Int,
-    sx: Int,
-    a: Int
 ) {
-    //println("${it.index} ${it.value} \r\n")
     waddstr(fp, "${it.index} ")
     val logLine = it.value
 
     if (logLine is Original) {
-        waddstr(fp, "${logLine}\n")
+        waddstr(fp, "${logLine.line}\n")
 
     } else if (logLine is Parsed) {
 
@@ -207,10 +207,10 @@ private suspend fun processLogLine(
             }
 
             "I" -> {
-                wattron(fp, COLOR_PAIR(4));
+                //wattron(fp, COLOR_PAIR(4));
                 waddstr(fp, "${logLine.level} ||")
                 waddstr(fp, "${logLine.message} ||\n")
-                wattroff(fp, COLOR_PAIR(4));
+                //wattroff(fp, COLOR_PAIR(4));
             }
 
             else -> {
@@ -220,6 +220,5 @@ private suspend fun processLogLine(
         }
         //waddstr(fp, "${it.value.message} \n")
     }
-
-    yield()
+   // yield()
 }
