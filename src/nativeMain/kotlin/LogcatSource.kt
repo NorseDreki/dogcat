@@ -28,6 +28,9 @@ class LogcatSource : LogSource {
     override fun clear(): Boolean {
         println("clearing..")
 
+        //use suspendCoroutine
+        //For instance, you might use withContext to switch to a particular thread pool, or you might wrap a callback-based function using suspendCancellableCoroutine. Either way, calling those functions would force you to add the suspend modifier to your function.
+
         val childCode = Command("adb")
             .args("logcat", "-c")
             .spawn()

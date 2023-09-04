@@ -168,3 +168,29 @@ private fun MemScope.processInputKey(
         }
     }
 }
+
+enum class Keys {
+    Q,
+    ECHAP,
+    ENTER,
+    SPACE,
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT
+}
+
+val keyMap = mapOf(
+    'q'.toInt() to Keys.Q,
+    27 to Keys.ECHAP,
+    10 to Keys.ENTER,
+    32 to Keys.SPACE,
+    259 to Keys.UP,
+    258 to Keys.DOWN,
+    260 to Keys.LEFT,
+    261 to Keys.RIGHT
+)
+
+private fun hideCursor() {
+    curs_set(0)
+}
