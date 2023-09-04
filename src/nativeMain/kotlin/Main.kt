@@ -22,13 +22,14 @@ val di = DI {
 
 val dogcat: Dogcat by di.instance()
 
-@OptIn(ExperimentalForeignApi::class, ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
 fun main(): Unit = memScoped {
     setlocale(LC_ALL, "en_US.UTF-8")
     initscr()
     intrflush(stdscr, false)
     savetty()
     noecho()
+    nodelay(stdscr, true)
     cbreak() //making getch() work without a buffer I.E. raw characters
     keypad(stdscr, true) //allows use of special keys, namely the arrow keys
     clear()
@@ -54,7 +55,19 @@ fun main(): Unit = memScoped {
     val lineColorizer = LogLineColorizer()
 
     runBlocking {
-        launch(Dispatchers.Default) {
+        launch {
+            while (true) {
+                val key = wgetch(stdscr);
+
+                if (key == ERR) {
+                    delay(50)
+                    continue
+                }
+                processInputKey(key, pad)
+            }
+        }
+
+        launch {
             dogcat
                 .state
                 .flatMapLatest {
@@ -89,17 +102,6 @@ fun main(): Unit = memScoped {
                     pad.refresh()
                 }
                 .collect()
-        }
-
-        //what if there is only one thread at runtime?
-        launch(Dispatchers.Default) {
-            while (true) {
-                //Maybe change to non-blocking reading and use Main instead
-                // Read char and amke a delay
-                val key = wgetch(stdscr);
-
-                processInputKey(key, pad)
-            }
         }
 
         dogcat(StartupAs.All)
@@ -194,3 +196,19 @@ val keyMap = mapOf(
 private fun hideCursor() {
     curs_set(0)
 }
+
+/* waves effect on screen
+while (true) {
+    println("getting char")
+    val key = wgetch(stdscr);
+    println("got char")
+
+    if (key == -1) {
+        println("delaying")
+        delay(30)
+        continue
+    }
+
+    println("processing")
+    processInputKey(key, pad)
+}*/
