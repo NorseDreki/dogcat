@@ -23,7 +23,9 @@ val di = DI {
 
 val dogcat: Dogcat by di.instance()
 
-@OptIn(ExperimentalForeignApi::class, ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class,
+@OptIn(
+    ExperimentalForeignApi::class,
+    ExperimentalCoroutinesApi::class,
     DelicateCoroutinesApi::class
 )
 fun main(): Unit = memScoped {
@@ -32,7 +34,7 @@ fun main(): Unit = memScoped {
     intrflush(stdscr, false)
     savetty()
     noecho()
-    nodelay(stdscr, true)
+    //nodelay(stdscr, true)
     cbreak() //making getch() work without a buffer I.E. raw characters
     keypad(stdscr, true) //allows use of special keys, namely the arrow keys
     clear()
@@ -71,49 +73,47 @@ fun main(): Unit = memScoped {
     }
 
     runBlocking {
-        launch {
-            dogcat
-                .state
-                .flatMapLatest {
-                    when (it) {
-                        is WaitingInput -> {
-                            println("Waiting for log lines...\r")
-                            emptyFlow()
-                        }
+        dogcat(StartupAs.All)
 
-                        is CapturingInput -> {
-                            println(">>>>>> NEXT Capturing...")
-                            pad.clear()
-                            it.lines.withIndex()
-                        }
+        dogcat
+            .state
+            .flatMapLatest {
+                when (it) {
+                    is WaitingInput -> {
+                        println("Waiting for log lines...\r")
+                        emptyFlow()
+                    }
 
-                        InputCleared -> {
-                            println("Cleared Logcat and re-started\r")
-                            emptyFlow()
-                        }
+                    is CapturingInput -> {
+                        println(">>>>>> NEXT Capturing...")
+                        pad.clear()
+                        it.lines.withIndex()
+                    }
 
-                        Terminated -> {
-                            cancel()
-                            println("No more reading lines, terminated\r")
-                            emptyFlow()
-                        }
+                    InputCleared -> {
+                        println("Cleared Logcat and re-started\r")
+                        emptyFlow()
+                    }
+
+                    Terminated -> {
+                        cancel()
+                        println("No more reading lines, terminated\r")
+                        emptyFlow()
                     }
                 }
-                .onEach {
-                    pad.recordLine()
-                    //println("${it.index} ${it.value} \r\n")
-                    lineColorizer.processLogLine(pad.fp, it)
-                    pad.refresh()
-                }
-                .collect()
-        }
-
-        dogcat(StartupAs.All)
+            }
+            .onEach {
+                pad.recordLine()
+                //println("${it.index} ${it.value} \r\n")
+                lineColorizer.processLogLine(pad.fp, it)
+                pad.refresh()
+            }
+            .collect()
     }
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private fun MemScope.processInputKey(
+private suspend fun MemScope.processInputKey(
     key: Int,
     pad: Pad
 ) {
@@ -200,19 +200,3 @@ val keyMap = mapOf(
 private fun hideCursor() {
     curs_set(0)
 }
-
-/* waves effect on screen
-while (true) {
-    println("getting char")
-    val key = wgetch(stdscr);
-    println("got char")
-
-    if (key == -1) {
-        println("delaying")
-        delay(30)
-        continue
-    }
-
-    println("processing")
-    processInputKey(key, pad)
-}*/

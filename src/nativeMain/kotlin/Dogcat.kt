@@ -62,7 +62,7 @@ class Dogcat(
         }
         .onCompletion { println("outer compl\r") }
 
-    operator fun invoke(cmd: LogcatCommands) {
+    suspend operator fun invoke(cmd: LogcatCommands) {
         when (cmd) {
             StartupAs.All -> startupAll()
             ClearLogs -> clearLogs()
@@ -74,10 +74,9 @@ class Dogcat(
             is Filter.ByTime -> TODO()
             is Filter.Package -> TODO()
             StopEverything -> {
-                scope.launch {
-                    privateState.emit(LogcatState.Terminated)
-                    stopSubject.emit(Unit)
-                }
+                privateState.emit(LogcatState.Terminated)
+                stopSubject.emit(Unit)
+
                 scope.ensureActive()
                 scope.cancel()
                 println("cancelled scope ${scope.coroutineContext.isActive}\r")
@@ -97,47 +96,34 @@ class Dogcat(
     private fun clearFilter() {
     }
 
-    private fun filterWith(filter: Filter) {
-        scope.launch {
-            if (filter is Filter.ByString) {
-                filterLine.emit(filter.substring)
-                //println("next filter ${filter.substring}")
-            }
+    private suspend fun filterWith(filter: Filter) {
+        if (filter is Filter.ByString) {
+            filterLine.emit(filter.substring)
+            //println("next filter ${filter.substring}")
         }
     }
 
-    private fun clearLogs() {
+    private suspend fun clearLogs() {
         println("to clear logs\r")
-        scope.launch {
-            println("clearing..\r")
 
-            //stopSubject.tryEmit()
+        stopSubject.emit(Unit)
+        println("called stop subject..\r")
 
-            stopSubject.emit(Unit)
-            println("called stop subject..\r")
+        logSource.clear()
+        val ci = LogcatState.InputCleared
 
-            logSource.clear()
-            val ci = LogcatState.InputCleared
+        privateState.emit(ci)
 
-            privateState.emit(ci)
-
-            startupAll()
-        }
+        startupAll()
     }
 
-    private fun startupAll() {
-        scope.launch {
-            //println("jhkjhkjh  11111")
-            val ci = LogcatState.CapturingInput(
-                filteredLines
-                    .onCompletion { println("COMPLETION $it\r") } //called when scope is cancelled as well
-                    .takeUntil(stopSubject)
-            )
+    private suspend fun startupAll() {
+        val ci = LogcatState.CapturingInput(
+            filteredLines
+                .onCompletion { println("COMPLETION $it\r") } //called when scope is cancelled as well
+                .takeUntil(stopSubject)
+        )
 
-            //println("prepare to emit capturing")
-            privateState.emit(ci)
-
-            //println("emitted capturing")
-        }
+        privateState.emit(ci)
     }
 }
