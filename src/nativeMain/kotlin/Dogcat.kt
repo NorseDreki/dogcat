@@ -111,6 +111,8 @@ class Dogcat(
         scope.launch {
             println("clearing..\r")
 
+            //stopSubject.tryEmit()
+
             stopSubject.emit(Unit)
             println("called stop subject..\r")
 

@@ -10,6 +10,7 @@ import platform.posix.LC_ALL
 import platform.posix.exit
 import platform.posix.printf
 import platform.posix.setlocale
+import kotlin.system.measureTimeMillis
 
 val dogcatModule = DI.Module("dogcat") {
     bindSingleton<LogSource> { LogcatSource() }
@@ -22,7 +23,9 @@ val di = DI {
 
 val dogcat: Dogcat by di.instance()
 
-@OptIn(ExperimentalForeignApi::class, ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class,
+    DelicateCoroutinesApi::class
+)
 fun main(): Unit = memScoped {
     setlocale(LC_ALL, "en_US.UTF-8")
     initscr()
@@ -54,19 +57,20 @@ fun main(): Unit = memScoped {
 
     val lineColorizer = LogLineColorizer()
 
-    runBlocking {
-        launch {
-            while (true) {
-                val key = wgetch(stdscr);
+    // legitimate use-case for 'GlobalScope'
+    GlobalScope.launch {
+        while (true) {
+            val key = wgetch(stdscr)
 
-                if (key == ERR) {
-                    delay(50)
-                    continue
-                }
-                processInputKey(key, pad)
+            if (key == ERR) {
+                delay(50)
+                continue
             }
+            processInputKey(key, pad)
         }
+    }
 
+    runBlocking {
         launch {
             dogcat
                 .state
