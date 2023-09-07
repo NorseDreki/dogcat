@@ -38,18 +38,14 @@ class Dogcat(
         .shareIn(
             scope,
             SharingStarted.Lazily,
-            //SharingStarted.WhileSubscribed(replayExpirationMillis = 100),
             Config.LogLinesBufferCount,
         )
         .onSubscription { println("subscr to shared lines\r") }
         .onCompletion { println("shared compl!\r") }
 
-
-    private val filteredLines = filterLine
-        .onCompletion { println("fl compl\r") }
+    private fun filterLines() = filterLine
         .flatMapLatest { filter ->
             sharedLines
-                //.onEach { println("each $it") }
                 .filter { it.contains(filter) }
         }
         .map { lineParser.parse(it) }
@@ -60,6 +56,7 @@ class Dogcat(
                 true
             }
         }
+        //.flowOn()
         .onCompletion { println("outer compl\r") }
 
     suspend operator fun invoke(cmd: LogcatCommands) {
@@ -109,6 +106,8 @@ class Dogcat(
         stopSubject.emit(Unit)
         println("called stop subject..\r")
 
+        //sharedLines.rese
+
         logSource.clear()
         val ci = LogcatState.InputCleared
 
@@ -119,7 +118,7 @@ class Dogcat(
 
     private suspend fun startupAll() {
         val ci = LogcatState.CapturingInput(
-            filteredLines
+            filterLines()
                 .onCompletion { println("COMPLETION $it\r") } //called when scope is cancelled as well
                 .takeUntil(stopSubject)
         )
