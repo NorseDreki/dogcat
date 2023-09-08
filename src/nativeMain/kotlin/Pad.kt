@@ -42,6 +42,11 @@ class Pad(val position: PadPosition) {
         refresh()
     }
 
+    fun toLine(line: Int) {
+        firstVisibleLine = line
+        refresh()
+    }
+
     fun end() {
         firstVisibleLine = linesCount - (position.endY - 1 - position.startY)
         refresh()

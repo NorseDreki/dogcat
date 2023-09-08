@@ -87,7 +87,7 @@ fun main(): Unit = memScoped {
                     is CapturingInput -> {
                         println(">>>>>> NEXT Capturing...")
                         pad.clear()
-                        it.lines.withIndex()
+                        it.lines
                     }
 
                     InputCleared -> {
@@ -117,6 +117,8 @@ private suspend fun MemScope.processInputKey(
     key: Int,
     pad: Pad
 ) {
+    var lastIndex = 0
+
     when (key) {
         'f'.code -> {
             mvwprintw(stdscr, 0, 0, ":")
@@ -171,6 +173,14 @@ private suspend fun MemScope.processInputKey(
 
         'c'.code -> {
             dogcat(ClearLogs)
+        }
+
+        'o'.code -> {
+            val indices = mutableListOf<Int>()
+            (dogcat.state.value as CapturingInput).problems.map { println("aaaa $it");it.index }.take(1).toList(indices)
+
+            pad.toLine(indices[lastIndex])
+            lastIndex += 1
         }
     }
 }

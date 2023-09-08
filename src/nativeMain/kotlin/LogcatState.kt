@@ -1,4 +1,5 @@
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 
 sealed interface LogcatState {
 
@@ -7,15 +8,13 @@ sealed interface LogcatState {
     data object InputCleared : LogcatState
 
     data class CapturingInput(
-        val lines: Flow<LogLine>,
+        val lines: Flow<IndexedValue<LogLine>>,
+
+        val problems: Flow<IndexedValue<LogLine>> = emptyFlow(),
 
         //val appliedFilters: String,
 
-        //val warningsAndErrors: String,
-
         //val fatalException: String,
-
-        //val snapScrolling: Boolean
     ) : LogcatState
 
     data object Terminated : LogcatState

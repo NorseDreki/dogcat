@@ -20,7 +20,7 @@ class Dogcat(
 
     private val logLevels = mutableSetOf<String>("V", "D", "I", "W", "E") //+.WTF()?
 
-    private fun filterLines(): Flow<LogLine> {
+    private fun filterLines(): Flow<IndexedValue<LogLine>> {
         val sharedLines = logSource // deal with malformed UTF-8 'expected one more byte'
             .lines()
             .retry(3) { e ->
@@ -54,6 +54,7 @@ class Dogcat(
                     true
                 }
             }
+            .withIndex()
             //.flowOn()
             .onCompletion { println("outer compl\r") }
     }
@@ -113,10 +114,24 @@ class Dogcat(
     }
 
     private suspend fun startupAll() {
+        val filterLines = filterLines()
+
         val ci = LogcatState.CapturingInput(
-            filterLines()
+            filterLines
                 .onCompletion { println("COMPLETION $it\r") } //called when scope is cancelled as well
-                .takeUntil(stopSubject)
+                .takeUntil(stopSubject),
+
+            filterLines
+                .filter {
+                    var f = false
+
+                    if (it.value is Parsed) {
+                        if ((it.value as Parsed).level.contains("E")) {
+                            f = true
+                        }
+                    }
+                    f
+                }
         )
 
         privateState.emit(ci)
