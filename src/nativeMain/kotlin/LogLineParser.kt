@@ -10,7 +10,7 @@ class LogcatBriefParser : LogLineParser {
 
         return if (m != null) {
             val (level, tag, owner, message) = m.destructured //use newest feature, 'named capturing groups'
-            Parsed(level, tag, owner, message)
+            Parsed(level, tag.trim().padStart(40), owner, message)
         } else {
             Original(line)
         }
