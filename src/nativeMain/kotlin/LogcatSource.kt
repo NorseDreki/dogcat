@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.yield
 
 class LogcatSource : LogSource {
+
     override fun lines(): Flow<String> {
         return flow {
             val child = Command("adb")

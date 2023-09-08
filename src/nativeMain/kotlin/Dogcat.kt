@@ -46,9 +46,43 @@ class Dogcat(
             .flatMapLatest { filter ->
                 sharedLines.filter { it.contains(filter) }
             }
-            .map { lineParser.parse(it) }
+            //.map { lineParser.parse(it) }
+            .map {
+                /*val pe = parseProcessDeath(it)
+                if (pe != null) {
+                    println("11111 $pe\r")
+                    Parsed("V", pe.first, "", pe.second)
+                } else {
+                    null
+                }*/
+
+                val ps = parseProcessStart(it)
+                if (ps != null) {
+                    if (ps.first.contains(p)) {
+                        pids.add(ps.second)
+                    }
+
+                    //println("11111 $ps\r")
+                    Parsed("E", ps.first, ps.second, ps.second)
+                } else {
+                    val pe = parseProcessDeath(it)
+                    if (pe != null) {
+                        if (pe.first.contains(p)) {
+                            pids.remove(pe.second)
+                        }
+
+                        Parsed("E", pe.first, pe.second, pe.second)
+                    } else {
+                        lineParser.parse(it)
+                    }
+                }
+
+
+            }
+            .filterNotNull()
             .filter {
                 if (it is Parsed) {
+                    //pids.contains(it.owner)
                     logLevels.contains(it.level)
                 } else {
                     true
@@ -88,6 +122,73 @@ class Dogcat(
             logLevels.add(cmd.level)
         }
     }
+
+    val PID_START = """^.*: Start proc ([a-zA-Z0-9._:]+) for ([a-z]+ [^:]+): pid=(\d+) uid=(\d+) gids=(.*)$""".toRegex()
+    val PID_START_5_1 = """^.*: Start proc (\d+):([a-zA-Z0-9._:]+)/[a-z0-9]+ for (.*)$""".toRegex()
+    val PID_START_DALVIK = """^E/dalvikvm\(\s*(\d+)\): >>>>> ([a-zA-Z0-9._:]+) \[ userId:0 \| appId:(\d+) \]$""".toRegex()
+    val PID_KILL = """^.*Killing (\d+):([a-zA-Z0-9._:]+)/[^:]+: (.*)$""".toRegex() //.* to parse entire line, otherwise message only
+    val PID_LEAVE = """^No longer want ([a-zA-Z0-9._:]+) \(pid (\d+)\): .*$""".toRegex()
+    val PID_DEATH = """^Process ([a-zA-Z0-9._:]+) \(pid (\d+)\) has died.?$""".toRegex()
+
+    val p = "com.norsedreki.multiplatform.identity.android"
+
+    val pids = mutableSetOf<String>()
+
+    private fun parseProcessDeath(line: String): Pair<String, String>? {
+        val kill = PID_KILL.matchEntire(line)
+        //println("zzzzzz $line")
+
+        if (kill != null) {
+            val (line_pid, line_package) = kill.destructured
+            return line_package to line_pid
+        }
+
+        val leave = PID_LEAVE.matchEntire(line)
+
+        if (leave != null) {
+            val (line_package, line_pid)  = leave.destructured
+            return line_package to line_pid
+        }
+
+        val death = PID_DEATH.matchEntire(line)
+        if (death != null) {
+            val (line_package, line_pid)  = death.destructured
+            return line_package to line_pid
+        }
+
+        return null
+    }
+
+
+
+    private fun parseProcessStart(line: String): Pair<String, String>? {
+        val m = PID_START_5_1.matchEntire(line)
+
+        if (m != null) {
+            val (line_pid, line_package, target) = m.destructured
+            return line_package to line_pid
+        }
+
+        val m2 = PID_START.matchEntire(line)
+
+        if (m2 != null) {
+            val (line_package, target, line_pid, line_uid, line_gids) = m2.destructured
+            return line_package to line_pid
+        }
+
+        val m3 = PID_START_DALVIK.matchEntire(line)
+        if (m3 != null) {
+
+            val (line_pid, line_package, line_uid) = m3.destructured
+            return line_package to line_pid
+        }
+
+        //println("tried to parse $line \r")
+
+        return null
+    }
+
+
 
     private fun clearFilter() {
     }
