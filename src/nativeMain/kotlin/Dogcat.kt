@@ -1,4 +1,7 @@
 import LogcatState.WaitingInput
+import com.kgit2.io.Reader
+import com.kgit2.process.Command
+import com.kgit2.process.Stdio
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
@@ -18,7 +21,27 @@ class Dogcat(
     private val stopSubject = MutableSharedFlow<Unit>()
     private val filterLine = MutableStateFlow<String>("")
 
-    private val logLevels = mutableSetOf<String>("V", "D", "I", "W", "E") //+.WTF()?
+    private val logLevels = mutableSetOf<String>("V", "D", "I", "W", "E") //+.WTF()? *.F
+
+    val excludedTags = hashSetOf(
+        "droid.apps.mai",
+        "OpenGLRenderer",
+        "CpuPowerCalculator",
+        "EGL_emulation",
+        "libEGL",
+        "Choreographer",
+        "HeterodyneSyncer"
+    )
+
+    data class History<T>(val previous: T?, val current: T)
+
+    // emits null, History(null,1), History(1,2)...
+    fun <T> Flow<T>.runningHistory(): Flow<History<T>?> =
+        runningFold(
+            initial = null as (History<T>?),
+            operation = { accumulator, new -> History(accumulator?.current, new) }
+        )
+
 
     private fun filterLines(): Flow<IndexedValue<LogLine>> {
         val sharedLines = logSource // deal with malformed UTF-8 'expected one more byte'
