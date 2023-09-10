@@ -131,6 +131,11 @@ class Dogcat(
                 privateState.emit(LogcatState.Terminated)
                 stopSubject.emit(Unit)
 
+                println("zzzzzzzzzz $pids")
+
+                //parsePs()
+
+                //dumpCoroutines()
                 scope.ensureActive()
                 scope.cancel()
             }
@@ -146,6 +151,94 @@ class Dogcat(
         }
     }
 
+    private fun parseFg() {
+        val out1 = Command("adb")
+            .args("shell", "ps")
+            .stdout(Stdio.Pipe)
+            .spawn()
+
+        val out = Command("adb")
+            .args("shell", "dumpsys", "activity", "activities")
+            .stdout(Stdio.Pipe)
+            .spawn()
+
+        val stdoutReader: Reader? = out.getChildStdout()
+
+        while (true) {
+            //ensureActive() -- call in scope
+            val line2 = stdoutReader!!.readLine() ?: break
+
+            val m = PID_LINE.matchEntire(line2)
+            var r = false
+
+            if (m != null) {
+                val (line_pid, line_package) = m.destructured
+                if (line_package.contains(p)) {
+                    println("line: $line_pid $line_package\r")
+                    pids.add(line_pid)
+                    r = true
+                }
+            }
+        }
+    }
+
+    private fun parsePs() {
+
+
+        val out = Command("adb")
+            .args("shell", "dumpsys", "activity", "activities")
+            .stdout(Stdio.Pipe)
+            .spawn()
+
+        val stdoutReader: Reader? = out.getChildStdout()
+
+        while (true) {
+            //ensureActive() -- call in scope
+            val line2 = stdoutReader!!.readLine() ?: break
+
+            val m = FG_LINE.matchEntire(line2)
+            var r = false
+
+            if (m != null) {
+                val (line_package) = m.destructured
+                println("LP $line_package\r")
+                p = line_package
+//                if (line_package.contains(p)) {
+//                    println("line: $line_pid $line_package\r")
+//                    pids.add(line_pid)
+//                    r = true
+//                }
+            }
+        }
+
+        /*stdoutReader!!
+            .lines()
+            .onEach { println("kkkkkk $it") }
+            .filter {
+                val m = PID_LINE.matchEntire(it)
+                var r = false
+
+                if (m != null) {
+                    val (line_pid, line_package) = m.destructured
+                    if (line_package.contains(p)) {
+                        r = true
+                    }
+                }
+                r
+            }
+            .onEach {
+                println("GOT PID: $it")
+                //pids.add(it)
+            }*/
+
+        out.wait()
+
+        println("ksljdhflkdjshfdddddd")
+    }
+    //.*TaskRecord.*A[= ]([^ ^}]*)
+    val FG_LINE = """^ +ResumedActivity: +ActivityRecord\{[^ ]* [^ ]* ([^ ^\/]*).*$""".toRegex()
+    val PID_LINE = """^\w+\s+(\w+)\s+\w+\s+\w+\s+\w+\s+\w+\s+\w+\s+\w\s([\w|\.|\/]+)$""".toRegex()
+
     val PID_START = """^.*: Start proc ([a-zA-Z0-9._:]+) for ([a-z]+ [^:]+): pid=(\d+) uid=(\d+) gids=(.*)$""".toRegex()
     val PID_START_5_1 = """^.*: Start proc (\d+):([a-zA-Z0-9._:]+)/[a-z0-9]+ for (.*)$""".toRegex()
     val PID_START_DALVIK = """^E/dalvikvm\(\s*(\d+)\): >>>>> ([a-zA-Z0-9._:]+) \[ userId:0 \| appId:(\d+) \]$""".toRegex()
@@ -153,7 +246,7 @@ class Dogcat(
     val PID_LEAVE = """^No longer want ([a-zA-Z0-9._:]+) \(pid (\d+)\): .*$""".toRegex()
     val PID_DEATH = """^Process ([a-zA-Z0-9._:]+) \(pid (\d+)\) has died.?$""".toRegex()
 
-    val p = "com.norsedreki.multiplatform.identity.android"
+    var p = "com.norsedreki.multiplatform.identity.android"
 
     val pids = mutableSetOf<String>()
 
@@ -238,6 +331,7 @@ class Dogcat(
     }
 
     private suspend fun startupAll() {
+
         val filterLines = filterLines()
 
         val ci = LogcatState.CapturingInput(
@@ -259,5 +353,7 @@ class Dogcat(
         )
 
         privateState.emit(ci)
+
+        parsePs()
     }
 }
