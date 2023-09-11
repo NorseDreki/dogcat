@@ -1,4 +1,10 @@
 import LogcatState.*
+import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.parameters.arguments.argument
+import com.github.ajalt.clikt.parameters.arguments.multiple
+import com.github.ajalt.clikt.parameters.options.flag
+import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.types.int
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -23,12 +29,28 @@ val di = DI {
 
 val dogcat: Dogcat by di.instance()
 
+class Cli : CliktCommand() {
+    val v: Boolean by option(help = "enable verbose mode").flag()
+    val username: String? by option(help = "name of the user")
+    val count: Int? by option(help = "number of the widgets").int()
+    //val source: List<String> by argument(help = "source filenames").multiple()
+    //val destination: String by argument(help = "destination")
+    override fun run() {
+        println("Hello, $username!")
+      //  println("Moving $count widgets from $source to $destination.")
+    }
+}
+
 @OptIn(
     ExperimentalForeignApi::class,
     ExperimentalCoroutinesApi::class,
     DelicateCoroutinesApi::class
 )
-fun main(): Unit = memScoped {
+fun main(args: Array<String>): Unit = memScoped {
+
+    Cli().main(args)
+    exit(0)
+
     setlocale(LC_ALL, "en_US.UTF-8")
     initscr()
     intrflush(stdscr, false)

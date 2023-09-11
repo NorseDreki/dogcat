@@ -105,15 +105,122 @@ class Dogcat(
             .filterNotNull()
             .filter {
                 if (it is Parsed) {
+                    !excludedTags.contains(it.tag.trim())
+                } else {
+                    false
+                }
+            }
+            .bufferedTransform(
+                { buffer, item ->
+                    val s = buffer.size
+                    when {
+                        item is Original -> true
+                        s > 0 -> {
+                            val previous = buffer[0]
+
+                            val r = when {
+                                (item is Parsed) && (previous is Parsed) && (item.tag.contains(previous.tag)) -> false
+                                else -> true
+                            }
+                            r
+                        }
+                        else -> false
+                    }
+                },
+                { buffer, item ->
+                    if (buffer.size == 0) {
+                        item
+                    } else {
+                        if (item is Parsed) {
+                            Parsed(item.level, "".padStart(40), item.owner, item.message)
+                        } else {
+                            item
+                        }
+                    }
+                }
+            )
+
+            /*.runningFold(mutableListOf<LogLine>()) { acc, value ->
+                if (acc.size > 1) {
+                    val last = acc[acc.size - 1]
+                    val previous = acc[acc.size - 2]
+
+                    val r = when {
+                        (last is Parsed) && (previous is Parsed) && (last.tag.contains(previous.tag)) -> false
+                        else -> true
+                    }
+
+                    if (r) {
+                        acc.clear()
+                    }
+                }
+
+                val w = when (value) {
+                    is Original -> {
+                        //acc.add(value)
+                        acc
+                    }
+                    is Parsed -> {
+
+                        when {
+                            acc.size == 0 -> {
+                                //println("p $value\r")
+                                acc.add(value)
+                                mutableListOf()
+                            }
+                            (acc[0] as Parsed).tag.contains(value.tag) -> {
+                                println("p $value\r")
+                                val n = Parsed(value.level, "", value.owner, value.message)
+                                acc.add(n)
+                                mutableListOf()
+                            }
+                            else -> {
+                                acc
+                            }
+                        }
+                    }
+
+                }
+                //println(w)
+                w
+            }
+            .flatMapConcat { it.asFlow() }*/
+            .filter {
+                if (it is Parsed) {
                     //pids.contains(it.owner)
                     logLevels.contains(it.level)
                 } else {
                     true
                 }
             }
+
             .withIndex()
             //.flowOn()
             .onCompletion { println("outer compl\r") }
+    }
+
+    fun <T> Flow<T>.bufferedTransform(
+        shouldDrain: (List<T>, T) -> Boolean,
+        transform: (List<T>, T) -> T
+    ): Flow<T> = flow {
+        val storage = mutableListOf<T>()
+
+        collect { item ->
+            val willDrain = shouldDrain(storage, item)
+            if (willDrain) {
+                storage.onEach { emit(it) }
+                storage.clear()
+            }
+
+            val newItem = transform(storage, item)
+            storage.add(newItem)
+        }
+    }
+
+    fun <T, K> Flow<T>.groupToList(getKey: (T) -> K): Flow<Pair<K, List<T>>> = flow {
+        val storage = mutableMapOf<K, MutableList<T>>()
+        collect { t -> storage.getOrPut(getKey(t)) { mutableListOf() } += t }
+        storage.forEach { (k, ts) -> emit(k to ts) }
     }
 
     suspend operator fun invoke(cmd: LogcatCommands) {

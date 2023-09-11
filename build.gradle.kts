@@ -51,6 +51,7 @@ kotlin {
                 implementation("com.kgit2:kommand:1.0.2")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
                 implementation("org.kodein.di:kodein-di:7.20.2")
+                implementation("com.github.ajalt.clikt:clikt:4.2.0")
             }
         }
         val nativeTest by getting {
