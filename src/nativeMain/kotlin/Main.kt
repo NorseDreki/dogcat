@@ -64,7 +64,7 @@ fun main(): Unit = memScoped {
         while (true) {
             val key = wgetch(stdscr)
 
-            if (key == ERR) {
+            if (key == ERR) { //!= EOF //KEY_F(1)
                 delay(50)
                 continue
             }
