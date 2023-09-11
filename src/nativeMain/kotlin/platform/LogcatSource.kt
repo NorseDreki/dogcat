@@ -1,3 +1,6 @@
+package platform
+
+import LogSource
 import com.kgit2.io.Reader
 import com.kgit2.process.Command
 import com.kgit2.process.Stdio

@@ -1,0 +1,4 @@
+package filtering
+
+class StrictMode {
+}

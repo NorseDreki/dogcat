@@ -7,6 +7,7 @@ import ncurses.*
 import org.kodein.di.DI
 import org.kodein.di.bindSingleton
 import org.kodein.di.instance
+import platform.LogcatSource
 import platform.posix.LC_ALL
 import platform.posix.exit
 import platform.posix.printf
