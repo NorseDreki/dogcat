@@ -57,10 +57,14 @@ fun main(args: Array<String>): Unit = memScoped {
     }
     use_default_colors()
     start_color()
-    init_pair(1, COLOR_RED.toShort(), COLOR_BLACK.toShort())
+    init_pair(1, COLOR_RED.toShort(), -1)
     init_pair(2, COLOR_GREEN.toShort(), COLOR_BLACK.toShort())
-    init_pair(3, COLOR_YELLOW.toShort(), COLOR_BLACK.toShort())
+    init_pair(3, COLOR_YELLOW.toShort(), -1)
     init_pair(4, COLOR_CYAN.toShort(), COLOR_BLACK.toShort())
+
+    init_pair(11, COLOR_BLACK.toShort(), COLOR_RED.toShort())
+    init_pair(12, COLOR_BLACK.toShort(), COLOR_WHITE.toShort())
+    init_pair(6, COLOR_BLACK.toShort(), COLOR_YELLOW.toShort())
 
     val sx = getmaxx(stdscr)
     val sy = getmaxy(stdscr)
@@ -117,7 +121,7 @@ fun main(args: Array<String>): Unit = memScoped {
             .onEach {
                 pad.recordLine()
                 //println("${it.index} ${it.value} \r\n")
-                lineColorizer.processLogLine(pad.fp, it)
+                lineColorizer.processLogLine(pad, it)
                 pad.refresh()
             }
             .collect()

@@ -1,13 +1,76 @@
-import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
+import kotlin.math.min
 
 class LogLineColorizer {
+
+    var cp = 5
+
+    @OptIn(ExperimentalForeignApi::class)
+    fun printTag(pad: Pad, tag: String) {
+        val c = allocateColor(tag)
+
+        //init_pair(cp.toShort(), c.toShort(), -1)
+
+        wattron(pad.fp, COLOR_PAIR(ccpp[c]!!))
+        waddstr(pad.fp, tag)
+        wattroff(pad.fp, COLOR_PAIR(ccpp[c]!!))
+
+        cp++
+    }
+
+    fun allocateColor(tag: String): Int {
+        if (!KNOWN_TAGS.containsKey(tag)) {
+            KNOWN_TAGS[tag] = LAST_USED[0]
+        }
+        val color = KNOWN_TAGS[tag]!!
+
+        if (LAST_USED.contains(color)) {
+            LAST_USED.remove(color)
+            LAST_USED.add(color)
+        }
+
+        return color
+    }
+
+    val LAST_USED = mutableListOf( /*COLOR_RED,*/ COLOR_GREEN, /*COLOR_YELLOW,*/ COLOR_BLUE, COLOR_MAGENTA, COLOR_CYAN)
+
+    val ccpp = LAST_USED.map {
+        init_pair((100 + it).toShort(), it.toShort(), -1)
+        it to (100 +it)
+    }.toMap()
+
+
+val KNOWN_TAGS = mutableMapOf(
+  "dalvikvm" to COLOR_WHITE,
+  "Process" to COLOR_WHITE,
+  "ActivityManager" to COLOR_WHITE,
+  "ActivityThread" to COLOR_WHITE,
+  "AndroidRuntime" to COLOR_CYAN,
+  "jdwp" to COLOR_WHITE,
+  "StrictMode" to COLOR_WHITE,
+  "DEBUG" to COLOR_YELLOW,
+)
+
+/*def allocate_color(tag):
+  # this will allocate a unique format for the given tag
+  # since we dont have very many colors, we always keep track of the LRU
+  if tag not in KNOWN_TAGS:
+    KNOWN_TAGS[tag] = LAST_USED[0]
+  color = KNOWN_TAGS[tag]
+  if color in LAST_USED:
+    LAST_USED.remove(color)
+    LAST_USED.append(color)
+  return color*/
+
+
+
     @OptIn(ExperimentalForeignApi::class)
     fun processLogLine(
-        fp: CPointer<WINDOW>?,
+        pad: Pad,
         it: IndexedValue<LogLine>,
     ) {
+        val fp = pad.fp
         //waddstr(fp, "${it.index} ")
         val logLine = it.value
 
@@ -16,7 +79,10 @@ class LogLineColorizer {
 
         } else if (logLine is Parsed) {
 
-            waddstr(fp, "${logLine.tag} ")
+            //waddstr(fp, "${logLine.tag} ")
+
+            printTag(pad, logLine.tag)
+
             /*wattron(fp, COLOR_PAIR(1));
                     waddstr(fp, "${it.value.tag} ||")
                     //wprintw(fp, it.value)
@@ -28,29 +94,45 @@ class LogLineColorizer {
 
             when (logLine.level) {
                 "W" -> {
-                    wattron(fp, COLOR_PAIR(3));
-                    waddstr(fp, "[${logLine.level}] ")
-                    waddstr(fp, "${logLine.message}\n")
-                    wattroff(fp, COLOR_PAIR(3));
+                    wattron(fp, COLOR_PAIR(6));
+                    waddstr(fp, " ${logLine.level} ")
+                    wattroff(fp, COLOR_PAIR(6));
+
+                    //waddstr(fp, "${logLine.message}\n")
+                    wattron(fp, COLOR_PAIR(3))
+                    waddstr(fp, wrapLine(pad, " ${logLine.message}"))
+                    wattroff(fp, COLOR_PAIR(3))
+
                 }
 
                 "E" -> {
-                    wattron(fp, COLOR_PAIR(1));
-                    waddstr(fp, "[${logLine.level}] ")
-                    waddstr(fp, "${logLine.message}\n")
+                    wattron(fp, COLOR_PAIR(11))
+                    waddstr(fp, " ${logLine.level} ")
+                    wattroff(fp, COLOR_PAIR(11))
+
+                    //waddstr(fp, "${logLine.message}\n")
+                    wattron(fp, COLOR_PAIR(1))
+                    waddstr(fp, wrapLine(pad, " ${logLine.message}"))
                     wattroff(fp, COLOR_PAIR(1));
                 }
 
                 "I" -> {
-                    //wattron(fp, COLOR_PAIR(4));
-                    waddstr(fp, "[${logLine.level}] ")
-                    waddstr(fp, "${logLine.message}\n")
+                    wattron(fp, COLOR_PAIR(12))
+                    waddstr(fp, " ${logLine.level} ")
+                    wattroff(fp, COLOR_PAIR(12))
+
+                    //waddstr(fp, "${logLine.message}\n")
+                    waddstr(fp, wrapLine(pad, " ${logLine.message}"))
                     //wattroff(fp, COLOR_PAIR(4));
                 }
 
                 else -> {
-                    waddstr(fp, "[${logLine.level}] ")
-                    waddstr(fp, "${logLine.message}\n")
+                    wattron(fp, COLOR_PAIR(12))
+                    waddstr(fp, " ${logLine.level} ")
+                    wattroff(fp, COLOR_PAIR(12))
+
+                    //waddstr(fp, "${logLine.message}\n")
+                    waddstr(fp, wrapLine(pad, " ${logLine.message}"))
                 }
             }
             //waddstr(fp, "${it.value.message} \n")
