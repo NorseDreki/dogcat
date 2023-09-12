@@ -1,3 +1,5 @@
+package dogcat
+
 sealed interface LogLine
 
 data class Parsed(

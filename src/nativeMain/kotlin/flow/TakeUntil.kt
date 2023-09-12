@@ -1,3 +1,5 @@
+package flow
+
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.*

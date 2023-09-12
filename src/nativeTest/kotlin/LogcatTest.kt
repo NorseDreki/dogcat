@@ -1,7 +1,8 @@
-import LogcatState.CapturingInput
-import LogcatState.WaitingInput
+import dogcat.LogcatState.CapturingInput
+import dogcat.LogcatState.WaitingInput
 import app.cash.turbine.test
 import app.cash.turbine.turbineScope
+import dogcat.*
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
@@ -16,7 +17,7 @@ import kotlin.test.Test
 class LogcatTest {
 /*
     val dogcatModule = DI.Module("dogcat") {
-        bindSingleton<LogSource> { DummyLogSource() }
+        bindSingleton<dogcat.LogSource> { DummyLogSource() }
         bind<Logcat> { Logcat(instance()) }
     }
 

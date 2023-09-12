@@ -1,3 +1,5 @@
+package dogcat
+
 sealed interface LogcatCommands
 
 sealed interface Filter : LogcatCommands {
@@ -20,11 +22,11 @@ data class ClearFilter(val filter: Filter) : LogcatCommands
 
 sealed interface StartupAs : LogcatCommands {
 
-    data object WithForegroundApp //: StartupAs()
+    data object WithForegroundApp : StartupAs
 
     data object All : StartupAs
 
-    data object WithPackage
+    data class WithPackage(val packageName: String) : StartupAs
 }
 
 data object ClearLogs : LogcatCommands

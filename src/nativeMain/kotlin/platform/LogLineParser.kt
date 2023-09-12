@@ -1,3 +1,9 @@
+package platform
+
+import dogcat.LogLine
+import dogcat.Original
+import dogcat.Parsed
+
 interface LogLineParser {
     fun parse(line: String) : LogLine
 }

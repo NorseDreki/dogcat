@@ -1,3 +1,5 @@
+package dogcat
+
 import kotlinx.coroutines.flow.Flow
 
 interface LogSource {

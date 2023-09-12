@@ -1,3 +1,6 @@
+import dogcat.LogLine
+import dogcat.Original
+import dogcat.Parsed
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
 import kotlin.math.min

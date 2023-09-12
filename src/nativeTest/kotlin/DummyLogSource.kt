@@ -1,5 +1,5 @@
+import dogcat.LogSource
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.yield
 
 class DummyLogSource : LogSource {
 

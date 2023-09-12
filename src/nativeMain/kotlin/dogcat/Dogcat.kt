@@ -1,14 +1,17 @@
-import LogcatState.WaitingInput
-import com.kgit2.io.Reader
-import com.kgit2.process.Command
-import com.kgit2.process.Stdio
+package dogcat
+
+import Config
+import platform.LogLineParser
+import platform.LogcatBriefParser
+import dogcat.LogcatState.WaitingInput
 import filtering.Exclusions
 import filtering.ProcessDeath
 import filtering.ProcessStart
+import flow.bufferedTransform
+import flow.takeUntil
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import platform.ForegroundProcess
-import kotlin.math.min
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class Dogcat(
@@ -140,7 +143,6 @@ class Dogcat(
             .onCompletion { println("outer compl\r") }
     }
 
-
     suspend operator fun invoke(cmd: LogcatCommands) {
         when (cmd) {
             StartupAs.All -> startupAll()
@@ -160,6 +162,9 @@ class Dogcat(
                 scope.ensureActive()
                 scope.cancel()
             }
+
+            StartupAs.WithForegroundApp -> TODO()
+            is StartupAs.WithPackage -> TODO()
         }
     }
 

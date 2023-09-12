@@ -1,4 +1,7 @@
-import LogcatState.*
+import dogcat.LogcatState.*
+import dogcat.Dogcat
+import dogcat.LogSource
+import dogcat.StartupAs
 import kotlinx.cinterop.*
 import kotlinx.cli.*
 import kotlinx.coroutines.*
@@ -8,22 +11,15 @@ import org.kodein.di.DI
 import org.kodein.di.bindSingleton
 import org.kodein.di.instance
 import platform.LogcatSource
-import platform.posix.LC_ALL
-import platform.posix.exit
-import platform.posix.printf
-import platform.posix.setlocale
 
 val dogcatModule = DI.Module("dogcat") {
     bindSingleton<LogSource> { LogcatSource() }
     bindSingleton<Dogcat> { Dogcat(instance()) }
 }
-
 val di = DI {
     import(dogcatModule)
 }
-
 val dogcat: Dogcat by di.instance()
-
 
 @OptIn(
     ExperimentalForeignApi::class,
@@ -39,32 +35,12 @@ fun main(args: Array<String>): Unit = memScoped {
     val debug by parser.option(ArgType.Boolean, shortName = "d", description = "Turn on debug mode").default(false)
 
     parser.parse(args)
-
-    setlocale(LC_ALL, "en_US.UTF-8")
-    initscr()
-    intrflush(stdscr, false)
-    savetty()
-    noecho()
-    //nodelay(stdscr, true)
-    cbreak() //making getch() work without a buffer I.E. raw characters
-    keypad(stdscr, true) //allows use of special keys, namely the arrow keys
-    clear()
-
-    if (!has_colors()) {
-        endwin()
-        printf("Your terminal does not support color\n")
-        exit(1)
+    if (packageName != null && current != null) {
+        //can't have both at the same time
     }
-    use_default_colors()
-    start_color()
-    init_pair(1, COLOR_RED.toShort(), -1)
-    init_pair(2, COLOR_GREEN.toShort(), COLOR_BLACK.toShort())
-    init_pair(3, COLOR_YELLOW.toShort(), -1)
-    init_pair(4, COLOR_CYAN.toShort(), COLOR_BLACK.toShort())
 
-    init_pair(11, COLOR_BLACK.toShort(), COLOR_RED.toShort())
-    init_pair(12, COLOR_BLACK.toShort(), COLOR_WHITE.toShort())
-    init_pair(6, COLOR_BLACK.toShort(), COLOR_YELLOW.toShort())
+    val ncurses = Ncurses()
+    ncurses.start()
 
     val sx = getmaxx(stdscr)
     val sy = getmaxy(stdscr)
@@ -73,6 +49,7 @@ fun main(args: Array<String>): Unit = memScoped {
     val pad = Pad(padPosition)
 
     val lineColorizer = LogLineColorizer()
+    val keymap = Keymap(this, pad)
 
     // legitimate use-case for 'GlobalScope'
     GlobalScope.launch {
@@ -83,12 +60,16 @@ fun main(args: Array<String>): Unit = memScoped {
                 delay(50)
                 continue
             }
-            processInputKey(key, pad)
+            keymap.processInputKey(key)
         }
     }
 
     runBlocking {
-        dogcat(StartupAs.All)
+        when {
+            packageName != null -> dogcat(StartupAs.WithPackage(packageName!!))
+            current == true -> dogcat(StartupAs.WithForegroundApp)
+            else -> dogcat(StartupAs.All)
+        }
 
         dogcat
             .state
@@ -98,19 +79,14 @@ fun main(args: Array<String>): Unit = memScoped {
                         println("Waiting for log lines...\r")
                         emptyFlow()
                     }
-
                     is CapturingInput -> {
-                        println(">>>>>> NEXT Capturing...")
-                        println("$packageName $current")
                         pad.clear()
                         it.lines
                     }
-
                     InputCleared -> {
                         println("Cleared Logcat and re-started\r")
                         emptyFlow()
                     }
-
                     Terminated -> {
                         cancel()
                         println("No more reading lines, terminated\r")
@@ -126,103 +102,4 @@ fun main(args: Array<String>): Unit = memScoped {
             }
             .collect()
     }
-}
-
-@OptIn(ExperimentalForeignApi::class)
-private suspend fun MemScope.processInputKey(
-    key: Int,
-    pad: Pad
-) {
-    var lastIndex = 0
-
-    when (key) {
-        'f'.code -> {
-            mvwprintw(stdscr, 0, 0, ":")
-            clrtoeol()
-            echo()
-
-            val bytePtr = allocArray<ByteVar>(200)
-            getnstr(bytePtr, 200)
-            noecho()
-            pad.clear()
-
-            dogcat(Filter.ByString(bytePtr.toKString()))
-        }
-
-        'q'.code -> {
-            dogcat(StopEverything)
-            pad.terminate()
-            exit(0)
-        }
-
-        'a'.code -> pad.home()
-
-        'z'.code -> pad.end()
-
-        'w'.code -> pad.lineUp()
-
-        's'.code -> pad.lineDown()
-
-        'd'.code -> pad.pageDown()
-
-        'e'.code -> pad.pageUp()
-
-        '6'.code -> {
-            dogcat(Filter.ToggleLogLevel("V"))
-        }
-
-        '7'.code -> {
-            dogcat(Filter.ToggleLogLevel("D"))
-        }
-
-        '8'.code -> {
-            dogcat(Filter.ToggleLogLevel("I"))
-        }
-
-        '9'.code -> {
-            dogcat(Filter.ToggleLogLevel("W"))
-        }
-
-        '0'.code -> {
-            dogcat(Filter.ToggleLogLevel("E"))
-        }
-
-        'c'.code -> {
-            dogcat(ClearLogs)
-        }
-
-        'o'.code -> {
-            val indices = mutableListOf<Int>()
-            (dogcat.state.value as CapturingInput).problems.map { println("aaaa $it");it.index }.take(1).toList(indices)
-
-            pad.toLine(indices[lastIndex])
-            lastIndex += 1
-        }
-    }
-}
-
-enum class Keys {
-    Q,
-    ECHAP,
-    ENTER,
-    SPACE,
-    UP,
-    DOWN,
-    LEFT,
-    RIGHT
-}
-
-val keyMap = mapOf(
-    'q'.toInt() to Keys.Q,
-    27 to Keys.ECHAP,
-    10 to Keys.ENTER,
-    32 to Keys.SPACE,
-    259 to Keys.UP,
-    258 to Keys.DOWN,
-    260 to Keys.LEFT,
-    261 to Keys.RIGHT
-)
-
-private fun hideCursor() {
-    curs_set(0)
 }
