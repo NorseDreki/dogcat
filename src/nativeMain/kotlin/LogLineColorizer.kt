@@ -57,4 +57,45 @@ class LogLineColorizer {
         }
         // yield()
     }
+
+    /*
+    def indent_wrap(message):
+  if width == -1:
+    return message
+  message = message.replace('\t', '    ')
+  wrap_area = width - header_size
+  messagebuf = ''
+  current = 0
+  while current < len(message):
+    next = min(current + wrap_area, len(message))
+    messagebuf += message[current:next]
+    if next < len(message):
+      messagebuf += '\n'
+      messagebuf += ' ' * header_size
+    current = next
+  return messagebuf
+*/
+
+    fun wrapLine(
+        pad: Pad,
+        message: String
+    ): String {
+        val width = pad.position.endX
+        val header = Config.tagWidth + 1 + 3 + 1// space, level, space
+        val line = message.replace("\t", "    ")
+        val wrapArea = width - header
+        var buf = ""
+        var current = 0
+
+        while (current < line.length) {
+            val next = min(current + wrapArea, line.length)
+            buf += line.substring(current, next)
+            if (next < line.length) {
+                //buf += "\n\r"
+                buf += " ".repeat(header) //
+            }
+            current = next
+        }
+        return buf + "\n\r"
+    }
 }

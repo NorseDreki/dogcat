@@ -8,6 +8,7 @@ import filtering.ProcessStart
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import platform.ForegroundProcess
+import kotlin.math.min
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class Dogcat(
@@ -32,6 +33,16 @@ class Dogcat(
 
     var p = "com.norsedreki.multiplatform.identity.android"
     val pids = mutableSetOf<String>()
+
+    // Filters:
+    //
+    // Filter line -- by combining flows
+    // Filter by exclusion list
+    // Filter by log level
+    // Filter by time
+    // Filter by PIDs -- by combining flow
+    // Filter by tags
+    // Clear filters
 
     private fun filterLines(): Flow<IndexedValue<LogLine>> {
         val sharedLines = logSource // deal with malformed UTF-8 'expected one more byte'
@@ -128,6 +139,7 @@ class Dogcat(
             //.flowOn()
             .onCompletion { println("outer compl\r") }
     }
+
 
     suspend operator fun invoke(cmd: LogcatCommands) {
         when (cmd) {
