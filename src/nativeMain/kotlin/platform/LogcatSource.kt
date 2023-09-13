@@ -19,7 +19,7 @@ class LogcatSource : LogSource {
 
             val stdoutReader: Reader? = child.getChildStdout()
 
-            while (true) {
+            while (true) { //EOF??
                 //ensureActive() -- call in scope
                 val line2 = stdoutReader!!.readLine() ?: break
                 emit(line2)

@@ -12,6 +12,8 @@ import flow.takeUntil
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import platform.ForegroundProcess
+import platform.RunningProcesses
+import kotlin.reflect.KClass
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class Dogcat(
@@ -26,6 +28,8 @@ class Dogcat(
     private val privateState = MutableStateFlow<LogcatState>(WaitingInput)
     val state = privateState.asStateFlow()
 
+    private val appliedFilters = MutableStateFlow<MutableMap<KClass<out LogFilter>, LogFilter>>(mutableMapOf())
+
     private val stopSubject = MutableSharedFlow<Unit>()
     private val filterLine = MutableStateFlow<String>("")
 
@@ -36,16 +40,6 @@ class Dogcat(
 
     var p = "com.norsedreki.multiplatform.identity.android"
     val pids = mutableSetOf<String>()
-
-    // Filters:
-    //
-    // Filter line -- by combining flows
-    // Filter by exclusion list
-    // Filter by log level
-    // Filter by time
-    // Filter by PIDs -- by combining flow
-    // Filter by tags
-    // Clear filters
 
     private fun filterLines(): Flow<IndexedValue<LogLine>> {
         val sharedLines = logSource // deal with malformed UTF-8 'expected one more byte'
@@ -69,36 +63,21 @@ class Dogcat(
             .onCompletion { println("shared compl!\r") }
 
 
-        return filterLine
+        return filterLine //logLevels.contains(it.level) //by tag //by time     -- both cases need to re-apply themselves upon every line
+                //!Exclusions.excludedTags.contains(it.tag.trim())
+                //pids.contains(it.owner) ??
             .flatMapLatest { filter ->
                 sharedLines.filter { it.contains(filter) }
             }
-            .map {
-                val ps = processStart.parseProcessStart(it)
-                if (ps != null) {
-                    if (ps.first.contains(p)) {
-                        pids.add(ps.second)
-                    }
-                    Parsed("E", ps.first, ps.second, ps.second)
-                } else {
-                    val pe = processEnd.parseProcessDeath(it)
-                    if (pe != null) {
-                        if (pe.first.contains(p)) {
-                            pids.remove(pe.second)
-                        }
-
-                        Parsed("E", pe.first, pe.second, pe.second)
-                    } else {
-                        lineParser.parse(it)
-                    }
-                }
-            }
-            .filterNotNull()
-            .filter {
+            .map { trackProcesses(it) } //transform and highlight output
+            // format message according to rules
+            .filter { //filter which doesn't need to restart shared upstream
                 if (it is Parsed) {
                     !Exclusions.excludedTags.contains(it.tag.trim())
+                    //pids.contains(it.owner)
+
                 } else {
-                    false
+                    true
                 }
             }
             .bufferedTransform(
@@ -130,30 +109,41 @@ class Dogcat(
                     }
                 }
             )
-            .filter {
-                if (it is Parsed) {
-                    //pids.contains(it.owner)
-                    logLevels.contains(it.level)
-                } else {
-                    true
-                }
-            }
             .withIndex()
             //.flowOn()
             .onCompletion { println("outer compl\r") }
     }
 
+    private fun trackProcesses(it: String): LogLine {
+        val ps = processStart.parseProcessStart(it)
+
+        return if (ps != null) {
+            if (ps.first.contains(p)) {
+                pids.add(ps.second)
+            }
+            Parsed("E", ps.first, ps.second, ps.second)
+        } else {
+            val pe = processEnd.parseProcessDeath(it)
+            if (pe != null) {
+                if (pe.first.contains(p)) {
+                    pids.remove(pe.second)
+                }
+
+                Parsed("E", pe.first, pe.second, pe.second)
+            } else {
+                lineParser.parse(it)
+            }
+        }
+    }
+
     suspend operator fun invoke(cmd: LogcatCommands) {
         when (cmd) {
-            StartupAs.All -> startupAll()
+            is StartupAs -> startup(cmd)
             ClearLogs -> clearLogs()
             is FilterWith -> filterWith(cmd.filter)
             is ClearFilter -> clearFilter()
-            is Filter.Exclude -> TODO()
             is Filter.ToggleLogLevel -> filterByLogLevel(cmd)
             is Filter.ByString -> filterWith(cmd)
-            is Filter.ByTime -> TODO()
-            is Filter.Package -> TODO()
             StopEverything -> {
                 privateState.emit(LogcatState.Terminated)
                 stopSubject.emit(Unit)
@@ -162,9 +152,6 @@ class Dogcat(
                 scope.ensureActive()
                 scope.cancel()
             }
-
-            StartupAs.WithForegroundApp -> TODO()
-            is StartupAs.WithPackage -> TODO()
         }
     }
 
@@ -182,7 +169,12 @@ class Dogcat(
 
     private suspend fun filterWith(filter: Filter) {
         if (filter is Filter.ByString) {
-            filterLine.emit(filter.substring)
+            val filters = appliedFilters.value
+            filters[LogFilter.BySubstring::class] = LogFilter.BySubstring(filter.substring)
+
+            appliedFilters.emit(filters)
+
+            //filterLine.emit(filter.substring)
             //println("next filter ${filter.substring}")
         }
     }
@@ -195,6 +187,23 @@ class Dogcat(
         val ci = LogcatState.InputCleared
 
         privateState.emit(ci)
+
+        startupAll()
+    }
+
+    private suspend fun startup(cmd: StartupAs) {
+        val pid = if (cmd is StartupAs.WithForegroundApp) {
+            ForegroundProcess.parsePs()
+        } else if (cmd is StartupAs.WithPackage) {
+            p = cmd.packageName
+            RunningProcesses().parsePs(cmd.packageName)
+        } else {
+            ""
+        }
+
+        if (pid.isNotEmpty()) {
+            pids.add(pid)
+        }
 
         startupAll()
     }
@@ -220,7 +229,5 @@ class Dogcat(
                 }
         )
         privateState.emit(ci)
-
-        ForegroundProcess.parsePs()
     }
 }

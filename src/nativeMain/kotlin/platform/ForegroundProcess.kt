@@ -8,13 +8,15 @@ object ForegroundProcess {
 
     val FG_LINE = """^ +ResumedActivity: +ActivityRecord\{[^ ]* [^ ]* ([^ ^\/]*).*$""".toRegex()
 
-    fun parsePs() {
+    fun parsePs(): String {
         val out = Command("adb")
             .args("shell", "dumpsys", "activity", "activities")
             .stdout(Stdio.Pipe)
             .spawn()
 
         val stdoutReader: Reader? = out.getChildStdout()
+
+        lateinit var proc: String
 
         while (true) {
             //ensureActive() -- call in scope
@@ -26,6 +28,10 @@ object ForegroundProcess {
             if (m != null) {
                 val (line_package) = m.destructured
                 println("LP $line_package\r")
+
+                proc =  line_package
+                break
+
                 //p = line_package
 
 
@@ -39,5 +45,7 @@ object ForegroundProcess {
         out.wait()
 
         println("ksljdhflkdjshfdddddd")
+
+        return proc
     }
 }
