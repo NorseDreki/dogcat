@@ -1,6 +1,7 @@
 package dogcat
 
 import Config
+import dogcat.LogFilter.Substring
 import platform.LogLineParser
 import platform.LogcatBriefParser
 import dogcat.LogcatState.WaitingInput
@@ -20,7 +21,9 @@ class Dogcat(
     private val logSource: LogSource,
     private val dispatcherCpu: CoroutineDispatcher = Dispatchers.Default,
     private val dispatcherIo: CoroutineDispatcher = Dispatchers.IO,
-    private val lineParser: LogLineParser = LogcatBriefParser()
+    private val lineParser: LogLineParser = LogcatBriefParser(),
+    private val s: InternalState = InternalState()
+
 )  {
     val handler = CoroutineExceptionHandler { _, t -> println("999999 ${t.message}\r") }
     private val scope = CoroutineScope(dispatcherCpu + handler) // +Job +SupervisorJob +handler
@@ -140,10 +143,13 @@ class Dogcat(
         when (cmd) {
             is StartupAs -> startup(cmd)
             ClearLogs -> clearLogs()
-            is FilterWith -> filterWith(cmd.filter)
+
+            is FilterBy -> s.upsertFilter(cmd.filter)
+
             is ClearFilter -> clearFilter()
-            is Filter.ToggleLogLevel -> filterByLogLevel(cmd)
-            is Filter.ByString -> filterWith(cmd)
+            //is Filter.ToggleLogLevel -> {}//s.upsertFilter()
+            //is Filter.ByString -> s.upsertFilter(Substring(cmd.substring)) //filterWith(cmd)
+
             StopEverything -> {
                 privateState.emit(LogcatState.Terminated)
                 stopSubject.emit(Unit)
@@ -152,31 +158,34 @@ class Dogcat(
                 scope.ensureActive()
                 scope.cancel()
             }
+
         }
     }
 
-    private fun filterByLogLevel(cmd: Filter.ToggleLogLevel) {
+    /*private fun filterByLogLevel(cmd: Filter.ToggleLogLevel) {
         // concurrent access protection?
         if (logLevels.contains(cmd.level)) {
             logLevels.remove(cmd.level)
         } else {
             logLevels.add(cmd.level)
         }
-    }
+    }*/
 
     private fun clearFilter() {
     }
 
     private suspend fun filterWith(filter: Filter) {
-        if (filter is Filter.ByString) {
-            val filters = appliedFilters.value
-            filters[LogFilter.BySubstring::class] = LogFilter.BySubstring(filter.substring)
+        //if (filter is Filter.ByString) {
+            //val filters = appliedFilters.value
+            //filters[LogFilter.BySubstring::class] = LogFilter.BySubstring(filter.substring)
 
-            appliedFilters.emit(filters)
+          //  s.upsertFilter(Substring(filter.substring))
+
+            //appliedFilters.emit(filters)
 
             //filterLine.emit(filter.substring)
             //println("next filter ${filter.substring}")
-        }
+        //}
     }
 
     private suspend fun clearLogs() {

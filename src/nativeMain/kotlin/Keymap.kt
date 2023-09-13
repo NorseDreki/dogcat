@@ -1,7 +1,7 @@
+import dogcat.*
+import dogcat.LogFilter.MinLogLevel
+import dogcat.LogFilter.Substring
 import dogcat.LogcatState.CapturingInput
-import dogcat.ClearLogs
-import dogcat.Filter
-import dogcat.StopEverything
 import kotlinx.cinterop.*
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.take
@@ -31,7 +31,7 @@ class Keymap(
                 noecho()
                 pad.clear()
 
-                dogcat(Filter.ByString(bytePtr.toKString()))
+                dogcat(FilterBy(Substring(bytePtr.toKString())))
             }
 
             'q'.code -> {
@@ -53,23 +53,23 @@ class Keymap(
             'e'.code -> pad.pageUp()
 
             '6'.code -> {
-                dogcat(Filter.ToggleLogLevel("V"))
+                dogcat(FilterBy(MinLogLevel("V")))
             }
 
             '7'.code -> {
-                dogcat(Filter.ToggleLogLevel("D"))
+                dogcat(FilterBy(MinLogLevel("D")))
             }
 
             '8'.code -> {
-                dogcat(Filter.ToggleLogLevel("I"))
+                dogcat(FilterBy(MinLogLevel("I")))
             }
 
             '9'.code -> {
-                dogcat(Filter.ToggleLogLevel("W"))
+                dogcat(FilterBy(MinLogLevel("W")))
             }
 
             '0'.code -> {
-                dogcat(Filter.ToggleLogLevel("E"))
+                dogcat(FilterBy(MinLogLevel("E")))
             }
 
             'c'.code -> {

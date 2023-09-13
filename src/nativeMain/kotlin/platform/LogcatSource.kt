@@ -4,11 +4,37 @@ import dogcat.LogSource
 import com.kgit2.io.Reader
 import com.kgit2.process.Command
 import com.kgit2.process.Stdio
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import dogcat.LogFilter
+import dogcat.LogFilter.ByExcludedTags
+import dogcat.State
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.yield
 
-class LogcatSource : LogSource {
+class LogcatSource(
+    val state: State
+) : LogSource {
+
+    val v = state.appliedFilters
+        .filter { it.containsKey(ByExcludedTags::class) }
+        .map { it[ByExcludedTags::class]!! }
+        .map {
+            val args = mutableListOf<String>()
+
+            if (it.second) {
+                (it.first as ByExcludedTags).exclusions.forEach { args.add("$it:S") }
+            }
+
+            args
+        }
+        .distinctUntilChanged()
+
+    val v1 = state.appliedFilters
+        .filter { it.containsKey(LogFilter.MinLogLevel::class) }
+        .distinctUntilChanged()
+
+    val v2 = state.appliedFilters
+        .filter { it.containsKey(LogFilter.ByTime::class) }
+        .distinctUntilChanged()
 
     override fun lines(): Flow<String> {
         return flow {

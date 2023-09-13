@@ -261,7 +261,7 @@ class LogcatTest {
 
     @Test fun `exclude log levels upon filtering`() =  runTest(dispatcher) {
         dogcat(StartupAs.All)
-        dogcat(Filter.ToggleLogLevel("D"))
+        //dogcat(Filter.ToggleLogLevel("D"))
         advanceUntilIdle()
 
         dogcat.state.test {

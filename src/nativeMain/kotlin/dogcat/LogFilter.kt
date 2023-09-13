@@ -4,11 +4,11 @@ sealed interface LogFilter {
 
     fun apply(line: Parsed): Boolean
 
-    data class BySubstring(val substring: String) : LogFilter {
+    data class Substring(val substring: String) : LogFilter {
         override fun apply(line: Parsed) = line.message.contains(substring)
     }
 
-    data class ByLogLevels(val substring: String) : LogFilter {
+    data class MinLogLevel(val substring: String) : LogFilter {
         override fun apply(line: Parsed): Boolean {
             TODO("Not yet implemented")
         }
