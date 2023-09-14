@@ -1,5 +1,6 @@
 import dogcat.LogcatState.*
 import dogcat.Dogcat
+import dogcat.InternalState
 import dogcat.LogSource
 import dogcat.StartupAs
 import kotlinx.cinterop.*
@@ -13,8 +14,9 @@ import org.kodein.di.instance
 import platform.LogcatSource
 
 val dogcatModule = DI.Module("dogcat") {
-    bindSingleton<LogSource> { LogcatSource() }
-    bindSingleton<Dogcat> { Dogcat(instance()) }
+    bindSingleton<InternalState> { InternalState() }
+    bindSingleton<LogSource> { LogcatSource(instance()) }
+    bindSingleton<Dogcat> { Dogcat(instance(), instance()) }
 }
 val di = DI {
     import(dogcatModule)

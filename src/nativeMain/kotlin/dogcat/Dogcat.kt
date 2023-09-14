@@ -19,10 +19,10 @@ import kotlin.reflect.KClass
 @OptIn(ExperimentalCoroutinesApi::class)
 class Dogcat(
     private val logSource: LogSource,
+    private val s: InternalState = InternalState(),
     private val dispatcherCpu: CoroutineDispatcher = Dispatchers.Default,
     private val dispatcherIo: CoroutineDispatcher = Dispatchers.IO,
-    private val lineParser: LogLineParser = LogcatBriefParser(),
-    private val s: InternalState = InternalState()
+    private val lineParser: LogLineParser = LogcatBriefParser()
 
 )  {
     val handler = CoroutineExceptionHandler { _, t -> println("999999 ${t.message}\r") }
@@ -45,7 +45,7 @@ class Dogcat(
     val pids = mutableSetOf<String>()
 
     private fun filterLines(): Flow<IndexedValue<LogLine>> {
-        val sharedLines = logSource // deal with malformed UTF-8 'expected one more byte'
+        /*val sharedLines = logSource // deal with malformed UTF-8 'expected one more byte'
             .lines()
             .retry(3) { e ->
                 val shallRetry = e is RuntimeException
@@ -63,14 +63,15 @@ class Dogcat(
                 Config.LogLinesBufferCount,
             )
             .onSubscription { println("subscr to shared lines\r") }
-            .onCompletion { println("shared compl!\r") }
+            .onCompletion { println("shared compl!\r") }*/
 
 
         return filterLine //logLevels.contains(it.level) //by tag //by time     -- both cases need to re-apply themselves upon every line
                 //!Exclusions.excludedTags.contains(it.tag.trim())
                 //pids.contains(it.owner) ??
             .flatMapLatest { filter ->
-                sharedLines.filter { it.contains(filter) }
+                logSource.lines().filter { it.contains(filter) }
+                //sharedLines.filter { it.contains(filter) }
             }
             .map { trackProcesses(it) } //transform and highlight output
             // format message according to rules
