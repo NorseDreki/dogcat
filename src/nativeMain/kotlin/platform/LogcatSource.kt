@@ -48,9 +48,9 @@ class LogcatSource(
             args
         }
         //.onStart { emit(mutableListOf("*:W")) }
-        .distinctUntilChanged()
+        //.distinctUntilChanged()
 
-    val v2 = state.appliedFilters
+    /*val v2 = state.appliedFilters
         .filter { it.containsKey(ByTime::class) }
         .map { it[ByTime::class]!! }
         .map {
@@ -64,7 +64,7 @@ class LogcatSource(
             args
         }
         .onStart { emit(mutableListOf("")) }
-        .distinctUntilChanged()
+        .distinctUntilChanged()*/
 
     fun lines11(strings: List<String>): Flow<String> {
         return flow {
@@ -89,9 +89,9 @@ class LogcatSource(
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun lines(): Flow<String> {
         println("lines!")
-        return combine(v, v1, v2) { a, b, c ->
-            println("combine! $a $b $c")
-            a + b + c
+        return combine(v, v1) { a, b, ->
+            println("combine! $a $b ")
+            a + b
         }//.onStart { println("start!"); emit(emptyList()) }
             .flatMapLatest { lines11(it) }
             .retry(3) { e ->

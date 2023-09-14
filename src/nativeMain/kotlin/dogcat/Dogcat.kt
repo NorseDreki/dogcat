@@ -219,6 +219,15 @@ class Dogcat(
     }
 
     private suspend fun startupAll() {
+        scope.launch {
+            println("1111111111 sub")
+            s.appliedFilters.collect {
+                println("111111111 $it")
+            }
+            println("1111111 finished")
+        }
+
+
         val filterLines = filterLines()
 
         val ci = LogcatState.CapturingInput(

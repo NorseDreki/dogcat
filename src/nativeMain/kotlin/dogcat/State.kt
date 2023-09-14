@@ -19,6 +19,7 @@ interface State {
 class InternalState : State {
 
     private val appliedFiltersState = MutableStateFlow<AppliedFilters>(mutableMapOf())
+    override val appliedFilters = appliedFiltersState.asStateFlow()
 
     suspend fun upsertFilter(filter: LogFilter, enable: Boolean = true) {
         println("sub ${appliedFiltersState.subscriptionCount.value}")
@@ -29,13 +30,13 @@ class InternalState : State {
         println("sub ${appliedFiltersState.subscriptionCount.value}")
 
 
-        appliedFiltersState.emit(v)
+        appliedFiltersState.emit(mutableMapOf(LogFilter.MinLogLevel::class to (LogFilter.MinLogLevel("E") to true)))
         println("sub ${appliedFiltersState.subscriptionCount.value}")
 
         println("zzzz ${appliedFiltersState.value}")
     }
 
-    override val appliedFilters = appliedFiltersState.asStateFlow()
+
 }
 
 typealias AppliedFilters = MutableMap<KClass<out LogFilter>, Pair<LogFilter, Boolean>>
