@@ -29,7 +29,6 @@ class RunningProcesses {
             if (m != null) {
                 val (line_pid, line_package) = m.destructured
                 if (line_package.contains(pkg)) {
-                    //println("line: $line_pid $line_package\r")
                     proc = line_pid
                     break
                 }

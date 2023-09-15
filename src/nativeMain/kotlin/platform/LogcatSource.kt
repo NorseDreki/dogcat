@@ -6,9 +6,6 @@ import com.kgit2.process.Command
 import com.kgit2.process.Stdio
 import dogcat.InternalState
 import dogcat.LogFilter
-import dogcat.LogFilter.ByExcludedTags
-import dogcat.LogFilter.ByTime
-import dogcat.State
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 

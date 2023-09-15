@@ -1,7 +1,6 @@
 package dogcat
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
 
 sealed interface LogcatState {
 
@@ -11,8 +10,6 @@ sealed interface LogcatState {
 
     data class CapturingInput(
         val lines: Flow<IndexedValue<LogLine>>,
-
-        val problems: Flow<IndexedValue<LogLine>> = emptyFlow(),
 
         val appliedFilters: Flow<AppliedFilters>,
 

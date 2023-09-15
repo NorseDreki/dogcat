@@ -5,9 +5,6 @@ import dogcat.LogFilter.Substring
 import platform.LogLineParser
 import platform.LogcatBriefParser
 import dogcat.LogcatState.WaitingInput
-import filtering.Exclusions
-import filtering.ProcessDeath
-import filtering.ProcessStart
 import flow.bufferedTransform
 import flow.takeUntil
 import kotlinx.coroutines.*
@@ -33,9 +30,6 @@ class Dogcat(
 
     private val stopSubject = MutableSharedFlow<Unit>()
     private val filterLine = MutableStateFlow<String>("")
-
-    var p = ""//""com.norsedreki.multiplatform.identity.android"
-    val pids = mutableSetOf<String>()
 
     private fun filterLines(): Flow<IndexedValue<LogLine>> {
         val sharedLines = logSource // deal with malformed UTF-8 'expected one more byte'
@@ -65,8 +59,7 @@ class Dogcat(
             }
             .map {
                 lineParser.parse(it)
-            } //transform and highlight output
-            // format message according to rules
+            }
             .bufferedTransform(
                 { buffer, item ->
                     val s = buffer.size
@@ -141,6 +134,7 @@ class Dogcat(
     }
 
     private suspend fun startup(cmd: StartupAs) {
+        var p = ""//""com.norsedreki.multiplatform.identity.android"
         val pid = if (cmd is StartupAs.WithForegroundApp) {
             ForegroundProcess.parsePs()
         } else if (cmd is StartupAs.WithPackage) {
@@ -152,10 +146,6 @@ class Dogcat(
 
         s.upsertFilter(LogFilter.ByPackage(p, "10151"), true)
 
-        if (pid.isNotEmpty()) {
-            pids.add(pid)
-        }
-
         startupAll()
     }
 
@@ -166,18 +156,6 @@ class Dogcat(
             filterLines
                 .onCompletion { println("COMPLETION $it\r") } //called when scope is cancelled as well
                 .takeUntil(stopSubject),
-
-            filterLines
-                .filter {
-                    var f = false
-
-                    if (it.value is Parsed) {
-                        if ((it.value as Parsed).level.contains("E")) {
-                            f = true
-                        }
-                    }
-                    f
-                },
 
             s.appliedFilters
         )

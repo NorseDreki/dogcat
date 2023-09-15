@@ -31,10 +31,7 @@ val dogcat: Dogcat by di.instance()
 fun main(args: Array<String>): Unit = memScoped {
     val parser = ArgParser("dogcat")
     val packageName by parser.argument(ArgType.String, "package name", "description for p n").optional()
-    //val tagWidth by parser.argument(ArgType.String, "package name", "description for p n").optional()
-    //val alwaysDisplayTags by parser.argument(ArgType.String, "package name", "description for p n").optional()
     val current by parser.option(ArgType.Boolean, shortName = "c", description = "Filter by currently running program")
-    val debug by parser.option(ArgType.Boolean, shortName = "d", description = "Turn on debug mode").default(false)
 
     parser.parse(args)
     if (packageName != null && current != null) {

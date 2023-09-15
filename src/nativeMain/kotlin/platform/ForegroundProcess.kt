@@ -23,7 +23,6 @@ object ForegroundProcess {
             val line2 = stdoutReader!!.readLine() ?: break
 
             val m = FG_LINE.matchEntire(line2)
-            var r = false
 
             if (m != null) {
                 val (line_package) = m.destructured
@@ -31,20 +30,9 @@ object ForegroundProcess {
 
                 proc =  line_package
                 break
-
-                //p = line_package
-
-
-//                if (line_package.contains(p)) {
-//                    println("line: $line_pid $line_package\r")
-//                    pids.add(line_pid)
-//                    r = true
-//                }
             }
         }
         out.wait()
-
-        println("ksljdhflkdjshfdddddd")
 
         return proc
     }

@@ -80,14 +80,6 @@ class Keymap(
             't'.code -> {
                 dogcat(FilterBy(LogFilter.ByPackage("", "")))
             }
-
-            'o'.code -> {
-                val indices = mutableListOf<Int>()
-                (dogcat.state.value as CapturingInput).problems.map { println("aaaa $it");it.index }.take(1).toList(indices)
-
-                pad.toLine(indices[lastIndex])
-                lastIndex += 1
-            }
         }
     }
 
