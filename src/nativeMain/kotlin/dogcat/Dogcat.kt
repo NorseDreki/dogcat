@@ -31,12 +31,8 @@ class Dogcat(
     private val privateState = MutableStateFlow<LogcatState>(WaitingInput)
     val state = privateState.asStateFlow()
 
-    private val appliedFilters = MutableStateFlow<MutableMap<KClass<out LogFilter>, LogFilter>>(mutableMapOf())
-
     private val stopSubject = MutableSharedFlow<Unit>()
     private val filterLine = MutableStateFlow<String>("")
-
-    private val logLevels = mutableSetOf<String>("V", "D", "I", "W", "E") //+.WTF()? *.F
 
     val processStart = ProcessStart()
     val processEnd = ProcessDeath()
@@ -66,9 +62,7 @@ class Dogcat(
             .onCompletion { println("shared compl!\r") }
 
 
-        return filterLine //logLevels.contains(it.level) //by tag //by time     -- both cases need to re-apply themselves upon every line
-                //!Exclusions.excludedTags.contains(it.tag.trim())
-                //pids.contains(it.owner) ??
+        return filterLine
             .flatMapLatest { filter ->
                 //logSource.lines().filter { it.contains(filter) }
                 sharedLines.filter { it.contains(filter) }
@@ -149,13 +143,14 @@ class Dogcat(
             ClearLogs -> clearLogs()
 
             is FilterBy -> {
-                s.upsertFilter(cmd.filter)
+                s.upsertFilter(cmd.filter, false)
+                if (cmd.filter is Substring) {
+                    filterLine.emit(cmd.filter.substring)
+                }
                 startupAll()
             }
 
             is ClearFilter -> clearFilter()
-            //is Filter.ToggleLogLevel -> {}//s.upsertFilter()
-            //is Filter.ByString -> s.upsertFilter(Substring(cmd.substring)) //filterWith(cmd)
 
             StopEverything -> {
                 privateState.emit(LogcatState.Terminated)
@@ -165,34 +160,10 @@ class Dogcat(
                 scope.ensureActive()
                 scope.cancel()
             }
-
         }
     }
-
-    /*private fun filterByLogLevel(cmd: Filter.ToggleLogLevel) {
-        // concurrent access protection?
-        if (logLevels.contains(cmd.level)) {
-            logLevels.remove(cmd.level)
-        } else {
-            logLevels.add(cmd.level)
-        }
-    }*/
 
     private fun clearFilter() {
-    }
-
-    private suspend fun filterWith(filter: Filter) {
-        //if (filter is Filter.ByString) {
-            //val filters = appliedFilters.value
-            //filters[LogFilter.BySubstring::class] = LogFilter.BySubstring(filter.substring)
-
-          //  s.upsertFilter(Substring(filter.substring))
-
-            //appliedFilters.emit(filters)
-
-            //filterLine.emit(filter.substring)
-            //println("next filter ${filter.substring}")
-        //}
     }
 
     private suspend fun clearLogs() {
@@ -227,15 +198,6 @@ class Dogcat(
     }
 
     private suspend fun startupAll() {
-        /*scope.launch {
-            println("1111111111 sub")
-            s.appliedFilters.collect {
-                println("111111111 $it")
-            }
-            println("1111111 finished")
-        }*/
-
-
         val filterLines = filterLines()
 
         val ci = LogcatState.CapturingInput(
@@ -253,7 +215,9 @@ class Dogcat(
                         }
                     }
                     f
-                }
+                },
+
+            s.appliedFilters
         )
         privateState.emit(ci)
     }

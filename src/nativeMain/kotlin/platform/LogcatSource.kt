@@ -74,7 +74,12 @@ class LogcatSource(
             println("99999 $af")
             val mll = af[LogFilter.MinLogLevel::class]?.first?.let { "*:${(it as LogFilter.MinLogLevel).logLevel}" } ?: ""
             println("---------")
-            val pkg = af[LogFilter.ByPackage::class]?.first?.let { "--uid=${(it as LogFilter.ByPackage).resolvedUserId}" } ?: ""
+            val pkgE = af[LogFilter.ByPackage::class]?.second ?: false
+            val pkg = if (pkgE) {
+                af[LogFilter.ByPackage::class]?.first?.let { "--uid=${(it as LogFilter.ByPackage).resolvedUserId}" } ?: ""
+            } else {
+                ""
+            }
             println("=========")
 
             //println("99999 $af, $mll, $pkg")
@@ -89,6 +94,7 @@ class LogcatSource(
             val stdoutReader: Reader? = child.getChildStdout()
 
             //emit("== ${child.args}")
+            //emit("99999 $af")
             while (true) { //EOF??
                 //ensureActive() -- call in scope
                 val line2 = stdoutReader!!.readLine() ?: break

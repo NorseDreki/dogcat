@@ -51,7 +51,7 @@ fun main(args: Array<String>): Unit = memScoped {
     val pad = Pad(padPosition)
 
     val lineColorizer = LogLineColorizer()
-    val keymap = Keymap(this, pad)
+    val keymap = Keymap(this, pad, "")
 
     // legitimate use-case for 'GlobalScope'
     GlobalScope.launch {
@@ -71,6 +71,18 @@ fun main(args: Array<String>): Unit = memScoped {
             packageName != null -> dogcat(StartupAs.WithPackage(packageName!!))
             current == true -> dogcat(StartupAs.WithForegroundApp)
             else -> dogcat(StartupAs.All)
+        }
+
+        launch {
+            dogcat
+                .state
+                .filterIsInstance<CapturingInput>()
+                .flatMapLatest { it.appliedFilters }
+                .onEach {
+                    mvwprintw(stdscr, 0, 0, "--> $it")
+                    wrefresh(stdscr)
+                }
+                .collect()
         }
 
         dogcat

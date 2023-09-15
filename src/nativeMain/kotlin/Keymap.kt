@@ -12,7 +12,8 @@ import platform.posix.exit
 @OptIn(ExperimentalForeignApi::class)
 class Keymap(
     val memScope: MemScope,
-    val pad: Pad
+    val pad: Pad,
+    val packageName: String?
 ) {
     @OptIn(ExperimentalForeignApi::class)
     suspend fun processInputKey(
@@ -74,6 +75,10 @@ class Keymap(
 
             'c'.code -> {
                 dogcat(ClearLogs)
+            }
+
+            't'.code -> {
+                dogcat(FilterBy(LogFilter.ByPackage("", "")))
             }
 
             'o'.code -> {

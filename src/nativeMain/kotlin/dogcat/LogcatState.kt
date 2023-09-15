@@ -14,7 +14,7 @@ sealed interface LogcatState {
 
         val problems: Flow<IndexedValue<LogLine>> = emptyFlow(),
 
-        //val appliedFilters: String,
+        val appliedFilters: Flow<AppliedFilters>,
 
         //val fatalException: String,
     ) : LogcatState

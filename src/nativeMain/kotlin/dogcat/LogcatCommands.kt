@@ -2,17 +2,9 @@ package dogcat
 
 sealed interface LogcatCommands
 
-sealed interface Filter : LogcatCommands {
-    //data class ByString(val substring: String) : Filter
-
-    //data class ToggleLogLevel(val level: String) : Filter
-
-    //last session --- //previous session
-}
-
 data class FilterBy(val filter: LogFilter) : LogcatCommands
 
-data class ClearFilter(val filter: Filter) : LogcatCommands
+data class ClearFilter(val filter: LogFilter) : LogcatCommands
 
 sealed interface StartupAs : LogcatCommands {
 
