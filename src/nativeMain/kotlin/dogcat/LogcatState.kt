@@ -16,7 +16,6 @@ sealed interface LogcatState {
 
         val appliedFilters: Flow<AppliedFilters>,
 
-        //val fatalException: String,
     ) : LogcatState
 
     data object Terminated : LogcatState

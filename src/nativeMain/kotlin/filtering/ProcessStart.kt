@@ -1,5 +1,8 @@
 package filtering
 
+import dogcat.LogLine
+import dogcat.Parsed
+
 class ProcessStart {
 
     val PID_START = """^.*: Start proc ([a-zA-Z0-9._:]+) for ([a-z]+ [^:]+): pid=(\d+) uid=(\d+) gids=(.*)$""".toRegex()
@@ -32,4 +35,26 @@ class ProcessStart {
 
         return null
     }
+
+    /*private fun trackProcesses(it: String): LogLine {
+        val ps = processStart.parseProcessStart(it)
+
+        return if (ps != null) {
+            if (ps.first.contains(p)) {
+                pids.add(ps.second)
+            }
+            Parsed("E", ps.first, ps.second, ps.second)
+        } else {
+            val pe = processEnd.parseProcessDeath(it)
+            if (pe != null) {
+                if (pe.first.contains(p)) {
+                    pids.remove(pe.second)
+                }
+
+                Parsed("E", pe.first, pe.second, pe.second)
+            } else {
+                lineParser.parse(it)
+            }
+        }
+    }*/
 }

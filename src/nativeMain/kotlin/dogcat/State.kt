@@ -11,7 +11,6 @@ interface State {
     val appliedFilters: Flow<AppliedFilters>
 }
 
-
 class InternalState : State {
 
     private val appliedFiltersState = MutableStateFlow<AppliedFilters>(mutableMapOf())

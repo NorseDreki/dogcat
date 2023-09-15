@@ -34,9 +34,6 @@ class Dogcat(
     private val stopSubject = MutableSharedFlow<Unit>()
     private val filterLine = MutableStateFlow<String>("")
 
-    val processStart = ProcessStart()
-    val processEnd = ProcessDeath()
-
     var p = ""//""com.norsedreki.multiplatform.identity.android"
     val pids = mutableSetOf<String>()
 
@@ -64,23 +61,12 @@ class Dogcat(
 
         return filterLine
             .flatMapLatest { filter ->
-                //logSource.lines().filter { it.contains(filter) }
                 sharedLines.filter { it.contains(filter) }
             }
             .map {
                 lineParser.parse(it)
-                //trackProcesses(it)
             } //transform and highlight output
             // format message according to rules
-            /*.filter { //filter which doesn't need to restart shared upstream
-                if (it is Parsed) {
-                    !Exclusions.excludedTags.contains(it.tag.trim())
-                    //pids.contains(it.owner)
-
-                } else {
-                    true
-                }
-            }*/
             .bufferedTransform(
                 { buffer, item ->
                     val s = buffer.size
@@ -115,28 +101,6 @@ class Dogcat(
             .onCompletion { println("outer compl\r") }
     }
 
-    private fun trackProcesses(it: String): LogLine {
-        val ps = processStart.parseProcessStart(it)
-
-        return if (ps != null) {
-            if (ps.first.contains(p)) {
-                pids.add(ps.second)
-            }
-            Parsed("E", ps.first, ps.second, ps.second)
-        } else {
-            val pe = processEnd.parseProcessDeath(it)
-            if (pe != null) {
-                if (pe.first.contains(p)) {
-                    pids.remove(pe.second)
-                }
-
-                Parsed("E", pe.first, pe.second, pe.second)
-            } else {
-                lineParser.parse(it)
-            }
-        }
-    }
-
     suspend operator fun invoke(cmd: LogcatCommands) {
         when (cmd) {
             is StartupAs -> startup(cmd)
@@ -150,7 +114,8 @@ class Dogcat(
                 startupAll()
             }
 
-            is ClearFilter -> clearFilter()
+            is ClearFilter -> {
+            }
 
             StopEverything -> {
                 privateState.emit(LogcatState.Terminated)
@@ -161,9 +126,6 @@ class Dogcat(
                 scope.cancel()
             }
         }
-    }
-
-    private fun clearFilter() {
     }
 
     private suspend fun clearLogs() {
