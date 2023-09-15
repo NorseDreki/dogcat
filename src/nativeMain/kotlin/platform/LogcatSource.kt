@@ -66,16 +66,29 @@ class LogcatSource(
         .onStart { emit(mutableListOf("")) }
         .distinctUntilChanged()*/
 
-    fun lines11(strings: List<String>): Flow<String> {
+    override fun lines(): Flow<String> {
         return flow {
+
+            val af = state.appliedFilters.value
+
+            println("99999 $af")
+            val mll = af[LogFilter.MinLogLevel::class]?.first?.let { "*:${(it as LogFilter.MinLogLevel).logLevel}" } ?: ""
+            println("---------")
+            val pkg = af[LogFilter.ByPackage::class]?.first?.let { "--uid=${(it as LogFilter.ByPackage).resolvedUserId}" } ?: ""
+            println("=========")
+
+            //println("99999 $af, $mll, $pkg")
+
             val child = Command("adb")
                 .args("logcat", "-v", "brief")
-                .args(*strings.toTypedArray())
+                .args(pkg, mll)
+                //.args(*strings.toTypedArray())
                 .stdout(Stdio.Pipe)
                 .spawn()
 
             val stdoutReader: Reader? = child.getChildStdout()
 
+            //emit("== ${child.args}")
             while (true) { //EOF??
                 //ensureActive() -- call in scope
                 val line2 = stdoutReader!!.readLine() ?: break
@@ -87,13 +100,13 @@ class LogcatSource(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun lines(): Flow<String> {
+    fun lines11(): Flow<String> {
         println("lines!")
         return combine(v, v1) { a, b, ->
             println("combine! $a $b ")
             a + b
         }//.onStart { println("start!"); emit(emptyList()) }
-            .flatMapLatest { lines11(it) }
+            .flatMapLatest { lines() }
             .retry(3) { e ->
                 val shallRetry = e is RuntimeException
                 if (shallRetry) delay(100)

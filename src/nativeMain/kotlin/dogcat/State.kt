@@ -21,17 +21,21 @@ class InternalState : State {
     private val appliedFiltersState = MutableStateFlow<AppliedFilters>(mutableMapOf())
     override val appliedFilters = appliedFiltersState.asStateFlow()
 
+    private val af: AppliedFilters = mutableMapOf()
+
     suspend fun upsertFilter(filter: LogFilter, enable: Boolean = true) {
         println("sub ${appliedFiltersState.subscriptionCount.value}")
-        val v = appliedFiltersState.value
-        v[filter::class] = filter to true
+        //val v = appliedFiltersState.value
+        //v[filter::class] = filter to true
 
-        println("current filters $v")
-        println("sub ${appliedFiltersState.subscriptionCount.value}")
+        //println("current filters $v")
+        //println("sub ${appliedFiltersState.subscriptionCount.value}")
 
+        af[filter::class] = filter to enable
+        appliedFiltersState.emit(af)
 
-        appliedFiltersState.emit(mutableMapOf(LogFilter.MinLogLevel::class to (LogFilter.MinLogLevel("E") to true)))
-        println("sub ${appliedFiltersState.subscriptionCount.value}")
+        //appliedFiltersState.emit(mutableMapOf(LogFilter.MinLogLevel::class to (LogFilter.MinLogLevel("E") to true)))
+        println("sub ${appliedFiltersState.subscriptionCount.value} $af")
 
         println("zzzz ${appliedFiltersState.value}")
     }

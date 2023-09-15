@@ -1,5 +1,7 @@
 package dogcat
 
+import kotlin.native.internal.ReflectionPackageName
+
 sealed interface LogFilter {
 
     fun apply(line: Parsed): Boolean
@@ -15,6 +17,13 @@ sealed interface LogFilter {
     }
 
     data class ByExcludedTags(val exclusions: List<String>) : LogFilter {
+        override fun apply(line: Parsed): Boolean {
+            TODO("Not yet implemented")
+        }
+
+    }
+
+    data class ByPackage(val packageName: String, val resolvedUserId: String) : LogFilter {
         override fun apply(line: Parsed): Boolean {
             TODO("Not yet implemented")
         }

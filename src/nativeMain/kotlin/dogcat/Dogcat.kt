@@ -41,11 +41,11 @@ class Dogcat(
     val processStart = ProcessStart()
     val processEnd = ProcessDeath()
 
-    var p = "com.norsedreki.multiplatform.identity.android"
+    var p = ""//""com.norsedreki.multiplatform.identity.android"
     val pids = mutableSetOf<String>()
 
     private fun filterLines(): Flow<IndexedValue<LogLine>> {
-        /*val sharedLines = logSource // deal with malformed UTF-8 'expected one more byte'
+        val sharedLines = logSource // deal with malformed UTF-8 'expected one more byte'
             .lines()
             .retry(3) { e ->
                 val shallRetry = e is RuntimeException
@@ -63,19 +63,22 @@ class Dogcat(
                 Config.LogLinesBufferCount,
             )
             .onSubscription { println("subscr to shared lines\r") }
-            .onCompletion { println("shared compl!\r") }*/
+            .onCompletion { println("shared compl!\r") }
 
 
         return filterLine //logLevels.contains(it.level) //by tag //by time     -- both cases need to re-apply themselves upon every line
                 //!Exclusions.excludedTags.contains(it.tag.trim())
                 //pids.contains(it.owner) ??
             .flatMapLatest { filter ->
-                logSource.lines().filter { it.contains(filter) }
-                //sharedLines.filter { it.contains(filter) }
+                //logSource.lines().filter { it.contains(filter) }
+                sharedLines.filter { it.contains(filter) }
             }
-            .map { trackProcesses(it) } //transform and highlight output
+            .map {
+                lineParser.parse(it)
+                //trackProcesses(it)
+            } //transform and highlight output
             // format message according to rules
-            .filter { //filter which doesn't need to restart shared upstream
+            /*.filter { //filter which doesn't need to restart shared upstream
                 if (it is Parsed) {
                     !Exclusions.excludedTags.contains(it.tag.trim())
                     //pids.contains(it.owner)
@@ -83,7 +86,7 @@ class Dogcat(
                 } else {
                     true
                 }
-            }
+            }*/
             .bufferedTransform(
                 { buffer, item ->
                     val s = buffer.size
@@ -145,7 +148,10 @@ class Dogcat(
             is StartupAs -> startup(cmd)
             ClearLogs -> clearLogs()
 
-            is FilterBy -> s.upsertFilter(cmd.filter)
+            is FilterBy -> {
+                s.upsertFilter(cmd.filter)
+                startupAll()
+            }
 
             is ClearFilter -> clearFilter()
             //is Filter.ToggleLogLevel -> {}//s.upsertFilter()
@@ -211,6 +217,8 @@ class Dogcat(
             ""
         }
 
+        s.upsertFilter(LogFilter.ByPackage(p, "10151"), true)
+
         if (pid.isNotEmpty()) {
             pids.add(pid)
         }
@@ -219,13 +227,13 @@ class Dogcat(
     }
 
     private suspend fun startupAll() {
-        scope.launch {
+        /*scope.launch {
             println("1111111111 sub")
             s.appliedFilters.collect {
                 println("111111111 $it")
             }
             println("1111111 finished")
-        }
+        }*/
 
 
         val filterLines = filterLines()
