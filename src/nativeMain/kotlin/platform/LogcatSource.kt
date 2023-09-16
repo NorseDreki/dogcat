@@ -18,7 +18,7 @@ class LogcatSource(
 
             val af = state.appliedFilters.value
 
-            println("99999 $af")
+            Logger.d("99999 $af")
             val mll = af[LogFilter.MinLogLevel::class]?.first?.let { "*:${(it as LogFilter.MinLogLevel).logLevel}" } ?: ""
             val pkgE = af[LogFilter.ByPackage::class]?.second ?: false
             val pkg = if (pkgE) {
@@ -26,9 +26,9 @@ class LogcatSource(
             } else {
                 ""
             }
-            println("=========")
+            Logger.d("=========")
 
-            //println("99999 $af, $mll, $pkg")
+            //Logger.d("99999 $af, $mll, $pkg")
 
             val child = Command("adb")
                 .args("logcat", "-v", "brief")
@@ -49,7 +49,7 @@ class LogcatSource(
     }
 
     override fun clear(): Boolean {
-        println("clearing..")
+        Logger.d("clearing..")
 
         //use suspendCoroutine
         //For instance, you might use withContext to switch to a particular thread pool, or you might wrap a callback-based function using suspendCancellableCoroutine. Either way, calling those functions would force you to add the suspend modifier to your function.
@@ -60,7 +60,7 @@ class LogcatSource(
             .start()
         //.wait()
 
-        println("exit code: ")
+        Logger.d("exit code: ")
 
         return true
     }

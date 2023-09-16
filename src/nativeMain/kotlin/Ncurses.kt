@@ -14,6 +14,10 @@ class Ncurses {
         intrflush(stdscr, false)
         savetty()
         noecho()
+        nl()
+        //Use the ncurses functions for output. My guess is that initscr changes terminal settings such that \n only performs a line feed, not a carriage return. –
+        //melpomene
+
         //nodelay(stdscr, true)
         cbreak() //making getch() work without a buffer I.E. raw characters
         keypad(stdscr, true) //allows use of special keys, namely the arrow keys
@@ -35,6 +39,7 @@ class Ncurses {
         init_pair(12, COLOR_BLACK.toShort(), COLOR_WHITE.toShort())
         init_pair(6, COLOR_BLACK.toShort(), COLOR_YELLOW.toShort())
 
+        //hideCursor()
     }
 
     private fun hideCursor() {

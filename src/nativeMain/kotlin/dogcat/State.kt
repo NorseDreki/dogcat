@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import platform.Logger
 import kotlin.reflect.KClass
 
 interface State {
@@ -22,9 +23,10 @@ class InternalState : State {
         af[filter::class] = filter to enable
         appliedFiltersState.emit(af)
 
-        println("sub ${appliedFiltersState.subscriptionCount.value} $af")
 
-        println("zzzz ${appliedFiltersState.value}")
+        Logger.d("sub ${appliedFiltersState.subscriptionCount.value} $af")
+
+        Logger.d("zzzz ${appliedFiltersState.value}")
     }
 }
 

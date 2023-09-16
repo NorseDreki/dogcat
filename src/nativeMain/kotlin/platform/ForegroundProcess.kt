@@ -26,7 +26,7 @@ object ForegroundProcess {
 
             if (m != null) {
                 val (line_package) = m.destructured
-                println("LP $line_package\r")
+                Logger.d("LP $line_package\r")
 
                 proc =  line_package
                 break

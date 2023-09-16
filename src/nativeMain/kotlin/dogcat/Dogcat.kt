@@ -2,18 +2,16 @@ package dogcat
 
 import Config
 import dogcat.LogFilter.Substring
-import platform.LogLineParser
-import platform.LogcatBriefParser
 import dogcat.LogcatState.WaitingInput
 import flow.bufferedTransform
 import flow.takeUntil
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import platform.ForegroundProcess
-import platform.RunningProcesses
+import platform.*
 import kotlin.reflect.KClass
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, ExperimentalForeignApi::class)
 class Dogcat(
     private val logSource: LogSource,
     private val s: InternalState = InternalState(),
@@ -22,7 +20,7 @@ class Dogcat(
     private val lineParser: LogLineParser = LogcatBriefParser()
 
 )  {
-    val handler = CoroutineExceptionHandler { _, t -> println("999999 ${t.message}\r") }
+    val handler = CoroutineExceptionHandler { _, t -> Logger.d("999999 ${t.message}\r") }
     private val scope = CoroutineScope(dispatcherCpu + handler) // +Job +SupervisorJob +handler
 
     private val privateState = MutableStateFlow<LogcatState>(WaitingInput)
@@ -37,20 +35,20 @@ class Dogcat(
             .retry(3) { e ->
                 val shallRetry = e is RuntimeException
                 if (shallRetry) delay(100)
-                println("retrying... $shallRetry\r")
+                Logger.d("retrying... $shallRetry\r")
                 shallRetry
             }
             .takeUntil(stopSubject)
-            .onCompletion { cause -> if (cause == null) emit("INPUT HAS EXITED") else println("EXIT COMPLETE $cause\r") }
+            .onCompletion { cause -> if (cause == null) emit("INPUT HAS EXITED") else Logger.d("EXIT COMPLETE $cause\r") }
             .flowOn(dispatcherIo)
-            .onStart { println("start logcat lines\r") }
+            .onStart { Logger.d("start logcat lines\r") }
             .shareIn(
                 scope,
                 SharingStarted.Lazily,
                 Config.LogLinesBufferCount,
             )
-            .onSubscription { println("subscr to shared lines\r") }
-            .onCompletion { println("shared compl!\r") }
+            .onSubscription { Logger.d("subscr to shared lines\r") }
+            .onCompletion { Logger.d("shared compl!\r") }
 
 
         return filterLine
@@ -91,7 +89,7 @@ class Dogcat(
             )
             .withIndex()
             //.flowOn()
-            .onCompletion { println("outer compl\r") }
+            .onCompletion { Logger.d("outer compl\r") }
     }
 
     suspend operator fun invoke(cmd: LogcatCommands) {
@@ -122,7 +120,7 @@ class Dogcat(
     }
 
     private suspend fun clearLogs() {
-        println("to clear logs\r")
+        Logger.d("to clear logs\r")
         stopSubject.emit(Unit)
 
         logSource.clear()
@@ -154,7 +152,7 @@ class Dogcat(
 
         val ci = LogcatState.CapturingInput(
             filterLines
-                .onCompletion { println("COMPLETION $it\r") } //called when scope is cancelled as well
+                .onCompletion { Logger.d("COMPLETION $it\r") } //called when scope is cancelled as well
                 .takeUntil(stopSubject),
 
             s.appliedFilters

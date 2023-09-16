@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalForeignApi::class)
+
 import dogcat.*
 import dogcat.LogcatState.*
 import kotlinx.cinterop.*
@@ -9,6 +11,7 @@ import org.kodein.di.DI
 import org.kodein.di.bindSingleton
 import org.kodein.di.instance
 import platform.LogcatSource
+import platform.Logger
 
 val dogcatModule = DI.Module("dogcat") {
     bindSingleton<InternalState> { InternalState() }
@@ -19,6 +22,14 @@ val di = DI {
     import(dogcatModule)
 }
 val dogcat: Dogcat by di.instance()
+
+val STDERR = platform.posix.fdopen(2, "w")
+fun printErr(message: String) {
+    platform.posix.fprintf(STDERR, "%s\n", message)
+    platform.posix.fflush(STDERR)
+}
+
+
 
 @OptIn(
     ExperimentalForeignApi::class,
@@ -98,6 +109,7 @@ fun main(args: Array<String>): Unit = memScoped {
                             LogFilter.ByPackage::class -> {
                                 mvwprintw(pad2.fp, 0, 80, "${(it.value.first as LogFilter.ByPackage).packageName} on")
                                 prefresh(pad2.fp, 0, 0, 0, 0, 2, sx);
+
                                 yield()
                             }
                             /*else -> {
@@ -108,9 +120,12 @@ fun main(args: Array<String>): Unit = memScoped {
                         }
                     }
 
-                    mvwprintw(pad2.fp, 1, 0, "--> $it")
+                   // printErr("Hello standard error!")
+                   // mvwprintw(pad2.fp, 1, 0, "--> $it")
                     //mvwprintw(pad2.fp, 1, 0, "--> $it")
                     prefresh(pad2.fp, 0, 0, 0, 0, 2, sx);
+                    wmove(pad.fp, 0,0)
+                    pad.refresh()
                 }
                 .collect()
         }
@@ -120,30 +135,34 @@ fun main(args: Array<String>): Unit = memScoped {
             .flatMapLatest {
                 when (it) {
                     is WaitingInput -> {
-                        println("Waiting for log lines...\r")
+                        Logger.d("Waiting for log lines...\r")
+
                         emptyFlow()
                     }
                     is CapturingInput -> {
-                        pad.clear()
-                        it.lines.take(10)
+                        //pad.clear()
+                        //wmove(pad.fp, 0,0)
+                        it.lines//.take(10)
                     }
                     InputCleared -> {
-                        println("Cleared Logcat and re-started\r")
+                        Logger.d("Cleared Logcat and re-started\r")
                         emptyFlow()
                     }
                     Terminated -> {
                         cancel()
-                        println("No more reading lines, terminated\r")
+                        Logger.d("No more reading lines, terminated\r")
                         emptyFlow()
                     }
                 }
             }
             .onEach {
                 pad.recordLine()
-                //println("${it.index} ${it.value} \r\n")
+                //Logger.d("${it.index} ${it.value} \r\n")
                 lineColorizer.processLogLine(pad, it)
                 pad.refresh()
             }
             .collect()
     }
+
+    Logger.close()
 }
