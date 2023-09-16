@@ -3,7 +3,6 @@ package dogcat
 import kotlinx.coroutines.flow.Flow
 
 sealed interface LogcatState {
-
     data object WaitingInput : LogcatState
 
     data object InputCleared : LogcatState

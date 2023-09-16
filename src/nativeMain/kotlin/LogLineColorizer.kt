@@ -7,19 +7,13 @@ import kotlin.math.min
 
 class LogLineColorizer {
 
-    var cp = 5
-
     @OptIn(ExperimentalForeignApi::class)
     fun printTag(pad: Pad, tag: String) {
         val c = allocateColor(tag)
 
-        //init_pair(cp.toShort(), c.toShort(), -1)
-
         wattron(pad.fp, COLOR_PAIR(ccpp[c]!!))
         waddstr(pad.fp, tag)
         wattroff(pad.fp, COLOR_PAIR(ccpp[c]!!))
-
-        cp++
     }
 
     fun allocateColor(tag: String): Int {
@@ -55,19 +49,6 @@ val KNOWN_TAGS = mutableMapOf(
   "DEBUG" to COLOR_YELLOW,
 )
 
-/*def allocate_color(tag):
-  # this will allocate a unique format for the given tag
-  # since we dont have very many colors, we always keep track of the LRU
-  if tag not in KNOWN_TAGS:
-    KNOWN_TAGS[tag] = LAST_USED[0]
-  color = KNOWN_TAGS[tag]
-  if color in LAST_USED:
-    LAST_USED.remove(color)
-    LAST_USED.append(color)
-  return color*/
-
-
-
     @OptIn(ExperimentalForeignApi::class)
     fun processLogLine(
         pad: Pad,
@@ -81,19 +62,7 @@ val KNOWN_TAGS = mutableMapOf(
             waddstr(fp, "${logLine.line}\n")
 
         } else if (logLine is Parsed) {
-
-            //waddstr(fp, "${logLine.tag} ")
-
             printTag(pad, logLine.tag)
-
-            /*wattron(fp, COLOR_PAIR(1));
-                    waddstr(fp, "${it.value.tag} ||")
-                    //wprintw(fp, it.value)
-                    wattroff(fp, COLOR_PAIR(1))*/
-
-            //wattron(fp, COLOR_PAIR(2));
-            //waddstr(fp, "${logLine.owner} ||")
-            //wattroff(fp, COLOR_PAIR(2));
 
             when (logLine.level) {
                 "W" -> {
@@ -105,7 +74,6 @@ val KNOWN_TAGS = mutableMapOf(
                     wattron(fp, COLOR_PAIR(3))
                     waddstr(fp, wrapLine(pad, " ${logLine.message}"))
                     wattroff(fp, COLOR_PAIR(3))
-
                 }
 
                 "E" -> {
@@ -142,24 +110,6 @@ val KNOWN_TAGS = mutableMapOf(
         }
         // yield()
     }
-
-    /*
-    def indent_wrap(message):
-  if width == -1:
-    return message
-  message = message.replace('\t', '    ')
-  wrap_area = width - header_size
-  messagebuf = ''
-  current = 0
-  while current < len(message):
-    next = min(current + wrap_area, len(message))
-    messagebuf += message[current:next]
-    if next < len(message):
-      messagebuf += '\n'
-      messagebuf += ' ' * header_size
-    current = next
-  return messagebuf
-*/
 
     fun wrapLine(
         pad: Pad,

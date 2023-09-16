@@ -12,15 +12,12 @@ import platform.posix.exit
 @OptIn(ExperimentalForeignApi::class)
 class Keymap(
     val memScope: MemScope,
-    val pad: Pad,
-    val packageName: String?
+    val pad: Pad
 ) {
     @OptIn(ExperimentalForeignApi::class)
     suspend fun processInputKey(
         key: Int
     ) {
-        var lastIndex = 0
-
         when (key) {
             'f'.code -> {
                 mvwprintw(stdscr, 0, 0, ":")

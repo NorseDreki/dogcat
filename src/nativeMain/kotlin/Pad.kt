@@ -1,6 +1,13 @@
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
 
+data class PadPosition(
+    val startX: Int,
+    val startY: Int,
+    val endX: Int,
+    val endY: Int,
+)
+
 @OptIn(ExperimentalForeignApi::class)
 class Pad(val position: PadPosition) {
 
@@ -68,6 +75,4 @@ class Pad(val position: PadPosition) {
     fun recordLine() {
         linesCount++
     }
-
-
 }
