@@ -8,5 +8,5 @@ interface LogSource {
     fun lines(): Flow<String>
 
     // or to be suspendable?
-    fun clear(): Boolean
+    suspend fun clear(): Boolean
 }

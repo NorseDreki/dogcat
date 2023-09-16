@@ -21,7 +21,7 @@ class Dogcat(
 
 )  {
     val handler = CoroutineExceptionHandler { _, t -> Logger.d("999999 ${t.message}\r") }
-    private val scope = CoroutineScope(dispatcherCpu + handler) // +Job +SupervisorJob +handler
+    private val scope = CoroutineScope(dispatcherCpu + handler + Job()) // +Job +SupervisorJob +handler
 
     private val privateState = MutableStateFlow<LogcatState>(WaitingInput)
     val state = privateState.asStateFlow()
@@ -32,18 +32,19 @@ class Dogcat(
     private fun filterLines(): Flow<IndexedValue<LogLine>> {
         val sharedLines = logSource // deal with malformed UTF-8 'expected one more byte'
             .lines()
-            .retry(3) { e ->
+            /*.retry(3) { e ->
                 val shallRetry = e is RuntimeException
                 if (shallRetry) delay(100)
                 Logger.d("retrying... $shallRetry\r")
                 shallRetry
-            }
+            }*/
             .takeUntil(stopSubject)
             .onCompletion { cause -> if (cause == null) emit("INPUT HAS EXITED") else Logger.d("EXIT COMPLETE $cause\r") }
-            .flowOn(dispatcherIo)
+            //.flowOn(dispatcherIo)
             .onStart { Logger.d("start logcat lines\r") }
             .shareIn(
                 scope,
+                //SharingStarted.WhileSubscribed(0),
                 SharingStarted.Lazily,
                 Config.LogLinesBufferCount,
             )
@@ -121,10 +122,15 @@ class Dogcat(
 
     private suspend fun clearLogs() {
         Logger.d("to clear logs\r")
-        stopSubject.emit(Unit)
 
         logSource.clear()
+
+        stopSubject.emit(Unit)
+        //scope.cancel()
+
         val ci = LogcatState.InputCleared
+
+        Logger.d("Input cleared -+")
 
         privateState.emit(ci)
 
