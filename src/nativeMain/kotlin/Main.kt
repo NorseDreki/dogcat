@@ -15,7 +15,7 @@ import platform.Logger
 
 val dogcatModule = DI.Module("dogcat") {
     bindSingleton<InternalState> { InternalState() }
-    bindSingleton<LogSource> { LogcatSource(instance()) }
+    bindSingleton<LogLinesSource> { LogcatSource(instance()) }
     bindSingleton<Dogcat> { Dogcat(instance(), instance()) }
 }
 val di = DI {

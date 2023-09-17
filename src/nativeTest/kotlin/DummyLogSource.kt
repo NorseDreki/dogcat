@@ -1,7 +1,7 @@
-import dogcat.LogSource
+import dogcat.LogLinesSource
 import kotlinx.coroutines.flow.*
 
-class DummyLogSource : LogSource {
+class DummyLogSource : LogLinesSource {
 
     companion object {
         val lines = listOf(

@@ -9,11 +9,10 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import platform.*
-import kotlin.reflect.KClass
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalForeignApi::class)
 class Dogcat(
-    private val logSource: LogSource,
+    private val logLinesSource: LogLinesSource,
     private val s: InternalState = InternalState(),
     private val dispatcherCpu: CoroutineDispatcher = Dispatchers.Default,
     private val dispatcherIo: CoroutineDispatcher = Dispatchers.IO,
@@ -30,21 +29,19 @@ class Dogcat(
     private val filterLine = MutableStateFlow<String>("")
 
     private fun filterLines(): Flow<IndexedValue<LogLine>> {
-        val sharedLines = logSource // deal with malformed UTF-8 'expected one more byte'
+        val sharedLines = logLinesSource // deal with malformed UTF-8 'expected one more byte'
             .lines()
-            /*.retry(3) { e ->
+            .retry(3) { e ->
                 val shallRetry = e is RuntimeException
                 if (shallRetry) delay(100)
                 Logger.d("retrying... $shallRetry\r")
                 shallRetry
-            }*/
-            .takeUntil(stopSubject)
+            }
+            //.takeUntil(stopSubject)
             .onCompletion { cause -> if (cause == null) emit("INPUT HAS EXITED") else Logger.d("EXIT COMPLETE $cause\r") }
-            //.flowOn(dispatcherIo)
             .onStart { Logger.d("start logcat lines\r") }
             .shareIn(
                 scope,
-                //SharingStarted.WhileSubscribed(0),
                 SharingStarted.Lazily,
                 Config.LogLinesBufferCount,
             )
@@ -93,7 +90,7 @@ class Dogcat(
             .onCompletion { Logger.d("outer compl\r") }
     }
 
-    suspend operator fun invoke(cmd: LogcatCommands) {
+    suspend operator fun invoke(cmd: Command) {
         when (cmd) {
             is StartupAs -> startup(cmd)
             ClearLogs -> clearLogs()
@@ -123,7 +120,7 @@ class Dogcat(
     private suspend fun clearLogs() {
         Logger.d("to clear logs\r")
 
-        logSource.clear()
+        logLinesSource.clear()
 
         stopSubject.emit(Unit)
         //scope.cancel()

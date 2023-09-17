@@ -1,8 +1,8 @@
-import dogcat.LogSource
+import dogcat.LogLinesSource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 
-class FakeLogSource : LogSource {
+class FakeLogSource : LogLinesSource {
 
     private val source = MutableSharedFlow<String>()
     private val source1 = MutableStateFlow("")

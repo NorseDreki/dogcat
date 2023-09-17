@@ -1,6 +1,6 @@
 package platform
 
-import dogcat.LogSource
+import dogcat.LogLinesSource
 import com.kgit2.process.Command
 import com.kgit2.process.Stdio
 import dogcat.InternalState
@@ -12,18 +12,19 @@ import kotlinx.coroutines.flow.*
 class LogcatSource(
     private val state: InternalState,
     private val dispatchersIO: CoroutineDispatcher = Dispatchers.IO,
-) : LogSource {
+) : LogLinesSource {
 
-    override fun lines(): Flow<String> {
-        return flow {
-            Logger.d("!!!!!!!! lines")
+    override fun lines() =
+        flow {
             val af = state.appliedFilters.value
 
             Logger.d("99999 $af")
-            val minLogLevel = af[LogFilter.MinLogLevel::class]?.first?.let { "*:${(it as LogFilter.MinLogLevel).logLevel}" } ?: ""
+            val minLogLevel =
+                af[LogFilter.MinLogLevel::class]?.first?.let { "*:${(it as LogFilter.MinLogLevel).logLevel}" } ?: ""
             val pkgE = af[LogFilter.ByPackage::class]?.second ?: false
             val userId = if (pkgE) {
-                af[LogFilter.ByPackage::class]?.first?.let { "--uid=${(it as LogFilter.ByPackage).resolvedUserId}" } ?: ""
+                af[LogFilter.ByPackage::class]?.first?.let { "--uid=${(it as LogFilter.ByPackage).resolvedUserId}" }
+                    ?: ""
             } else {
                 ""
             }
@@ -39,6 +40,7 @@ class LogcatSource(
 
             try {
                 while (true) {
+                    //UTF-8 only
                     val line = stdoutReader.readLine() ?: break
                     emit(line)
                     yield() //?
@@ -57,7 +59,8 @@ class LogcatSource(
             // withTimeout()?
             logcat.kill()
         }
-    }
+        .flowOn(dispatchersIO)
+
 
     override suspend fun clear(): Boolean {
         val childStatus = withContext(dispatchersIO) {
