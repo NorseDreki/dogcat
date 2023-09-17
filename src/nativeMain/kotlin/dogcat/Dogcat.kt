@@ -3,6 +3,7 @@ package dogcat
 import Config
 import dogcat.LogFilter.Substring
 import dogcat.LogcatState.WaitingInput
+import dogcat.StartupAs.*
 import flow.bufferedTransform
 import flow.takeUntil
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -121,9 +122,7 @@ class Dogcat(
         Logger.d("to clear logs\r")
 
         logLinesSource.clear()
-
         stopSubject.emit(Unit)
-        //scope.cancel()
 
         val ci = LogcatState.InputCleared
 
@@ -134,18 +133,28 @@ class Dogcat(
         startupAll()
     }
 
-    private suspend fun startup(cmd: StartupAs) {
-        var p = ""//""com.norsedreki.multiplatform.identity.android"
-        val pid = if (cmd is StartupAs.WithForegroundApp) {
-            ForegroundProcess.parsePs()
-        } else if (cmd is StartupAs.WithPackage) {
-            p = cmd.packageName
-            RunningProcesses().parsePs(cmd.packageName)
-        } else {
-            ""
-        }
+    private suspend fun startup(command: StartupAs) {
+        when (command) {
+            is WithForegroundApp -> {
+                val packageName = ForegroundProcess.parsePackageName()
+                val userId = DumpsysPackage().parseUserIdFor(packageName)
 
-        s.upsertFilter(LogFilter.ByPackage(p, "10151"), true)
+                s.upsertFilter(LogFilter.ByPackage(packageName, userId), true)
+                Logger.d("Startup with foreground app, resolved to package '$packageName' and user ID '$userId'")
+            }
+
+            is WithPackage -> {
+                val packageName = command.packageName
+                val userId = DumpsysPackage().parseUserIdFor(packageName)
+
+                s.upsertFilter(LogFilter.ByPackage(packageName, userId), true)
+                Logger.d("Startup with foreground app, resolved to package '$packageName' and user ID '$userId'")
+            }
+
+            is All -> {
+                Logger.d("Startup with no package filters")
+            }
+        }
 
         startupAll()
     }

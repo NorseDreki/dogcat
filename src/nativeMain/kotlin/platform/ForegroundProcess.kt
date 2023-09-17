@@ -1,39 +1,39 @@
 package platform
 
-import com.kgit2.io.Reader
 import com.kgit2.process.Command
 import com.kgit2.process.Stdio
+import kotlinx.coroutines.*
 
 object ForegroundProcess {
 
+    private val dispatcherIo: CoroutineDispatcher = Dispatchers.IO
+
     val FG_LINE = """^ +ResumedActivity: +ActivityRecord\{[^ ]* [^ ]* ([^ ^\/]*).*$""".toRegex()
 
-    fun parsePs(): String {
+    suspend fun parsePackageName() = withContext(dispatcherIo) {
         val out = Command("adb")
             .args("shell", "dumpsys", "activity", "activities")
             .stdout(Stdio.Pipe)
             .spawn()
 
-        val stdoutReader: Reader? = out.getChildStdout()
+        val stdoutReader = out.getChildStdout()!!
 
-        lateinit var proc: String
+        var proc: String? = null
 
-        while (true) {
-            //ensureActive() -- call in scope
-            val line2 = stdoutReader!!.readLine() ?: break
-
-            val m = FG_LINE.matchEntire(line2)
+        while (currentCoroutineContext().isActive) {
+            val line = stdoutReader.readLine() ?: break
+            val m = FG_LINE.matchEntire(line)
 
             if (m != null) {
                 val (line_package) = m.destructured
                 Logger.d("LP $line_package\r")
 
-                proc =  line_package
+                proc = line_package
                 break
             }
         }
-        out.wait()
+        out.kill()
 
-        return proc
+        proc ?: throw RuntimeException("Didn't find running process")
     }
 }

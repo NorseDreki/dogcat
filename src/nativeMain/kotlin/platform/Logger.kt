@@ -10,7 +10,6 @@ object Logger {
 
     private val f: CPointer<FILE> = fopen("log.txt", "w") ?: throw RuntimeException()
 
-
     fun d(line: String) {
         fprintf(f, "$line\r\n")
         fflush(f)
