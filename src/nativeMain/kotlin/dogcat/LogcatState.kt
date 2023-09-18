@@ -12,7 +12,7 @@ sealed interface LogcatState {
 
         val appliedFilters: Flow<AppliedFilters>,
 
-    ) : LogcatState
+        ) : LogcatState
 
     data object Terminated : LogcatState
 }

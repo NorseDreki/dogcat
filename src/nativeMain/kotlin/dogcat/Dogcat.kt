@@ -7,7 +7,6 @@ import dogcat.LogFilter.Substring
 import dogcat.LogcatState.WaitingInput
 import flow.bufferedTransform
 import flow.takeUntil
-import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import platform.*
@@ -60,17 +59,13 @@ class Dogcat(
             }
             .bufferedTransform(
                 { buffer, item ->
-                    val s = buffer.size
                     when {
-                        item is Original -> true
-                        s > 0 -> {
+                        buffer.isNotEmpty() -> {
                             val previous = buffer[0]
-
-                            val r = when {
-                                (item is Parsed) && (previous is Parsed) && (item.tag.contains(previous.tag)) -> false
+                            when {
+                                item.tag.contains(previous.tag) -> false
                                 else -> true
                             }
-                            r
                         }
                         else -> false
                     }
@@ -79,11 +74,7 @@ class Dogcat(
                     if (buffer.isEmpty()) {
                         item
                     } else {
-                        if (item is Parsed) {
-                            Parsed(item.level, "".padStart(Config.tagWidth), item.owner, item.message)
-                        } else {
-                            item
-                        }
+                        LogLine(item.level, "", item.owner, item.message)
                     }
                 }
             )

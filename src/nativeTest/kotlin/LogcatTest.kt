@@ -74,7 +74,7 @@ class LogcatTest {
             input.lines.test {
                 DummyLogSource.lines.forEach {
                     when (val logLine = awaitItem()) {
-                        is Parsed -> {
+                        is LogLine -> {
                             it shouldContain logLine.message
                             it shouldContain logLine.level
                             it shouldContain logLine.owner
@@ -221,7 +221,7 @@ class LogcatTest {
             input.lines.test {
                 DummyLogSource.lines.forEach {
                     when (val logLine = awaitItem()) {
-                        is Parsed -> {
+                        is LogLine -> {
                             it shouldContain logLine.message
                             it shouldContain logLine.level
                             it shouldContain logLine.owner
@@ -271,7 +271,7 @@ class LogcatTest {
                 .take(3)
                 .onEach {
                     val parsed = it
-                    if (parsed is Parsed) {
+                    if (parsed is LogLine) {
                         println(parsed.level)
                         parsed.level shouldNotBe "D"
                     }
