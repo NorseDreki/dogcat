@@ -46,7 +46,8 @@ class LogcatSource(
                     yield() //?
                 }
             } catch (e: MalformedUTF8InputException) {
-                Logger.d("!!!!!!!!!!! Malformed UTF8! $e")
+                //e.printStackTrace()
+                Logger.d("!!!!!!!!!!! Malformed UTF8! ${e.message}")
                 //cancel()
 
             } catch (e: CancellationException) {

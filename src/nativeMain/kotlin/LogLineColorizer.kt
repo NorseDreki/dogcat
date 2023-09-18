@@ -64,15 +64,18 @@ val KNOWN_TAGS = mutableMapOf(
         } else if (logLine is Parsed) {
             printTag(pad, logLine.tag)
 
+            waddstr(fp, " ")
+
             when (logLine.level) {
                 "W" -> {
                     wattron(fp, COLOR_PAIR(6));
                     waddstr(fp, " ${logLine.level} ")
                     wattroff(fp, COLOR_PAIR(6));
 
-                    //waddstr(fp, "${logLine.message}\n")
+                    waddstr(fp, " ")
+
                     wattron(fp, COLOR_PAIR(3))
-                    waddstr(fp, wrapLine(pad, " ${logLine.message}"))
+                    waddstr(fp, wrapLine(pad, "${logLine.message}"))
                     wattroff(fp, COLOR_PAIR(3))
                 }
 
@@ -81,9 +84,10 @@ val KNOWN_TAGS = mutableMapOf(
                     waddstr(fp, " ${logLine.level} ")
                     wattroff(fp, COLOR_PAIR(11))
 
-                    //waddstr(fp, "${logLine.message}\n")
+                    waddstr(fp, " ")
+
                     wattron(fp, COLOR_PAIR(1))
-                    waddstr(fp, wrapLine(pad, " ${logLine.message}"))
+                    waddstr(fp, wrapLine(pad, "${logLine.message}"))
                     wattroff(fp, COLOR_PAIR(1));
                 }
 
@@ -92,18 +96,26 @@ val KNOWN_TAGS = mutableMapOf(
                     waddstr(fp, " ${logLine.level} ")
                     wattroff(fp, COLOR_PAIR(12))
 
-                    //waddstr(fp, "${logLine.message}\n")
-                    waddstr(fp, wrapLine(pad, " ${logLine.message}"))
-                    //wattroff(fp, COLOR_PAIR(4));
+                    waddstr(fp, " ")
+
+                    wattron(fp, A_BOLD.toInt())
+                    waddstr(fp, wrapLine(pad, "${logLine.message}"))
+                    wattroff(fp, A_BOLD.toInt())
                 }
+                /*"F" -> {
+
+                }*/
 
                 else -> {
                     wattron(fp, COLOR_PAIR(12))
                     waddstr(fp, " ${logLine.level} ")
                     wattroff(fp, COLOR_PAIR(12))
 
-                    //waddstr(fp, "${logLine.message}\n")
-                    waddstr(fp, wrapLine(pad, " ${logLine.message}"))
+                    waddstr(fp, " ")
+
+                    //wattron(fp, A_DIM.toInt())
+                    waddstr(fp, wrapLine(pad, "${logLine.message}"))
+                    //wattroff(fp, A_DIM.toInt())
                 }
             }
             //waddstr(fp, "${it.value.message} \n")
@@ -117,7 +129,7 @@ val KNOWN_TAGS = mutableMapOf(
     ): String {
         val width = pad.position.endX
         val header = Config.tagWidth + 1 + 3 + 1// space, level, space
-        val line = message.replace("\t", "    ")
+        val line = message.replace("\t", "    ") //prevent escape characters leaking
         val wrapArea = width - header
         var buf = ""
         var current = 0

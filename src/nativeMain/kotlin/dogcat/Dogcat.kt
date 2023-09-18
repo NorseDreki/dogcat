@@ -80,7 +80,7 @@ class Dogcat(
                         item
                     } else {
                         if (item is Parsed) {
-                            Parsed(item.level, "".padStart(40), item.owner, item.message)
+                            Parsed(item.level, "".padStart(Config.tagWidth), item.owner, item.message)
                         } else {
                             item
                         }
