@@ -1,3 +1,4 @@
+import Config.tagWidth
 import dogcat.LogLine
 import dogcat.Original
 import dogcat.Parsed
@@ -12,7 +13,7 @@ class LogLineColorizer {
         val c = allocateColor(tag)
 
         wattron(pad.fp, COLOR_PAIR(ccpp[c]!!))
-        waddstr(pad.fp, tag)
+        waddstr(pad.fp, tag.massage())
         wattroff(pad.fp, COLOR_PAIR(ccpp[c]!!))
     }
 
@@ -32,22 +33,31 @@ class LogLineColorizer {
 
     val LAST_USED = mutableListOf( /*COLOR_RED,*/ COLOR_GREEN, /*COLOR_YELLOW,*/ COLOR_BLUE, COLOR_MAGENTA, COLOR_CYAN)
 
-    val ccpp = LAST_USED.map {
+    val KNOWN_TAGS = mutableMapOf(
+      "dalvikvm" to COLOR_WHITE,
+      "Process" to COLOR_WHITE,
+      "ActivityManager" to COLOR_WHITE,
+      "ActivityThread" to COLOR_WHITE,
+      "AndroidRuntime" to COLOR_CYAN,
+      "jdwp" to COLOR_WHITE,
+      "StrictMode" to COLOR_WHITE,
+      "DEBUG" to COLOR_YELLOW,
+    )
+
+    val ccpp = (LAST_USED + KNOWN_TAGS.values).map {
         init_pair((100 + it).toShort(), it.toShort(), -1)
         it to (100 +it)
     }.toMap()
 
-
-val KNOWN_TAGS = mutableMapOf(
-  "dalvikvm" to COLOR_WHITE,
-  "Process" to COLOR_WHITE,
-  "ActivityManager" to COLOR_WHITE,
-  "ActivityThread" to COLOR_WHITE,
-  "AndroidRuntime" to COLOR_CYAN,
-  "jdwp" to COLOR_WHITE,
-  "StrictMode" to COLOR_WHITE,
-  "DEBUG" to COLOR_YELLOW,
-)
+    fun String.massage(): String {
+        return if (length > tagWidth) {
+            val excess = 1 - tagWidth % 2
+            // performance impact?
+            take(tagWidth / 2 - excess) + Typography.ellipsis + takeLast(tagWidth / 2)
+        } else {
+            trim().padStart(tagWidth)
+        }
+    }
 
     @OptIn(ExperimentalForeignApi::class)
     fun processLogLine(

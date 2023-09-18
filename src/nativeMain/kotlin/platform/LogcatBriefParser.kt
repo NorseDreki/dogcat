@@ -1,7 +1,5 @@
 package platform
 
-import Config
-import Config.tagWidth
 import dogcat.LogLine
 import dogcat.LogLineParser
 import dogcat.Original
@@ -15,20 +13,9 @@ class LogcatBriefParser : LogLineParser {
 
         return if (m != null) {
             val (level, tag, owner, message) = m.destructured //use newest feature, 'named capturing groups'
-            Parsed(level, tag.massage(), owner, message)
+            Parsed(level, tag, owner, message)
         } else {
             Original(line)
-        }
-    }
-
-    // or maybe create a dedicated Tag class
-    private fun String.massage(): String {
-        return if (length > tagWidth) {
-            val excess = 1 - tagWidth % 2
-            // performance impact?
-            take(tagWidth / 2 - excess) + Typography.ellipsis + takeLast(tagWidth / 2)
-        } else {
-            trim().padStart(tagWidth)
         }
     }
 }
