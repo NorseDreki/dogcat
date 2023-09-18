@@ -1,4 +1,5 @@
 import dogcat.*
+import dogcat.Command.*
 import dogcat.LogFilter.MinLogLevel
 import dogcat.LogFilter.Substring
 import dogcat.LogcatState.CapturingInput

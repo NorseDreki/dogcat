@@ -3,14 +3,14 @@ package platform
 import dogcat.LogLinesSource
 import com.kgit2.process.Command
 import com.kgit2.process.Stdio
-import dogcat.InternalState
+import dogcat.InternalQuery
 import dogcat.LogFilter
 import io.ktor.utils.io.core.internal.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
 class LogcatSource(
-    private val state: InternalState,
+    private val state: InternalQuery,
     private val dispatchersIO: CoroutineDispatcher = Dispatchers.IO,
 ) : LogLinesSource {
 

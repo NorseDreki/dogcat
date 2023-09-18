@@ -1,6 +1,7 @@
 @file:OptIn(ExperimentalForeignApi::class)
 
 import dogcat.*
+import dogcat.Command.*
 import dogcat.LogcatState.*
 import kotlinx.cinterop.*
 import kotlinx.cli.*
@@ -14,7 +15,7 @@ import platform.LogcatSource
 import platform.Logger
 
 val dogcatModule = DI.Module("dogcat") {
-    bindSingleton<InternalState> { InternalState() }
+    bindSingleton<InternalQuery> { InternalQuery() }
     bindSingleton<LogLinesSource> { LogcatSource(instance()) }
     bindSingleton<Dogcat> { Dogcat(instance(), instance()) }
 }
@@ -22,14 +23,6 @@ val di = DI {
     import(dogcatModule)
 }
 val dogcat: Dogcat by di.instance()
-
-val STDERR = platform.posix.fdopen(2, "w")
-fun printErr(message: String) {
-    platform.posix.fprintf(STDERR, "%s\n", message)
-    platform.posix.fflush(STDERR)
-}
-
-
 
 @OptIn(
     ExperimentalForeignApi::class,
@@ -57,12 +50,6 @@ fun main(args: Array<String>): Unit = memScoped {
 
     val padPosition2 = PadPosition(0, 0, sx, 2)
     val pad2 = Pad(padPosition2)
-
-    val fp = newpad(150, 200)
-
-    //mvwprintw(pad2.fp, 0, 0, "-->-------------------------------------------")
-    //prefresh(pad2.fp, 0, 0, 0, 0, 1, sx);
-    //wrefresh(fp)
 
     val lineColorizer = LogLineColorizer()
     val keymap = Keymap(this, pad)
@@ -119,10 +106,6 @@ fun main(args: Array<String>): Unit = memScoped {
                             }*/
                         }
                     }
-
-                   // printErr("Hello standard error!")
-                   // mvwprintw(pad2.fp, 1, 0, "--> $it")
-                    //mvwprintw(pad2.fp, 1, 0, "--> $it")
                     prefresh(pad2.fp, 0, 0, 0, 0, 2, sx);
                     wmove(pad.fp, 0,0)
                     pad.refresh()
@@ -140,8 +123,6 @@ fun main(args: Array<String>): Unit = memScoped {
                         emptyFlow()
                     }
                     is CapturingInput -> {
-                        //pad.clear()
-                        //wmove(pad.fp, 0,0)
                         it.lines//.take(10)
                     }
                     InputCleared -> {

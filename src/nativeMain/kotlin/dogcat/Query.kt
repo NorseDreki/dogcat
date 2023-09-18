@@ -2,17 +2,16 @@ package dogcat
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import platform.Logger
 import kotlin.reflect.KClass
 
-interface State {
+interface Query {
 
     val appliedFilters: Flow<AppliedFilters>
 }
 
-class InternalState : State {
+class InternalQuery : Query {
 
     private val appliedFiltersState = MutableStateFlow<AppliedFilters>(mutableMapOf())
     override val appliedFilters = appliedFiltersState.asStateFlow()

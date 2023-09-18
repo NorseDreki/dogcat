@@ -1,9 +1,10 @@
 package dogcat
 
 import Config
+import dogcat.Command.*
+import dogcat.Command.StartupAs.*
 import dogcat.LogFilter.Substring
 import dogcat.LogcatState.WaitingInput
-import dogcat.StartupAs.*
 import flow.bufferedTransform
 import flow.takeUntil
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -11,10 +12,10 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import platform.*
 
-@OptIn(ExperimentalCoroutinesApi::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 class Dogcat(
     private val logLinesSource: LogLinesSource,
-    private val s: InternalState = InternalState(),
+    private val s: InternalQuery = InternalQuery(),
     private val dispatcherCpu: CoroutineDispatcher = Dispatchers.Default,
     private val dispatcherIo: CoroutineDispatcher = Dispatchers.IO,
     private val lineParser: LogLineParser = LogcatBriefParser()
