@@ -16,7 +16,7 @@ class InternalQuery : Query {
     private val appliedFiltersState = MutableStateFlow<AppliedFilters>(mutableMapOf())
     override val appliedFilters = appliedFiltersState.asStateFlow()
 
-    private val af: AppliedFilters = mutableMapOf()
+    private val af: AppliedFilters = mutableMapOf(LogFilter.Substring::class to (LogFilter.Substring("") to true))
 
     suspend fun upsertFilter(filter: LogFilter, enable: Boolean = true) {
         af[filter::class] = filter to enable
@@ -26,6 +26,11 @@ class InternalQuery : Query {
         Logger.d("sub ${appliedFiltersState.subscriptionCount.value} $af")
 
         Logger.d("zzzz ${appliedFiltersState.value}")
+    }
+
+    suspend fun removeFilter(filter: KClass<out LogFilter>) {
+        af.remove(filter)
+        appliedFiltersState.emit(af)
     }
 }
 

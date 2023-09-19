@@ -50,9 +50,19 @@ class Dogcat(
             .onCompletion { Logger.d("shared compl!\r") }
 
 
-        return filterLine
+        /*s.appliedFilters
+            .flatMapConcat { it.values.asFlow() }
+            .map { it.first }
+            .filterIsInstance<Substring>()*/
+
+       // return filterLine
+
+        return s.appliedFilters
+            .flatMapConcat { it.values.asFlow() }
+            .map { it.first }
+            .filterIsInstance<Substring>()
             .flatMapLatest { filter ->
-                sharedLines.filter { it.contains(filter) }
+                sharedLines.filter { it.contains(filter.substring) }
             }
             .map {
                 lineParser.parse(it)
@@ -90,13 +100,17 @@ class Dogcat(
 
             is FilterBy -> {
                 s.upsertFilter(cmd.filter, false)
-                if (cmd.filter is Substring) {
+                /*if (cmd.filter is Substring) {
                     filterLine.emit(cmd.filter.substring)
-                }
+                }*/
                 startupAll()
             }
 
-            is ClearFilter -> {
+            is ResetFilter -> {
+                when (cmd.filter) {
+                    Substring::class -> s.upsertFilter(Substring(""))
+                    else -> s.removeFilter(cmd.filter)
+                }
             }
 
             StopEverything -> {
