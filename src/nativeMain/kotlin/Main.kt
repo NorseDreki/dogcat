@@ -127,6 +127,8 @@ fun main(args: Array<String>): Unit = memScoped {
                     }
                     InputCleared -> {
                         Logger.d("Cleared Logcat and re-started\r")
+                        pad.clear()
+
                         emptyFlow()
                     }
                     Terminated -> {

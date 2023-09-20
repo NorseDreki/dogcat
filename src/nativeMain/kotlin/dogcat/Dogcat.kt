@@ -3,6 +3,7 @@ package dogcat
 import Config
 import dogcat.Command.*
 import dogcat.Command.StartupAs.*
+import dogcat.LogFilter.ByPackage
 import dogcat.LogFilter.Substring
 import dogcat.LogcatState.WaitingInput
 import flow.bufferedTransform
@@ -103,7 +104,15 @@ class Dogcat(
                 /*if (cmd.filter is Substring) {
                     filterLine.emit(cmd.filter.substring)
                 }*/
-                startupAll()
+
+                val ci = LogcatState.InputCleared
+
+                Logger.d("Input cleared -+")
+
+                privateState.emit(ci)
+
+
+                doStartup()
             }
 
             is ResetFilter -> {
@@ -136,7 +145,7 @@ class Dogcat(
 
         privateState.emit(ci)
 
-        startupAll()
+        doStartup()
     }
 
     private suspend fun startup(command: StartupAs) {
@@ -145,7 +154,7 @@ class Dogcat(
                 val packageName = ForegroundProcess.parsePackageName()
                 val userId = DumpsysPackage().parseUserIdFor(packageName)
 
-                s.upsertFilter(LogFilter.ByPackage(packageName, userId), true)
+                s.upsertFilter(ByPackage(packageName, userId), true)
                 Logger.d("Startup with foreground app, resolved to package '$packageName' and user ID '$userId'")
             }
 
@@ -153,8 +162,8 @@ class Dogcat(
                 val packageName = command.packageName
                 val userId = DumpsysPackage().parseUserIdFor(packageName)
 
-                s.upsertFilter(LogFilter.ByPackage(packageName, userId), true)
-                Logger.d("Startup with foreground app, resolved to package '$packageName' and user ID '$userId'")
+                s.upsertFilter(ByPackage(packageName, userId), true)
+                Logger.d("Startup package name '$packageName', resolved user ID to '$userId'")
             }
 
             is All -> {
@@ -162,10 +171,10 @@ class Dogcat(
             }
         }
 
-        startupAll()
+        doStartup()
     }
 
-    private suspend fun startupAll() {
+    private suspend fun doStartup() {
         val filterLines = filterLines()
 
         val ci = LogcatState.CapturingInput(
