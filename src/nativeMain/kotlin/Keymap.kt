@@ -1,7 +1,6 @@
 import dogcat.*
 import dogcat.Command.*
-import dogcat.LogFilter.MinLogLevel
-import dogcat.LogFilter.Substring
+import dogcat.LogFilter.*
 import dogcat.LogcatState.CapturingInput
 import kotlinx.cinterop.*
 import kotlinx.coroutines.flow.map
@@ -51,6 +50,16 @@ class Keymap(
 
             'e'.code -> pad.pageUp()
 
+            '3'.code -> {
+                dogcat(ResetFilter(ByPackage::class))
+            }
+            '4'.code -> {
+                dogcat(ResetFilter(Substring::class))
+            }
+            '5'.code -> {
+                dogcat(ResetFilter(MinLogLevel::class))
+            }
+
             '6'.code -> {
                 dogcat(FilterBy(MinLogLevel("V")))
             }
@@ -76,7 +85,7 @@ class Keymap(
             }
 
             't'.code -> {
-                dogcat(FilterBy(LogFilter.ByPackage("", "")))
+                dogcat(FilterBy(ByPackage("", "")))
             }
         }
     }
