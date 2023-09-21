@@ -1,5 +1,7 @@
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.delay
 import ncurses.*
+import platform.Logger
 
 data class PadPosition(
     val startX: Int,
@@ -25,13 +27,24 @@ class Pad(val position: PadPosition) {
     private var linesCount = 0
 
     fun pageUp() {
-        firstVisibleLine -= position.endY - 1 - position.startY
-        refresh()
+        /*firstVisibleLine -= position.endY - 1 - position.startY
+        refresh()*/
+
+        (1..53).forEach {
+            firstVisibleLine--
+            refresh()
+        }
     }
 
-    fun pageDown() {
-        firstVisibleLine += position.endY - 1 - position.startY
+    suspend fun pageDown() {
+        /*firstVisibleLine += position.endY - 1 - position.startY
+        //delay(100)
         refresh()
+*/
+        (1..53).forEach {
+            firstVisibleLine++
+            refresh()
+        }
     }
 
     fun lineUp() {
@@ -65,7 +78,11 @@ class Pad(val position: PadPosition) {
     }
 
     fun refresh() {
+        Logger.d("FVL $firstVisibleLine")
+
         prefresh(fp, firstVisibleLine, 0, position.startY, position.startX, position.endY - 1, position.endX)
+        //pnoutrefresh(fp, firstVisibleLine, 0, position.startY, position.startX, position.endY - 1, position.endX)
+        //doupdate()
     }
 
     fun terminate() {

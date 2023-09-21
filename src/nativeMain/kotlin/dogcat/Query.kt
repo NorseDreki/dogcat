@@ -31,6 +31,7 @@ class InternalQuery : Query {
     suspend fun removeFilter(filter: KClass<out LogFilter>) {
         af.remove(filter)
         appliedFiltersState.emit(af)
+        Logger.d("After removing: $af")
     }
 }
 
