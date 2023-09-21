@@ -39,6 +39,8 @@ fun main(args: Array<String>): Unit = memScoped {
         //can't have both at the same time
     }
 
+    val ui = newSingleThreadContext("UI")
+
     val ncurses = Ncurses()
     ncurses.start()
 
@@ -63,19 +65,23 @@ fun main(args: Array<String>): Unit = memScoped {
                 delay(50)
                 continue
             }
-            keymap.processInputKey(key)
+            withContext(ui) {
+                keymap.processInputKey(key)
+            }
         }
     }
 
     runBlocking {
 
-        when {
-            packageName != null -> dogcat(StartupAs.WithPackage(packageName!!))
-            current == true -> dogcat(StartupAs.WithForegroundApp)
-            else -> dogcat(StartupAs.All)
-        }
 
-        launch {
+
+        launch(ui) {
+            when {
+                packageName != null -> dogcat(StartupAs.WithPackage(packageName!!))
+                current == true -> dogcat(StartupAs.WithForegroundApp)
+                else -> dogcat(StartupAs.All)
+            }
+
             dogcat
                 .state
                 .filterIsInstance<CapturingInput>()
@@ -113,39 +119,45 @@ fun main(args: Array<String>): Unit = memScoped {
                 .collect()
         }
 
-        dogcat
-            .state
-            .flatMapLatest {
-                when (it) {
-                    is WaitingInput -> {
-                        Logger.d("Waiting for log lines...\r")
+        launch(ui) {
+            dogcat
+                .state
+                .flatMapLatest {
+                    when (it) {
+                        is WaitingInput -> {
+                            Logger.d("Waiting for log lines...\r")
 
-                        emptyFlow()
-                    }
-                    is CapturingInput -> {
-                        it.lines//.take(10)
-                    }
-                    InputCleared -> {
-                        Logger.d("Cleared Logcat and re-started\r")
-                        pad.clear()
+                            emptyFlow()
+                        }
 
-                        emptyFlow()
-                    }
-                    Terminated -> {
-                        cancel()
-                        Logger.d("No more reading lines, terminated\r")
-                        emptyFlow()
+                        is CapturingInput -> {
+                            it.lines//.take(10)
+                        }
+
+                        InputCleared -> {
+                            Logger.d("Cleared Logcat and re-started\r")
+                            pad.clear()
+
+                            emptyFlow()
+                        }
+
+                        Terminated -> {
+                            cancel()
+                            Logger.d("No more reading lines, terminated\r")
+                            emptyFlow()
+                        }
                     }
                 }
-            }
-            .onEach {
-                pad.recordLine()
-                //Logger.d("${it.index} ${it.value} \r\n")
-                lineColorizer.processLogLine(pad, it)
-                pad.refresh()
-            }
-            .collect()
+                .onEach {
+                    pad.recordLine()
+                    //Logger.d("${it.index} ${it.value} \r\n")
+                    lineColorizer.processLogLine(pad, it)
+                    pad.refresh()
+                }
+                .collect()
+        }
     }
 
+    ui.close()
     Logger.close()
 }

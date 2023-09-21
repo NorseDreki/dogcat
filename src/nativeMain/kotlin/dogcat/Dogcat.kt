@@ -21,7 +21,7 @@ class Dogcat(
     private val lineParser: LogLineParser = LogcatBriefParser()
 
 )  {
-    val handler = CoroutineExceptionHandler { _, t -> Logger.d("999999 ${t.message}\r") }
+    val handler = CoroutineExceptionHandler { _, t -> Logger.d("CATCH! ${t.message}\r") }
     private val scope = CoroutineScope(dispatcherCpu + handler + Job()) // +Job +SupervisorJob +handler
 
     private val privateState = MutableStateFlow<LogcatState>(WaitingInput)
