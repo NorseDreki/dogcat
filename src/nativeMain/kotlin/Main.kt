@@ -2,6 +2,7 @@
 
 import dogcat.*
 import dogcat.Command.*
+import dogcat.LogFilter.*
 import dogcat.LogcatState.*
 import kotlinx.cinterop.*
 import kotlinx.cli.*
@@ -50,11 +51,11 @@ fun main(args: Array<String>): Unit = memScoped {
     val padPosition = PadPosition(0, 5, sx, sy - 1)
     val pad = Pad(padPosition)
 
-    val padPosition2 = PadPosition(0, 0, sx, 2)
+    val padPosition2 = PadPosition(0, 0, sx, 1)
     val pad2 = Pad(padPosition2)
 
     val lineColorizer = LogLineColorizer()
-    val keymap = Keymap(this, pad)
+    val keymap = Keymap(this, pad, pad2)
 
     // legitimate use-case for 'GlobalScope'
     GlobalScope.launch {
@@ -87,34 +88,29 @@ fun main(args: Array<String>): Unit = memScoped {
                 .filterIsInstance<CapturingInput>()
                 .flatMapLatest { it.appliedFilters }
                 .onEach {
+                    Logger.d("Preparing to draw applied filters: $it")
+                    wmove(pad2.fp, 0, 0)
+                    wattron(pad2.fp, COLOR_PAIR(12))
+                    wclrtoeol(pad2.fp)
+
                     it.forEach {
                         when (it.key) {
-                            LogFilter.Substring::class -> {
-                                mvwprintw(pad2.fp, 0, 0, "Filter by: ${(it.value.first as LogFilter.Substring).substring}")
-                                prefresh(pad2.fp, 0, 0, 0, 0, 2, sx);
-                                yield()
+                            Substring::class -> {
+                                mvwprintw(pad2.fp, 0, 0, "Filter by: ${(it.value.first as Substring).substring}")
                             }
-                            LogFilter.MinLogLevel::class -> {
-                                mvwprintw(pad2.fp, 0, 30, "${(it.value.first as LogFilter.MinLogLevel).logLevel} and up")
-                                prefresh(pad2.fp, 0, 0, 0, 0, 2, sx);
-                                yield()
+                            MinLogLevel::class -> {
+                                mvwprintw(pad2.fp, 0, 30, "${(it.value.first as MinLogLevel).logLevel} and up")
                             }
-                            LogFilter.ByPackage::class -> {
-                                mvwprintw(pad2.fp, 0, 80, "${(it.value.first as LogFilter.ByPackage).packageName} on")
-                                prefresh(pad2.fp, 0, 0, 0, 0, 2, sx);
-
-                                yield()
+                            ByPackage::class -> {
+                                mvwprintw(pad2.fp, 0, 80, "${(it.value.first as ByPackage).packageName} on")
                             }
-                            /*else -> {
-                                mvwprintw(pad2.fp, 1, 0, "$it")
-                                prefresh(pad2.fp, 0, 0, 0, 0, 2, sx);
-                                yield()
-                            }*/
                         }
                     }
                     prefresh(pad2.fp, 0, 0, 0, 0, 2, sx);
-                    wmove(pad.fp, 0,0)
+
+                    wattroff(pad2.fp, COLOR_PAIR(12))
                     pad.refresh()
+                    yield()
                 }
                 .collect()
         }
@@ -149,7 +145,7 @@ fun main(args: Array<String>): Unit = memScoped {
                     }
                 }
                 .onEach {
-                    pad.recordLine()
+                    //pad.recordLine()
                     //Logger.d("${it.index} ${it.value} \r\n")
                     lineColorizer.processLogLine(pad, it)
                     pad.refresh()
