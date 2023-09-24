@@ -17,7 +17,6 @@ class DumpsysPackage {
 
         val UID_CONTEXT = """Packages:\n\s+Package\s+\[$packageName]\s+\(.*\):\n\s+userId=(\d*)""".toRegex()
 
-        println("waiting")
         //val output = try {
 
              val output = withTimeout(Config.AdbCommandTimeoutMillis) {

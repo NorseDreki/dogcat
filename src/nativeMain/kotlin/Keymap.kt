@@ -12,7 +12,8 @@ import platform.posix.exit
 @OptIn(ExperimentalForeignApi::class)
 class Keymap(
     val memScope: MemScope,
-    val pad: Pad
+    val pad: Pad,
+    val pad2: Pad,
 ) {
     @OptIn(ExperimentalForeignApi::class)
     suspend fun processInputKey(
@@ -20,14 +21,21 @@ class Keymap(
     ) {
         when (key) {
             'f'.code -> {
-                mvwprintw(stdscr, 0, 0, ":")
-                clrtoeol()
-                echo()
+                //mvwprintw(stdscr, 0, 0, ":")
+                //mvwprintw(pad2.fp, 0, 0, "Filter by: ")
+                //prefresh(pad2.fp, 0, 0, 0, 0, 2, 100);
+                //wclrtoeol(pad2.fp)
+                //wclrtoeol()
+
+                //echo()
 
                 val bytePtr = memScope.allocArray<ByteVar>(200)
-                getnstr(bytePtr, 200)
-                noecho()
-                pad.clear()
+
+                wmove(pad2.fp, 0, 0)
+
+                wgetnstr(pad2.fp, bytePtr, 200)
+                //noecho()
+                //pad.clear()
 
                 dogcat(FilterBy(Substring(bytePtr.toKString())))
             }
@@ -35,20 +43,21 @@ class Keymap(
             'q'.code -> {
                 dogcat(StopEverything)
                 pad.terminate()
+                pad2.terminate()
                 exit(0)
             }
 
-            'a'.code -> pad.home()
+            'a'.code, KEY_HOME -> pad.home()
 
-            'z'.code -> pad.end()
+            'z'.code, KEY_END -> pad.end()
 
-            'w'.code -> pad.lineUp()
+            'w'.code, KEY_UP -> pad.lineUp()
 
-            's'.code -> pad.lineDown()
+            's'.code, KEY_DOWN -> pad.lineDown()
 
-            'd'.code -> pad.pageDown()
+            'd'.code, KEY_NPAGE -> pad.pageDown()
 
-            'e'.code -> pad.pageUp()
+            'e'.code, KEY_PPAGE -> pad.pageUp()
 
             '3'.code -> {
                 dogcat(ResetFilter(ByPackage::class))
@@ -89,26 +98,4 @@ class Keymap(
             }
         }
     }
-
-    enum class Keys {
-        Q,
-        ECHAP,
-        ENTER,
-        SPACE,
-        UP,
-        DOWN,
-        LEFT,
-        RIGHT
-    }
-
-    val keyMap = mapOf(
-        'q'.toInt() to Keys.Q,
-        27 to Keys.ECHAP,
-        10 to Keys.ENTER,
-        32 to Keys.SPACE,
-        259 to Keys.UP,
-        258 to Keys.DOWN,
-        260 to Keys.LEFT,
-        261 to Keys.RIGHT
-    )
 }
