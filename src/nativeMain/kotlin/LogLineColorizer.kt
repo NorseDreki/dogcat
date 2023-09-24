@@ -2,6 +2,7 @@ import Config.tagWidth
 import dogcat.LogLine
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
+import platform.Logger
 import kotlin.math.min
 
 class LogLineColorizer {
@@ -70,6 +71,14 @@ class LogLineColorizer {
 
         waddstr(fp, " ")
 
+        val wrapped = wrapLine(pad, "${logLine.message}") + "\n"
+
+        /*wrapped.lines().withIndex().forEach {
+            Logger.d("${it.index} ${it.value}")
+        }*/
+
+        pad.recordLine(wrapped.lines().size - 1)
+
         when (logLine.level) {
             "W" -> {
                 wattron(fp, COLOR_PAIR(6));
@@ -79,11 +88,11 @@ class LogLineColorizer {
                 waddstr(fp, " ")
 
                 wattron(fp, COLOR_PAIR(3))
-                waddstr(fp, wrapLine(pad, "${logLine.message}"))
+                waddstr(fp, wrapped)
                 wattroff(fp, COLOR_PAIR(3))
             }
 
-            "E" -> {
+            "E", "F" -> {
                 wattron(fp, COLOR_PAIR(11))
                 waddstr(fp, " ${logLine.level} ")
                 wattroff(fp, COLOR_PAIR(11))
@@ -91,7 +100,7 @@ class LogLineColorizer {
                 waddstr(fp, " ")
 
                 wattron(fp, COLOR_PAIR(1))
-                waddstr(fp, wrapLine(pad, "${logLine.message}"))
+                waddstr(fp, wrapped)
                 wattroff(fp, COLOR_PAIR(1));
             }
 
@@ -103,7 +112,7 @@ class LogLineColorizer {
                 waddstr(fp, " ")
 
                 wattron(fp, A_BOLD.toInt())
-                waddstr(fp, wrapLine(pad, "${logLine.message}"))
+                waddstr(fp, wrapped)
                 wattroff(fp, A_BOLD.toInt())
             }
             /*"F" -> {
@@ -118,7 +127,7 @@ class LogLineColorizer {
                 waddstr(fp, " ")
 
                 //wattron(fp, A_DIM.toInt())
-                waddstr(fp, wrapLine(pad, "${logLine.message}"))
+                waddstr(fp, wrapped)
                 //wattroff(fp, A_DIM.toInt())
             }
             //waddstr(fp, "${it.value.message} \n")
@@ -130,7 +139,7 @@ class LogLineColorizer {
         pad: Pad,
         message: String
     ): String {
-        val width = pad.position.endX
+        val width = pad.position.endX - 1 // fix this
         val header = Config.tagWidth + 1 + 3 + 1// space, level, space
         val line = message.replace("\t", "    ") //prevent escape characters leaking
         val wrapArea = width - header
@@ -141,11 +150,11 @@ class LogLineColorizer {
             val next = min(current + wrapArea, line.length)
             buf += line.substring(current, next)
             if (next < line.length) {
-                //buf += "\n\r"
+                buf += "\n"
                 buf += " ".repeat(header) //
             }
             current = next
         }
-        return buf + "\n\r"
+        return buf //+ "\n\r"
     }
 }

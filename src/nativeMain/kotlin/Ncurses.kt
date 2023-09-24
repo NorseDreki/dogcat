@@ -9,11 +9,15 @@ import platform.posix.setlocale
 class Ncurses {
 
     fun start() {
+        resetty()
+
         setlocale(LC_ALL, "en_US.UTF-8")
         initscr()
         intrflush(stdscr, false)
-        savetty()
+        //savetty()
         noecho()
+        //savetty()
+
         nl()
         //Use the ncurses functions for output. My guess is that initscr changes terminal settings such that \n only performs a line feed, not a carriage return. –
         //melpomene
