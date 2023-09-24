@@ -22,7 +22,7 @@ class Pad(val position: PadPosition) {
 
     private var firstVisibleLine = 0
 
-    val snapY = false
+    var snapY = true
 
     private var linesCount = 0
 
@@ -36,7 +36,7 @@ class Pad(val position: PadPosition) {
         }
     }
 
-    suspend fun pageDown() {
+    fun pageDown() {
         /*firstVisibleLine += position.endY - 1 - position.startY
         //delay(100)
         refresh()
@@ -78,7 +78,7 @@ class Pad(val position: PadPosition) {
     }
 
     fun refresh() {
-        Logger.d("FVL $firstVisibleLine")
+        //Logger.d("FVL $firstVisibleLine")
 
         prefresh(fp, firstVisibleLine, 0, position.startY, position.startX, position.endY - 1, position.endX)
         //pnoutrefresh(fp, firstVisibleLine, 0, position.startY, position.startX, position.endY - 1, position.endX)
@@ -89,7 +89,14 @@ class Pad(val position: PadPosition) {
         delwin(fp)
     }
 
-    fun recordLine() {
-        linesCount++
+    fun recordLine(count: Int = 1) {
+        //Logger.d("record $count")
+        linesCount += count
+
+        if (snapY) {
+            end()
+            //pageUp()
+            //pageDown()
+        }
     }
 }
