@@ -1,11 +1,6 @@
-import dogcat.*
 import dogcat.Command.*
 import dogcat.LogFilter.*
-import dogcat.LogcatState.CapturingInput
 import kotlinx.cinterop.*
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.toList
 import ncurses.*
 import platform.posix.exit
 
@@ -14,11 +9,17 @@ class Keymap(
     val memScope: MemScope,
     val pad: Pad,
     val pad2: Pad,
+    val pkg: String? = null
 ) {
+
+    var isPackageFilteringEnabled = pkg != null
+
     @OptIn(ExperimentalForeignApi::class)
     suspend fun processInputKey(
         key: Int
     ) {
+
+
         when (key) {
             'f'.code -> {
                 //mvwprintw(stdscr, 0, 0, ":")
@@ -41,7 +42,7 @@ class Keymap(
             }
 
             'q'.code -> {
-                dogcat(StopEverything)
+                dogcat(Stop)
                 pad.terminate()
                 pad2.terminate()
                 exit(0)
@@ -60,11 +61,20 @@ class Keymap(
             'e'.code, KEY_PPAGE -> pad.pageUp()
 
             '3'.code -> {
-                dogcat(ResetFilter(ByPackage::class))
+                isPackageFilteringEnabled =
+                    if (isPackageFilteringEnabled) {
+                        dogcat(ResetFilter(ByPackage::class))
+                        false
+                    } else {
+                        dogcat(Start.SelectAppByPackage(pkg!!))
+                        true
+                    }
             }
+
             '4'.code -> {
                 dogcat(ResetFilter(Substring::class))
             }
+
             '5'.code -> {
                 dogcat(ResetFilter(MinLogLevel::class))
             }
@@ -90,7 +100,7 @@ class Keymap(
             }
 
             'c'.code -> {
-                dogcat(ClearLogs)
+                dogcat(ClearLogSource)
             }
 
             't'.code -> {
