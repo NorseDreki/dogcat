@@ -3,20 +3,20 @@ package platform
 import dogcat.LogLinesSource
 import com.kgit2.process.Command
 import com.kgit2.process.Stdio
-import dogcat.InternalQuery
+import dogcat.InternalAppliedFiltersState
 import dogcat.LogFilter
 import io.ktor.utils.io.core.internal.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
 class LogcatSource(
-    private val state: InternalQuery,
+    private val state: InternalAppliedFiltersState,
     private val dispatchersIO: CoroutineDispatcher = Dispatchers.IO,
 ) : LogLinesSource {
 
     override fun lines() =
         flow {
-            val af = state.appliedFilters.value
+            val af = state.applied.value
 
             Logger.d("99999 $af")
             val minLogLevel =

@@ -1,12 +1,10 @@
-import dogcat.LogcatState.CapturingInput
-import dogcat.LogcatState.WaitingInput
+import dogcat.PublicState.CapturingInput
+import dogcat.PublicState.WaitingInput
 import app.cash.turbine.test
 import app.cash.turbine.turbineScope
 import dogcat.*
-import dogcat.Command.StartupAs
+import dogcat.Command.Start
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -33,7 +31,7 @@ class LogcatTest {
 
     @BeforeTest fun beforeTest() {
         val ls = DummyLogSource()
-        dogcat = Dogcat(ls, InternalQuery(), dispatcher, dispatcher)
+        dogcat = Dogcat(ls, InternalAppliedFiltersState(), dispatcher, dispatcher)
     }
 
     @Test fun `start as waiting for log lines input`() = runTest(dispatcher) {
@@ -44,7 +42,7 @@ class LogcatTest {
     }
 
     @Test fun `begin capturing when input appears`() = runTest(dispatcher) {
-        dogcat(StartupAs.All)
+        dogcat(Start.All)
         advanceUntilIdle()
 
         dogcat.state.test {
@@ -62,11 +60,11 @@ class LogcatTest {
         }
         advanceUntilIdle()
 
-        dogcat(StartupAs.All)
+        dogcat(Start.All)
     }
 
     @Test fun `capture all input lines without loss`() = runTest(dispatcher) {
-        dogcat(StartupAs.All)
+        dogcat(Start.All)
         advanceUntilIdle()
 
         dogcat.state.test {
@@ -93,7 +91,7 @@ class LogcatTest {
     }
 
     @Test fun `complete previous 'lines' upon emission of new ones`() = runTest(dispatcher) {
-        dogcat(StartupAs.All)
+        dogcat(Start.All)
         advanceUntilIdle()
 
         dogcat.state.test {
@@ -106,7 +104,7 @@ class LogcatTest {
                     }
                     awaitItem()
 
-                    dogcat(Command.ClearLogs)
+                    dogcat(Command.ClearLogSource)
                     //awaitItem()
                     awaitComplete()
                     //expectNoEvents()
@@ -136,7 +134,7 @@ class LogcatTest {
         }
         advanceUntilIdle() //maybe not needed
 
-        dogcat(StartupAs.All)
+        dogcat(Start.All)
         advanceUntilIdle()
 
         dogcat.state.test {
@@ -155,9 +153,9 @@ class LogcatTest {
 
     @Test fun `log lines flow does not complete while input is active`() = runTest(dispatcher) {
         val ls = Fake2LogSource()
-        val dogcat1 = Dogcat(ls, InternalQuery(), dispatcher, dispatcher)
+        val dogcat1 = Dogcat(ls, InternalAppliedFiltersState(), dispatcher, dispatcher)
 
-        dogcat1(StartupAs.All)
+        dogcat1(Start.All)
         advanceUntilIdle()
 
         dogcat1.state.test {
@@ -187,7 +185,7 @@ class LogcatTest {
     }
 
     @Test fun `stop input consumption upon unsubscribing`() = runTest(dispatcher) {
-        dogcat(StartupAs.All)
+        dogcat(Start.All)
         advanceUntilIdle()
 
         dogcat.state.test {
@@ -200,23 +198,23 @@ class LogcatTest {
                 println("end")
             }
 
-            dogcat(Command.StopEverything)
+            dogcat(Command.Stop)
             advanceUntilIdle()
 
-            awaitItem() shouldBe LogcatState.Terminated
+            awaitItem() shouldBe PublicState.Stopped
         }
     }
 
     @Test fun `auto re-start log consumption after clearing log input`() = runTest(dispatcher) {
-        dogcat(StartupAs.All)
+        dogcat(Start.All)
         advanceUntilIdle()
 
         dogcat.state.test {
             awaitItem().shouldBeInstanceOf<CapturingInput>()
 
-            dogcat(Command.ClearLogs)
+            dogcat(Command.ClearLogSource)
 
-            awaitItem() shouldBe LogcatState.InputCleared
+            awaitItem() shouldBe PublicState.InputCleared
             val input = awaitItem() as CapturingInput
 
             input.lines.test {
@@ -261,7 +259,7 @@ class LogcatTest {
     }
 
     @Test fun `exclude log levels upon filtering`() =  runTest(dispatcher) {
-        dogcat(StartupAs.All)
+        dogcat(Start.All)
         //dogcat(Filter.ToggleLogLevel("D"))
         advanceUntilIdle()
 
@@ -282,13 +280,13 @@ class LogcatTest {
 
     @Test fun `reset to 'waiting input' if emulator breaks and re-start logcat`() = runTest(dispatcher) {
         val ls = FakeLogSource()
-        val dogcat = Dogcat(ls, InternalQuery(), dispatcher, dispatcher)
+        val dogcat = Dogcat(ls, InternalAppliedFiltersState(), dispatcher, dispatcher)
 
         turbineScope {
             val t = dogcat.state.testIn(backgroundScope)
             t.awaitItem() shouldBe WaitingInput
 
-            dogcat(StartupAs.All)
+            dogcat(Start.All)
             val c = t.awaitItem() as CapturingInput
 
             c.lines.test {

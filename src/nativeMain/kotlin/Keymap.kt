@@ -1,3 +1,4 @@
+import ServiceLocator.dogcat
 import dogcat.Command.*
 import dogcat.LogFilter.*
 import kotlinx.cinterop.*
@@ -18,8 +19,6 @@ class Keymap(
     suspend fun processInputKey(
         key: Int
     ) {
-
-
         when (key) {
             'f'.code -> {
                 //mvwprintw(stdscr, 0, 0, ":")

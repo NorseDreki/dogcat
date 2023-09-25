@@ -1,21 +1,20 @@
 package dogcat
 
 import dogcat.LogFilter.*
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.yield
 import platform.Logger
 import kotlin.reflect.KClass
 
-interface Query {
+interface AppliedFiltersState {
 
-    val appliedFilters: Flow<AppliedFilters>
+    val applied: Flow<AppliedFilters>
 }
 
-class InternalQuery : Query {
+typealias AppliedFilters = Map<KClass<out LogFilter>, Pair<LogFilter, Boolean>>
+
+class InternalAppliedFiltersState : AppliedFiltersState {
 
     private val defaultFilters: AppliedFilters =
         mutableMapOf(
@@ -24,9 +23,9 @@ class InternalQuery : Query {
         )
 
     private val appliedFiltersState = MutableStateFlow(defaultFilters)
-    override val appliedFilters = appliedFiltersState.asStateFlow()
+    override val applied = appliedFiltersState.asStateFlow()
 
-    suspend fun upsertFilter(filter: LogFilter, enable: Boolean = true) {
+    suspend fun add(filter: LogFilter, enable: Boolean = true) {
         val next = appliedFiltersState.value + (filter::class to (filter to true))
         appliedFiltersState.emit(next)
 
@@ -40,5 +39,3 @@ class InternalQuery : Query {
         Logger.d("After removing: ${appliedFiltersState.value}")
     }
 }
-
-typealias AppliedFilters = Map<KClass<out LogFilter>, Pair<LogFilter, Boolean>>
