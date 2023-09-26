@@ -62,6 +62,9 @@ fun main(args: Array<String>) = memScoped {
             dogcat
                 .state
                 .filterIsInstance<CapturingInput>()
+                .onEach {
+                    //pad2.dn()
+                }
                 .flatMapLatest { it.applied }
                 .onEach {
                     pad2.printStatusLine(it)

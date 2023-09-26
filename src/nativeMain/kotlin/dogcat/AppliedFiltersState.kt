@@ -1,6 +1,9 @@
 package dogcat
 
 import dogcat.LogFilter.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,6 +17,7 @@ interface AppliedFiltersState {
 
 typealias AppliedFilters = Map<KClass<out LogFilter>, Pair<LogFilter, Boolean>>
 
+@OptIn(ExperimentalStdlibApi::class)
 class InternalAppliedFiltersState : AppliedFiltersState {
 
     private val defaultFilters: AppliedFilters =
@@ -29,13 +33,13 @@ class InternalAppliedFiltersState : AppliedFiltersState {
         val next = appliedFiltersState.value + (filter::class to (filter to true))
         appliedFiltersState.emit(next)
 
-        Logger.d("Upsert filter: ${appliedFiltersState.subscriptionCount.value} $next")
+        Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Upsert filter: $next")
     }
 
     suspend fun removeFilter(filter: KClass<out LogFilter>) {
-        val a = appliedFiltersState.value - filter
-        appliedFiltersState.emit(a)
+        val next = appliedFiltersState.value - filter
+        appliedFiltersState.emit(next)
 
-        Logger.d("After removing: ${appliedFiltersState.value}")
+        Logger.d("[${currentCoroutineContext()[CoroutineDispatcher]}] After removing: $next ${currentCoroutineContext()[CoroutineDispatcher]}")
     }
 }

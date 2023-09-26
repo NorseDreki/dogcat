@@ -5,10 +5,12 @@ import com.kgit2.process.Command
 import com.kgit2.process.Stdio
 import dogcat.InternalAppliedFiltersState
 import dogcat.LogFilter
+import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
+@OptIn(ExperimentalStdlibApi::class)
 class LogcatSource(
     private val state: InternalAppliedFiltersState,
     private val dispatchersIO: CoroutineDispatcher = Dispatchers.IO,
@@ -18,7 +20,6 @@ class LogcatSource(
         flow {
             val af = state.applied.value
 
-            Logger.d("99999 $af")
             val minLogLevel =
                 af[LogFilter.MinLogLevel::class]?.first?.let { "*:${(it as LogFilter.MinLogLevel).logLevel}" } ?: ""
             val pkgE = af[LogFilter.ByPackage::class]?.second ?: false
@@ -28,7 +29,7 @@ class LogcatSource(
             } else {
                 ""
             }
-            Logger.d("=========")
+            Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Starting adb logcat")
 
             val logcat = Command("adb")
                 .args("logcat", "-v", "brief")
@@ -40,10 +41,11 @@ class LogcatSource(
 
             try {
                 while (true) {
-                    //UTF-8 only
-                    val line = stdoutReader.readLine() ?: break
+                    //stdoutReader.read
+                    val line = stdoutReader.readUTF8Line(200) ?: break
+                    //val line = stdoutReader.readLine() ?: break
                     emit(line)
-                    yield() //?
+                    //yield() //?
                 }
             } catch (e: MalformedUTF8InputException) {
                 //e.printStackTrace()
@@ -52,12 +54,12 @@ class LogcatSource(
 
             } catch (e: CancellationException) {
                 Logger.d("!!!!!!!!!!! Cancellation! $e")
-            } finally {
-
             }
 
-            Logger.d("!!!!!!!!! Killing logcat ${currentCoroutineContext().isActive}")
-            // withTimeout()?
+            Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] !!!!!!!!! Killing logcat ${currentCoroutineContext().isActive}")
+            // tried timeout, need async IO so badly
+            // command would be killed when next line appears.
+            // also, no leftover adb upon app exit
             logcat.kill()
         }
         .flowOn(dispatchersIO)
@@ -72,7 +74,7 @@ class LogcatSource(
             }
         }
 
-        Logger.d("Exit code for 'adb logcat -c': ${childStatus.code}")
+        Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Exit code for 'adb logcat -c': ${childStatus.code}")
 
         return childStatus.code == 0
     }

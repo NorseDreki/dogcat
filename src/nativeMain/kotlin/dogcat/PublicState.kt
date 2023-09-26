@@ -9,7 +9,10 @@ sealed interface PublicState {
 
     data class CapturingInput(
         val lines: Flow<IndexedValue<LogLine>>,
-        override val applied: Flow<AppliedFilters>
+
+        override val applied: Flow<AppliedFilters>,
+
+        val deviceName: String?
     ) : PublicState, AppliedFiltersState
 
     data object Stopped : PublicState

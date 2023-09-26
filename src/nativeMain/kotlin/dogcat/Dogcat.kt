@@ -6,14 +6,18 @@ import dogcat.LogFilter.ByPackage
 import dogcat.LogFilter.Substring
 import dogcat.PublicState.*
 import flow.takeUntil
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.onCompletion
 import platform.DumpsysPackage
+import platform.EmulatorName
 import platform.ForegroundProcess
 import platform.Logger
 
+@OptIn(ExperimentalStdlibApi::class)
 class Dogcat(
     private val filters: InternalAppliedFiltersState = InternalAppliedFiltersState(),
     private val logLines: LogLines,
@@ -25,12 +29,13 @@ class Dogcat(
     private val stopSubject = MutableSharedFlow<Unit>()
 
     suspend operator fun invoke(command: Command) {
+        Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Command $command")
+
         when (command) {
 
             is Start -> start(command)
 
             ClearLogSource -> {
-                Logger.d("to clear logs\r")
                 logLines.logLinesSource.clear()
                 stopSubject.emit(Unit)
                 stateSubject.emit(InputCleared)
@@ -89,12 +94,16 @@ class Dogcat(
     private suspend fun captureLogLines() {
         val filterLines = logLines.filterLines()
 
+        val deviceName = EmulatorName.currentEmulatorName()
+
         val ci = CapturingInput(
             filterLines
-                .onCompletion { Logger.d("COMPLETED: Capturing input log lines $it\r") } //called when scope is cancelled as well
+                .onCompletion { Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] COMPLETED: Capturing input filterLines $it\r") } //called when scope is cancelled as well
                 .takeUntil(stopSubject),
 
-            filters.applied
+            filters.applied,
+
+            deviceName
         )
         stateSubject.emit(ci)
     }
