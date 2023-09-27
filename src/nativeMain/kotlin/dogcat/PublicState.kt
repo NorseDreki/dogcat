@@ -17,24 +17,3 @@ sealed interface PublicState {
 
     data object Stopped : PublicState
 }
-
-
-interface State {
-
-    val st: Flow<PublicState>
-}
-
-
-class InternalState(
-    //val appliedFiltersState: AppliedFiltersState
-) : State {
-    override val st: Flow<PublicState>
-        get() = TODO("Not yet implemented")
-
-    fun aaa() {}
-
-
-    fun nextState(s: PublicState) {
-
-    }
-}

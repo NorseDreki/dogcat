@@ -30,7 +30,7 @@ class DumpsysPackage {
             Logger.d("TImeou!")
         }*/
 
-        Logger.d("got $output")
+        //Logger.d("got $output")
 
         val userId = output?.let {
             val match = UID_CONTEXT.find(it)

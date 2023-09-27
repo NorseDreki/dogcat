@@ -5,10 +5,8 @@ import dogcat.Command.Start.*
 import dogcat.LogFilter.ByPackage
 import dogcat.LogFilter.Substring
 import dogcat.PublicState.*
-import flow.takeUntil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.onCompletion
@@ -21,12 +19,12 @@ import platform.Logger
 class Dogcat(
     private val filters: InternalAppliedFiltersState = InternalAppliedFiltersState(),
     private val logLines: LogLines,
-) : State by InternalState() {
+)  {
 
     private val stateSubject = MutableStateFlow<PublicState>(WaitingInput)
-    val state = stateSubject.asStateFlow()
+    val state = stateSubject.asStateFlow().onCompletion { Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] (5) COMPLETION, state") }
 
-    private val stopSubject = MutableSharedFlow<Unit>()
+    //private val stopSubject = MutableSharedFlow<Unit>()
 
     suspend operator fun invoke(command: Command) {
         Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Command $command")
@@ -37,7 +35,7 @@ class Dogcat(
 
             ClearLogSource -> {
                 logLines.logLinesSource.clear()
-                stopSubject.emit(Unit)
+                //stopSubject.emit(Unit)
                 stateSubject.emit(InputCleared)
 
                 captureLogLines()
@@ -45,8 +43,14 @@ class Dogcat(
 
             is FilterBy -> {
                 filters.add(command.filter)
+
                 stateSubject.emit(InputCleared)
-                captureLogLines()
+
+                if (command.filter is Substring) {
+                    captureLogLines(false)
+                } else {
+                    captureLogLines()
+                }
             }
 
             is ResetFilter -> {
@@ -58,7 +62,7 @@ class Dogcat(
 
             Stop -> {
                 stateSubject.emit(Stopped)
-                stopSubject.emit(Unit)
+                //stopSubject.emit(Unit)
 
                 //scope.cancel()
             }
@@ -91,15 +95,15 @@ class Dogcat(
         captureLogLines()
     }
 
-    private suspend fun captureLogLines() {
-        val filterLines = logLines.filterLines()
+    private suspend fun captureLogLines(restartSource: Boolean = true) {
+        val filterLines = logLines.filterLines(restartSource)
 
         val deviceName = EmulatorName.currentEmulatorName()
 
         val ci = CapturingInput(
             filterLines
-                .onCompletion { Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] COMPLETED: Capturing input filterLines $it\r") } //called when scope is cancelled as well
-                .takeUntil(stopSubject),
+                .onCompletion { Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] (1) COMPLETED: Capturing input filterLines $it\r") },
+                //.takeUntil(stopSubject),
 
             filters.applied,
 

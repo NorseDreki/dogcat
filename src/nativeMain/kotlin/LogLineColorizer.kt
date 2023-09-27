@@ -67,7 +67,7 @@ fun Pad.processLogLine(
 
     waddstr(fp, " ")
 
-    val wrapped = wrapLine(this, "${logLine.message}") + "\n"
+    val wrapped = wrapLine(this, "${it.index} ${logLine.message}") + "\n"
 
     /*wrapped.lines().withIndex().forEach {
         Logger.d("${it.index} ${it.value}")

@@ -3,7 +3,6 @@ package dogcat
 import flow.bufferedTransform
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import platform.LogcatBriefParser
 import platform.Logger
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
@@ -15,37 +14,22 @@ class LogLines(
     private val dispatcherIo: CoroutineDispatcher = Dispatchers.IO,
 ) {
 
-    val handler = CoroutineExceptionHandler { _, t -> Logger.d(" CATCH! ${t.message}\r") }
+    val handler = CoroutineExceptionHandler { _, t -> Logger.d("!!!!!!11111111 CATCH! ${t.message}\r") }
     private lateinit var scope: CoroutineScope
+    private lateinit var sharedLines: Flow<String>
 
-    suspend fun filterLines(): Flow<IndexedValue<LogLine>> {
-        if (this::scope.isInitialized) {
-            Logger.d("[${currentCoroutineContext()[CoroutineDispatcher]}] !!!!! cancelling scope")
-            withContext(dispatcherCpu) {
-                scope.cancel()
+    suspend fun filterLines(restartSource: Boolean = true): Flow<IndexedValue<LogLine>> {
+        if (restartSource) {
+            if (this::scope.isInitialized) {
+                Logger.d("[${currentCoroutineContext()[CoroutineDispatcher]}] !!!!! cancelling scope")
+                withContext(dispatcherCpu) {
+                    scope.cancel()
+                }
             }
+
+            scope = CoroutineScope(dispatcherIo.limitedParallelism(1) + handler + Job())
+            sharedLines = createSharedLines()
         }
-
-        scope = CoroutineScope(dispatcherCpu + handler + kotlinx.coroutines.Job()) // +Job +SupervisorJob +handler
-
-        val sharedLines = logLinesSource // deal with malformed UTF-8 'expected one more byte'
-            .lines()
-            /*.retry(3) { e ->
-                val shallRetry = e is RuntimeException
-                if (shallRetry) delay(100)
-                Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] retrying... $shallRetry\r")
-                shallRetry
-            }*/
-            //.takeUntil(stopSubject)
-            .onCompletion { cause -> if (cause == null) emit("[${(currentCoroutineContext()[CoroutineDispatcher])}] INPUT HAS EXITED") else Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] EXIT COMPLETE $cause\r") }
-            .onStart { Logger.d("[${currentCoroutineContext()[CoroutineDispatcher]}] Start subscription to logLinesSource\r") }
-            .shareIn(
-                scope,
-                SharingStarted.Lazily,
-                Config.LogLinesBufferCount,
-            )
-            .onSubscription { Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Subscribing to shareIn\r") }
-            .onCompletion { Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Subscription to shareIn completed\r") }
 
         return s.applied
             .flatMapConcat {
@@ -55,13 +39,18 @@ class LogLines(
             .map { it.first }
             .filterIsInstance<LogFilter.Substring>()
             .flatMapLatest { filter ->
-                Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Shared lines flat map latest")
-                sharedLines.filter { it.contains(filter.substring) }
+                val f = sharedLines
+                    .filter { it.contains(filter.substring, ignoreCase = true) }
+                    .onEach {
+                        //Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] !!!!!!!!!!!!  '${filter.substring}' $restartSource Shared lines flat map latest")
+                    }
+
+                f
             }
             .map {
                 lineParser.parse(it)
             }
-            .bufferedTransform(
+            /*.bufferedTransform(
                 { buffer, item ->
                     when {
                         buffer.isNotEmpty() -> {
@@ -81,9 +70,29 @@ class LogLines(
                         LogLine(item.level, "", item.owner, item.message)
                     }
                 }
-            )
+            )*/
             .withIndex()
             //.flowOn()
-            .onCompletion { Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Full LogLines chain completed\r") }
+            .onCompletion { Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] (2) COMPLETED Full LogLines chain\r") }
+            .flowOn(dispatcherCpu)
     }
+
+    private fun createSharedLines() = logLinesSource
+        .lines()
+        .onCompletion { cause ->
+            if (cause == null) {
+                Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] (4) COMPLETED, loglinessource.lines $cause\r")
+                emit("[${(currentCoroutineContext()[CoroutineDispatcher])}] INPUT HAS EXITED")
+            } else {
+                Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] EXIT COMPLETE $cause\r")
+            }
+        }
+        .onStart { Logger.d("[${currentCoroutineContext()[CoroutineDispatcher]}] Start subscription to logLinesSource\r") }
+        .shareIn(
+            scope,
+            SharingStarted.Lazily,
+            Config.LogLinesBufferCount,
+        )
+        .onSubscription { Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Subscribing to shareIn\r") }
+        .onCompletion { Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] (3) COMPLETED Subscription to shareIn\r") }
 }

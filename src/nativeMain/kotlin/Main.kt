@@ -83,6 +83,7 @@ fun main(args: Array<String>) = memScoped {
                             emptyFlow()
                         }
                         is CapturingInput -> {
+                            //pad.clear()
                             it.lines//.take(10)
                         }
                         InputCleared -> {
@@ -98,7 +99,10 @@ fun main(args: Array<String>) = memScoped {
                         }
                     }
                 }
-                .onEach { pad.processLogLine(it) }
+                .onEach {
+                    //println("${it.index} \r\n")
+                    pad.processLogLine(it)
+                }
                 .collect()
         }
     }

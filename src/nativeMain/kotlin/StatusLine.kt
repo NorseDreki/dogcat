@@ -2,15 +2,17 @@ import dogcat.AppliedFilters
 import dogcat.LogFilter
 import dogcat.LogFilter.*
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.yield
 import ncurses.*
 import platform.Logger
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
 suspend fun Pad.printStatusLine(it: AppliedFilters) {
     val sx = getmaxx(stdscr)
 
-    Logger.d("Preparing to draw applied filters: $it")
+    Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Preparing to draw applied filters: $it")
     wmove(fp, 0, 0)
     wattron(fp, COLOR_PAIR(12))
     wclrtoeol(fp)
