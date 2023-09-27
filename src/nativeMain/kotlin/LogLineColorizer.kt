@@ -1,6 +1,7 @@
 import Config.tagWidth
 import dogcat.LogLine
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.yield
 import ncurses.*
 import platform.Logger
 import kotlin.math.min
@@ -57,7 +58,7 @@ private fun String.massage(): String {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-fun Pad.processLogLine(
+suspend fun Pad.processLogLine(
     it: IndexedValue<LogLine>,
 ) {
     //waddstr(fp, "${it.index} ")
@@ -125,7 +126,7 @@ fun Pad.processLogLine(
         }
         //waddstr(fp, "${it.value.message} \n")
     }
-    // yield()
+     yield()
 
     //pad.recordLine()
     //pad.refresh()

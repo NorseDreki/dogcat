@@ -11,11 +11,10 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import ncurses.*
 import platform.Logger
-
 @OptIn(
     ExperimentalForeignApi::class,
     ExperimentalCoroutinesApi::class,
-    DelicateCoroutinesApi::class
+    DelicateCoroutinesApi::class, ExperimentalStdlibApi::class
 )
 fun main(args: Array<String>) = memScoped {
     Arguments.validate(args)
@@ -32,78 +31,66 @@ fun main(args: Array<String>) = memScoped {
     val pad = Pad(padPosition)
 
     val padPosition2 = PadPosition(0, 0, sx, 1)
-    val pad2 = Pad(padPosition2)
+    val pad2 = Pad(padPosition2, 1)
 
     val keymap = Keymap(this, pad, pad2, packageName)
 
-    // legitimate use-case for 'GlobalScope'
-    GlobalScope.launch {
-        while (true) {
-            val key = wgetch(stdscr)
+    runBlocking(ui) {
+        launch(Dispatchers.IO) {
+            while (true) {
+                val key = wgetch(stdscr)
 
-            if (key == ERR) { //!= EOF //KEY_F(1)
-                delay(50)
-                continue
-            }
-            withContext(ui) {
-                keymap.processInputKey(key)
+                if (key == ERR) { //!= EOF
+                    Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Non blockign $key")
+                    delay(30)
+                    continue
+                }
+                //Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Got key $key")
+                withContext(ui) {
+                    keymap.processInputKey(key)
+                }
             }
         }
-    }
 
-    runBlocking {
-        launch(ui) {
-            when {
-                packageName != null -> dogcat(Start.SelectAppByPackage(packageName!!))
-                current == true -> dogcat(Start.SelectForegroundApp)
-                else -> dogcat(Start.All)
-            }
+        dogcat
+            .state
+            .filterIsInstance<CapturingInput>()
+            .flatMapLatest { it.applied }
+            .onEach { pad2.printStatusLine(it) }
+            .launchIn(this)
 
-            dogcat
-                .state
-                .filterIsInstance<CapturingInput>()
-                .onEach {
-                    //pad2.dn()
-                }
-                .flatMapLatest { it.applied }
-                .onEach {
-                    pad2.printStatusLine(it)
-                }
-                .collect()
-        }
+        dogcat
+            .state
+            .flatMapLatest {
+                when (it) {
+                    is WaitingInput -> {
+                        Logger.d("Waiting for log lines...\r")
 
-        launch(ui) {
-            dogcat
-                .state
-                .flatMapLatest {
-                    when (it) {
-                        is WaitingInput -> {
-                            Logger.d("Waiting for log lines...\r")
+                        emptyFlow()
+                    }
+                    is CapturingInput -> {
+                        it.lines//.take(10)
+                    }
+                    InputCleared -> {
+                        Logger.d("Cleared Logcat and re-started\r")
+                        pad.clear()
 
-                            emptyFlow()
-                        }
-                        is CapturingInput -> {
-                            //pad.clear()
-                            it.lines//.take(10)
-                        }
-                        InputCleared -> {
-                            Logger.d("Cleared Logcat and re-started\r")
-                            pad.clear()
-
-                            emptyFlow()
-                        }
-                        Stopped -> {
-                            cancel()
-                            Logger.d("No more reading lines, terminated\r")
-                            emptyFlow()
-                        }
+                        emptyFlow()
+                    }
+                    Stopped -> {
+                        //cancel()
+                        Logger.d("No more reading lines, terminated\r")
+                        emptyFlow()
                     }
                 }
-                .onEach {
-                    //println("${it.index} \r\n")
-                    pad.processLogLine(it)
-                }
-                .collect()
+            }
+            .onEach { pad.processLogLine(it) }
+            .launchIn(this)
+
+        when {
+            packageName != null -> dogcat(Start.SelectAppByPackage(packageName!!))
+            current == true -> dogcat(Start.SelectForegroundApp)
+            else -> dogcat(Start.All)
         }
     }
     ui.close()

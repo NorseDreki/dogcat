@@ -1,6 +1,6 @@
 object Config {
 
-    const val LogLinesBufferCount = 32767
+    const val LogLinesBufferCount = 10000//32767
 
     const val tagWidth = 23
 

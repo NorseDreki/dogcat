@@ -22,7 +22,7 @@ class Ncurses {
         //Use the ncurses functions for output. My guess is that initscr changes terminal settings such that \n only performs a line feed, not a carriage return. –
         //melpomene
 
-        //nodelay(stdscr, true)
+        nodelay(stdscr, true)
         cbreak() //making getch() work without a buffer I.E. raw characters
         keypad(stdscr, true) //allows use of special keys, namely the arrow keys
         clear()

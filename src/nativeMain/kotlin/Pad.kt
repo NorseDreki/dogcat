@@ -1,7 +1,5 @@
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.coroutines.delay
 import ncurses.*
-import platform.Logger
 
 data class PadPosition(
     val startX: Int,
@@ -11,9 +9,9 @@ data class PadPosition(
 )
 
 @OptIn(ExperimentalForeignApi::class)
-class Pad(val position: PadPosition) {
+class Pad(val position: PadPosition, i: Int = Config.LogLinesBufferCount) {
 
-    val fp = newpad(Config.LogLinesBufferCount, position.endX)
+    val fp = newpad(i, position.endX)
 
     init {
         scrollok(fp, true)

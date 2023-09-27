@@ -2,7 +2,9 @@ import ServiceLocator.dogcat
 import dogcat.Command.*
 import dogcat.LogFilter.*
 import kotlinx.cinterop.*
+import kotlinx.coroutines.*
 import ncurses.*
+import platform.Logger
 import platform.posix.exit
 
 @OptIn(ExperimentalForeignApi::class)
@@ -15,10 +17,12 @@ class Keymap(
 
     var isPackageFilteringEnabled = pkg != null
 
-    @OptIn(ExperimentalForeignApi::class)
+    @OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
     suspend fun processInputKey(
         key: Int
     ) {
+        Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Process key $key")
+
         when (key) {
             'f'.code -> {
                 //mvwprintw(stdscr, 0, 0, ":")
@@ -33,7 +37,9 @@ class Keymap(
 
                 wmove(pad2.fp, 0, 0)
 
-                wgetnstr(pad2.fp, bytePtr, 200)
+                withContext(Dispatchers.IO) {
+                    wgetnstr(pad2.fp, bytePtr, 200)
+                }
                 //noecho()
                 //pad.clear()
 
