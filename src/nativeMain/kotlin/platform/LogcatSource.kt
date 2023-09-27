@@ -9,6 +9,8 @@ import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import ncurses.napms
+import kotlin.text.CharCategory.LINE_SEPARATOR
 
 @OptIn(ExperimentalStdlibApi::class)
 class LogcatSource(
@@ -32,26 +34,38 @@ class LogcatSource(
             Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Starting adb logcat")
 
             val logcat = Command("adb")
-                .args("logcat", "-v", "brief")
+                .args("logcat", "-v", "brief", "-d")
                 .args(userId, minLogLevel)
                 .stdout(Stdio.Pipe)
                 .spawn()
+
+            /*val logcat = Command("cat")
+                .args("unicode_bug.txt")
+                .stdout(Stdio.Pipe)
+                .spawn()*/
 
             val stdoutReader = logcat.getChildStdout()!!
 
             try {
                 while (true) {
-                    //stdoutReader.read
-                    val line = stdoutReader.readUTF8Line(200) ?: break
-                    //val line = stdoutReader.readLine() ?: break
+/*                    LINE_SEPARATOR
+                    val dst = ByteArray(1000) //{ 'z'.code.toByte() }
+                    val num1 = stdoutReader.readAvailable(dst)
+                    val dst1 = stdoutReader.readText()
+                    val line = dst1*/
+                    /*val num1 = stdoutReader.readUntilDelimiter(0x0A, dst)
+                    val line = dst.decodeToString()*/
+                    val line = stdoutReader.readUTF8Line() ?: break
+                    //Logger.d("------> [${(currentCoroutineContext()[CoroutineDispatcher])}] $line")
+
                     emit(line)
+                   // delay(5)
                     //yield() //?
+
+                    //napms(15)
                 }
             } catch (e: MalformedUTF8InputException) {
-                //e.printStackTrace()
-                Logger.d("!!!!!!!!!!! Malformed UTF8! ${e.message}")
-                //cancel()
-
+                Logger.d("!!!!!!!!!!! MalformedUTF8InputException! ${e.message} [${(currentCoroutineContext()[CoroutineDispatcher])}]")
             } catch (e: CancellationException) {
                 Logger.d("!!!!!!!!!!! Cancellation! $e")
             }
@@ -62,12 +76,10 @@ class LogcatSource(
             // also, no leftover adb upon app exit
             logcat.kill()
         }
-        .flowOn(dispatchersIO)
-
 
     override suspend fun clear(): Boolean {
         val childStatus = withContext(dispatchersIO) {
-            withTimeout(Config.AdbCommandTimeoutMillis) {
+            withTimeout(Config.AdbCommandTimeoutMillis) { //won't work
                 Command("adb")
                     .args("logcat", "-c")
                     .status()
