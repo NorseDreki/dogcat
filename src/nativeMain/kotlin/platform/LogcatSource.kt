@@ -34,7 +34,7 @@ class LogcatSource(
             Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Starting adb logcat")
 
             val logcat = Command("adb")
-                .args("logcat", "-v", "brief", "-d")
+                .args("logcat", "-v", "brief")
                 .args(userId, minLogLevel)
                 .stdout(Stdio.Pipe)
                 .spawn()

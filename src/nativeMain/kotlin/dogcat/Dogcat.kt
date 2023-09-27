@@ -24,53 +24,52 @@ class Dogcat(
     private val stateSubject = MutableStateFlow<PublicState>(WaitingInput)
     val state = stateSubject.asStateFlow().onCompletion { Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] (5) COMPLETION, state") }
 
-    //private val stopSubject = MutableSharedFlow<Unit>()
-
     suspend operator fun invoke(command: Command) {
         Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Command $command")
 
         when (command) {
-
             is Start -> start(command)
 
             ClearLogSource -> {
                 logLines.logLinesSource.clear()
-                //stopSubject.emit(Unit)
                 stateSubject.emit(InputCleared)
 
                 captureLogLines()
             }
 
             is FilterBy -> {
-                filters.add(command.filter)
-
                 stateSubject.emit(InputCleared)
 
+                filters.add(command.filter)
+
+
                 if (command.filter is Substring) {
-                    captureLogLines(false)
+                    captureLogLines(restartSource = false)
                 } else {
                     captureLogLines()
                 }
             }
 
             is ResetFilter -> {
-                when (command.filterClass) {
-                    Substring::class -> filters.add(Substring("")) //use default filters
-                    else -> filters.removeFilter(command.filterClass)
+                filters.reset(command.filterClass)
+
+                stateSubject.emit(InputCleared)
+
+                if (command.filterClass == Substring::class) {
+                    captureLogLines(restartSource = false)
+                } else {
+                    captureLogLines()
                 }
             }
 
-            Stop -> {
+            Stop -> { // clear pad?
                 stateSubject.emit(Stopped)
-                //stopSubject.emit(Unit)
-
-                //scope.cancel()
             }
         }
     }
 
-    private suspend fun start(command: Start) {
-        when (command) {
+    private suspend fun start(subcommand: Start) {
+        when (subcommand) {
             is SelectForegroundApp -> {
                 val packageName = ForegroundProcess.parsePackageName()
                 val userId = DumpsysPackage().parseUserIdFor(packageName)
@@ -80,7 +79,9 @@ class Dogcat(
             }
 
             is SelectAppByPackage -> {
-                val packageName = command.packageName
+                stateSubject.emit(InputCleared)
+
+                val packageName = subcommand.packageName
                 val userId = DumpsysPackage().parseUserIdFor(packageName)
 
                 filters.add(ByPackage(packageName, userId), true)
@@ -96,14 +97,13 @@ class Dogcat(
     }
 
     private suspend fun captureLogLines(restartSource: Boolean = true) {
-        val filterLines = logLines.filterLines(restartSource)
+        val filterLines = logLines.capture(restartSource)
 
         val deviceName = EmulatorName.currentEmulatorName()
 
         val ci = CapturingInput(
             filterLines
                 .onCompletion { Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] (1) COMPLETED: Capturing input filterLines $it\r") },
-                //.takeUntil(stopSubject),
 
             filters.applied,
 

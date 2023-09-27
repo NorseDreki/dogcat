@@ -101,10 +101,6 @@ class Keymap(
             'c'.code -> {
                 dogcat(ClearLogSource)
             }
-
-            't'.code -> {
-                dogcat(FilterBy(ByPackage("", "")))
-            }
         }
     }
 }

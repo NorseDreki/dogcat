@@ -75,6 +75,8 @@ class Pad(val position: PadPosition) {
     fun clear() {
         linesCount = 0
         wclear(fp)
+        //werase(fp)
+        refresh()
     }
 
     fun refresh() {

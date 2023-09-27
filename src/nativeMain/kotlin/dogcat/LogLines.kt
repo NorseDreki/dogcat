@@ -1,6 +1,5 @@
 package dogcat
 
-import flow.bufferedTransform
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import platform.Logger
@@ -18,7 +17,7 @@ class LogLines(
     private lateinit var scope: CoroutineScope
     private lateinit var sharedLines: Flow<String>
 
-    suspend fun filterLines(restartSource: Boolean = true): Flow<IndexedValue<LogLine>> {
+    suspend fun capture(restartSource: Boolean = true): Flow<IndexedValue<LogLine>> {
         if (restartSource) {
             if (this::scope.isInitialized) {
                 Logger.d("[${currentCoroutineContext()[CoroutineDispatcher]}] !!!!! cancelling scope")
@@ -27,7 +26,7 @@ class LogLines(
                 }
             }
 
-            scope = CoroutineScope(dispatcherIo.limitedParallelism(1) + handler + Job())
+            scope = CoroutineScope(dispatcherIo + handler + Job())
             sharedLines = createSharedLines()
         }
 
