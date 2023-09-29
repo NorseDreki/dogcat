@@ -9,6 +9,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.*
+import platform.LogcatBriefParser
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
@@ -31,7 +32,10 @@ class LogcatTest {
 
     @BeforeTest fun beforeTest() {
         val ls = DummyLogSource()
-        dogcat = Dogcat(ls, InternalAppliedFiltersState(), dispatcher, dispatcher)
+        val s = InternalAppliedFiltersState()
+        val lp = LogcatBriefParser()
+
+        dogcat = Dogcat(s, LogLines(ls, lp, s, dispatcher, dispatcher))
     }
 
     @Test fun `start as waiting for log lines input`() = runTest(dispatcher) {
@@ -153,12 +157,12 @@ class LogcatTest {
 
     @Test fun `log lines flow does not complete while input is active`() = runTest(dispatcher) {
         val ls = Fake2LogSource()
-        val dogcat1 = Dogcat(ls, InternalAppliedFiltersState(), dispatcher, dispatcher)
+        //val dogcat1 = Dogcat(ls, InternalAppliedFiltersState(), dispatcher, dispatcher)
 
-        dogcat1(Start.All)
+        dogcat(Start.All)
         advanceUntilIdle()
 
-        dogcat1.state.test {
+        dogcat.state.test {
             val items = awaitItem() as CapturingInput
 
             val j = launch {
@@ -280,7 +284,7 @@ class LogcatTest {
 
     @Test fun `reset to 'waiting input' if emulator breaks and re-start logcat`() = runTest(dispatcher) {
         val ls = FakeLogSource()
-        val dogcat = Dogcat(ls, InternalAppliedFiltersState(), dispatcher, dispatcher)
+        //val dogcat = Dogcat(ls, InternalAppliedFiltersState(), dispatcher, dispatcher)
 
         turbineScope {
             val t = dogcat.state.testIn(backgroundScope)
