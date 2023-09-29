@@ -12,6 +12,8 @@ import io.ktor.utils.io.core.internal.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import ncurses.napms
+import platform.posix.INLCR
+import platform.posix.termios
 import kotlin.text.CharCategory.LINE_SEPARATOR
 
 @OptIn(ExperimentalStdlibApi::class)
@@ -35,8 +37,9 @@ class LogcatSource(
             }
             Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Starting adb logcat")
 
+
             val logcat = Command("adb")
-                .args("logcat", "-v", "brief")
+                .args("logcat", "-s", "-v", "brief")
                 .args(userId, minLogLevel)
                 .stdout(Stdio.Pipe)
                 .spawn()

@@ -31,6 +31,7 @@ class Dogcat(
             is Start -> start(command)
 
             ClearLogSource -> {
+                // keyboard input hangs upon clearing? when no emulators
                 logLines.logLinesSource.clear()
                 stateSubject.emit(InputCleared)
 

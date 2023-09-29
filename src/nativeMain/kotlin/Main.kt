@@ -26,6 +26,8 @@ fun main(args: Array<String>) = memScoped {
     val sx = getmaxx(stdscr)
     val sy = getmaxy(stdscr)
 
+    //noraw()
+
     val padPosition = PadPosition(0, 3, sx, sy)
     val pad = Pad(padPosition)
 
@@ -33,6 +35,8 @@ fun main(args: Array<String>) = memScoped {
     val pad2 = Pad(padPosition2, 1)
 
     val keymap = Keymap(this, pad, pad2, packageName)
+
+
 
     runBlocking(ui) {
         launch(Dispatchers.IO) {
@@ -94,5 +98,6 @@ fun main(args: Array<String>) = memScoped {
 
     ui.close()
     Logger.close()
-    //resetty()
+
+    //ncurses.end()
 }

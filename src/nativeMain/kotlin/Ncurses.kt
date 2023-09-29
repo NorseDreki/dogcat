@@ -1,9 +1,6 @@
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
-import platform.posix.LC_ALL
-import platform.posix.exit
-import platform.posix.printf
-import platform.posix.setlocale
+import platform.posix.*
 
 @OptIn(ExperimentalForeignApi::class)
 class Ncurses {
@@ -43,7 +40,16 @@ class Ncurses {
         init_pair(12, COLOR_BLACK.toShort(), COLOR_WHITE.toShort())
         init_pair(6, COLOR_BLACK.toShort(), COLOR_YELLOW.toShort())
 
+
+        /*raw();
+        noraw()*/
+
+        //fflush(stdout); // added
         //hideCursor()
+    }
+
+    fun end() {
+        endwin()
     }
 
     private fun hideCursor() {

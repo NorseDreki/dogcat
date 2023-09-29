@@ -50,7 +50,8 @@ class Keymap(
                 dogcat(Stop)
                 pad.terminate()
                 pad2.terminate()
-                resetty()
+                endwin()
+                //resetty()
                 exit(0)
             }
 
