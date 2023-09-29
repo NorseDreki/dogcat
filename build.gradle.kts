@@ -21,6 +21,33 @@ kotlin {
     macosX64()
     macosArm64()*/
 
+    linuxX64("linux") {
+        binaries {
+            executable(listOf(DEBUG)) {
+                entryPoint = "main"
+            }
+            executable(listOf(RELEASE)) {
+                entryPoint = "main"
+            }
+        }
+        compilations["main"].cinterops {
+            val ncurses by creating {
+            }
+        }
+    }
+
+    /*macosX64("nativeMac")
+    linuxX64("nativeLin")
+    mingwX64("nativeWin")
+
+    targets.withType<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget> {
+        binaries {
+            executable {
+                entryPoint = "main"
+            }
+        }
+    }*/
+
     val hostOs = System.getProperty("os.name")
     val isArm64 = System.getProperty("os.arch") == "aarch64"
     val isMingwX64 = hostOs.startsWith("Windows")
@@ -33,7 +60,7 @@ kotlin {
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
     }
 
-    nativeTarget.apply {
+    /*nativeTarget.apply {
         binaries {
             executable {
                 entryPoint = "main"
@@ -41,12 +68,21 @@ kotlin {
         }
         compilations["main"].cinterops {
             val ncurses by creating {
-                //defFile project.file('./src/nativeInterop/cinterop/ncurses.def')
             }
         }
+    }*/
+
+    val testFrameworkAttribute = Attribute.of("com.example.testFramework", String::class.java)
+    jvm("junit") {
+        attributes.attribute(testFrameworkAttribute, "junit")
     }
+    jvm("testng") {
+        attributes.attribute(testFrameworkAttribute, "testng")
+    }
+    //The consumer has to add the attribute to a single target where the ambiguity arises.
+
     sourceSets {
-        val nativeMain by getting {
+        val linuxMain by getting {
             dependencies {
                 implementation("com.kgit2:kommand:1.0.2")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
@@ -54,7 +90,7 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.6")
             }
         }
-        val nativeTest by getting {
+        val linuxTest by getting {
             dependencies {
                 //or api()??
                 implementation(kotlin("test"))
@@ -70,6 +106,12 @@ kotlin {
                 implementation(Libs.kotest("assertions-core"))*/
             }
         }
+        /*val nativeMacMain by getting {
+            dependsOn(nativeMain)
+        }
+        val nativeLinMain by getting {
+            dependsOn(nativeMain)
+        }*/
 
         /*val commonTest by getting {
             dependencies {
