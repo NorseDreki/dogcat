@@ -46,10 +46,11 @@ class Keymap(
                 dogcat(FilterBy(Substring(bytePtr.toKString())))
             }
 
-            'q'.code -> {
+            'q'.code -> { // catch control-c
                 dogcat(Stop)
                 pad.terminate()
                 pad2.terminate()
+                resetty()
                 exit(0)
             }
 

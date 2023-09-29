@@ -5,4 +5,6 @@ object Config {
     const val tagWidth = 23
 
     const val AdbCommandTimeoutMillis = 3000L
+
+    const val DEFAULT_MIN_LOG_LEVEL = "V"
 }

@@ -5,6 +5,8 @@ import com.kgit2.process.Command
 import com.kgit2.process.Stdio
 import dogcat.InternalAppliedFiltersState
 import dogcat.LogFilter
+import dogcat.LogFilter.ByPackage
+import dogcat.LogFilter.MinLogLevel
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import kotlinx.coroutines.*
@@ -23,10 +25,10 @@ class LogcatSource(
             val af = state.applied.value
 
             val minLogLevel =
-                af[LogFilter.MinLogLevel::class]?.first?.let { "*:${(it as LogFilter.MinLogLevel).logLevel}" } ?: ""
-            val pkgE = af[LogFilter.ByPackage::class]?.second ?: false
+                af[MinLogLevel::class]?.let { "*:${(it as MinLogLevel).logLevel}" } ?: ""
+            val pkgE = true
             val userId = if (pkgE) {
-                af[LogFilter.ByPackage::class]?.first?.let { "--uid=${(it as LogFilter.ByPackage).resolvedUserId}" }
+                af[ByPackage::class]?.let { "--uid=${(it as ByPackage).resolvedUserId}" }
                     ?: ""
             } else {
                 ""

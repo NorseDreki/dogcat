@@ -4,7 +4,6 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### IntelliJ IDEA ###
 .idea/modules.xml
 .idea/jarRepositories.xml
 .idea/compiler.xml
@@ -16,8 +15,4 @@ out/
 !**/src/main/**/out/
 !**/src/test/**/out/
 
-### VS Code ###
-.vscode/
-
-### Mac OS ###
 .DS_Store

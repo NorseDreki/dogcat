@@ -1,6 +1,8 @@
 package dogcat
 
-import dogcat.LogFilter.*
+import Config.DEFAULT_MIN_LOG_LEVEL
+import dogcat.LogFilter.MinLogLevel
+import dogcat.LogFilter.Substring
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
@@ -10,26 +12,25 @@ import platform.Logger
 import kotlin.reflect.KClass
 
 interface AppliedFiltersState {
-
     val applied: Flow<AppliedFilters>
 }
 
-typealias AppliedFilters = Map<KClass<out LogFilter>, Pair<LogFilter, Boolean>>
+typealias AppliedFilters = Map<KClass<out LogFilter>, LogFilter>
 
 @OptIn(ExperimentalStdlibApi::class)
 class InternalAppliedFiltersState : AppliedFiltersState {
 
     private val defaultFilters: AppliedFilters =
         mapOf(
-            Substring::class to (Substring("") to true),
-            MinLogLevel::class to (MinLogLevel("V") to true)
+            Substring::class to Substring(""),
+            MinLogLevel::class to MinLogLevel(DEFAULT_MIN_LOG_LEVEL) //use log level as enum
         )
 
     private val appliedFiltersState = MutableStateFlow(defaultFilters)
     override val applied = appliedFiltersState.asStateFlow()
 
-    suspend fun add(filter: LogFilter, enable: Boolean = true) {
-        val next = appliedFiltersState.value + (filter::class to (filter to true))
+    suspend fun apply(filter: LogFilter) {
+        val next = appliedFiltersState.value + (filter::class to filter)
         appliedFiltersState.emit(next)
 
         Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Upsert filter: $next")
@@ -39,12 +40,12 @@ class InternalAppliedFiltersState : AppliedFiltersState {
         val default = defaultFilters[filterClass]
 
         val next = if (default != null) {
-             appliedFiltersState.value + (filterClass to default)
+            appliedFiltersState.value + (filterClass to default)
         } else {
             appliedFiltersState.value - filterClass
         }
         appliedFiltersState.emit(next)
 
-        Logger.d("[${currentCoroutineContext()[CoroutineDispatcher]}] After removing: $next ${currentCoroutineContext()[CoroutineDispatcher]}")
+        Logger.d("[${currentCoroutineContext()[CoroutineDispatcher]}] After removing: $next")
     }
 }

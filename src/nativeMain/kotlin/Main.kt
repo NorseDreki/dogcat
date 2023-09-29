@@ -1,25 +1,24 @@
 import Arguments.current
 import Arguments.packageName
 import ServiceLocator.dogcat
-import dogcat.*
-import dogcat.Command.*
-import dogcat.LogFilter.*
+import dogcat.Command.Start
 import dogcat.PublicState.*
-import kotlinx.cinterop.*
-import kotlinx.cli.*
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.memScoped
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import ncurses.*
 import platform.Logger
+
 @OptIn(
     ExperimentalForeignApi::class,
     ExperimentalCoroutinesApi::class,
-    DelicateCoroutinesApi::class, ExperimentalStdlibApi::class
+    DelicateCoroutinesApi::class,
 )
 fun main(args: Array<String>) = memScoped {
     Arguments.validate(args)
 
-    val ui = newSingleThreadContext("UI")
+    val ui = newSingleThreadContext("UI1")
 
     val ncurses = Ncurses()
     ncurses.start()
@@ -27,7 +26,7 @@ fun main(args: Array<String>) = memScoped {
     val sx = getmaxx(stdscr)
     val sy = getmaxy(stdscr)
 
-    val padPosition = PadPosition(0, 5, sx, sy - 1)
+    val padPosition = PadPosition(0, 3, sx, sy)
     val pad = Pad(padPosition)
 
     val padPosition2 = PadPosition(0, 0, sx, 1)
@@ -41,11 +40,10 @@ fun main(args: Array<String>) = memScoped {
                 val key = wgetch(stdscr)
 
                 if (key == ERR) { //!= EOF
-                    Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Non blockign $key")
                     delay(30)
                     continue
                 }
-                //Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Got key $key")
+
                 withContext(ui) {
                     keymap.processInputKey(key)
                 }
@@ -93,6 +91,8 @@ fun main(args: Array<String>) = memScoped {
             else -> dogcat(Start.All)
         }
     }
+
     ui.close()
     Logger.close()
+    //resetty()
 }

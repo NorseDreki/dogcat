@@ -35,7 +35,6 @@ class LogLines(
                 Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Applied filters flat map concat")
                 it.values.asFlow()
             }
-            .map { it.first }
             .filterIsInstance<LogFilter.Substring>()
             .flatMapLatest { filter ->
                 val f = sharedLines

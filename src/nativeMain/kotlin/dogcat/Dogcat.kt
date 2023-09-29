@@ -40,7 +40,7 @@ class Dogcat(
             is FilterBy -> {
                 stateSubject.emit(InputCleared)
 
-                filters.add(command.filter)
+                filters.apply(command.filter)
 
 
                 if (command.filter is Substring) {
@@ -74,7 +74,7 @@ class Dogcat(
                 val packageName = ForegroundProcess.parsePackageName()
                 val userId = DumpsysPackage().parseUserIdFor(packageName)
 
-                filters.add(ByPackage(packageName, userId), true)
+                filters.apply(ByPackage(packageName, userId))
                 Logger.d("Startup with foreground app, resolved to package '$packageName' and user ID '$userId'")
             }
 
@@ -84,7 +84,7 @@ class Dogcat(
                 val packageName = subcommand.packageName
                 val userId = DumpsysPackage().parseUserIdFor(packageName)
 
-                filters.add(ByPackage(packageName, userId), true)
+                filters.apply(ByPackage(packageName, userId))
                 Logger.d("Startup package name '$packageName', resolved user ID to '$userId'")
             }
 
