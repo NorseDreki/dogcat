@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+
 plugins {
     kotlin("multiplatform") version "1.9.0"
 }
@@ -21,7 +23,10 @@ kotlin {
     macosX64()
     macosArm64()*/
 
-    linuxX64("linux") {
+    val testFrameworkAttribute = Attribute.of("com.example.testFramework", String::class.java)
+
+    /*linuxX64("1") {
+        //attributes.attribute(testFrameworkAttribute, "junit")
         binaries {
             executable(listOf(DEBUG)) {
                 entryPoint = "main"
@@ -34,7 +39,7 @@ kotlin {
             val ncurses by creating {
             }
         }
-    }
+    }*/
 
     /*macosX64("nativeMac")
     linuxX64("nativeLin")
@@ -47,6 +52,33 @@ kotlin {
             }
         }
     }*/
+    /*val linuxTargets = listOf(
+        linuxX64()
+    )*/
+
+   // val linuxTargets = listOf(
+        //linuxArm64(),
+        /*linuxX64() {
+            binaries {
+                executable(listOf(DEBUG)) {
+                    entryPoint = "main"
+                }
+                executable(listOf(RELEASE)) {
+                    entryPoint = "main"
+                }
+            }
+            *//*compilations["main"].cinterops {
+                val ncurses by creating {
+                }
+            }*//*
+        },*/
+        //mingwX64()
+   // )
+    val darwinTargets = listOf(
+        macosX64() { attributes.attribute(testFrameworkAttribute, "junit") },
+    )
+
+
 
     val hostOs = System.getProperty("os.name")
     val isArm64 = System.getProperty("os.arch") == "aarch64"
@@ -58,6 +90,19 @@ kotlin {
         hostOs == "Linux" && !isArm64 -> linuxX64("native")
         isMingwX64 -> mingwX64("native")
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
+    }
+
+    targets.withType(KotlinNativeTarget::class.java) {
+        println("$this")
+        compilations["main"].cinterops {
+            val ncurses by creating {
+            }
+        }
+        binaries {
+            executable {
+                entryPoint = "main"
+            }
+        }
     }
 
     /*nativeTarget.apply {
@@ -72,17 +117,18 @@ kotlin {
         }
     }*/
 
-    val testFrameworkAttribute = Attribute.of("com.example.testFramework", String::class.java)
+    /*val testFrameworkAttribute = Attribute.of("com.example.testFramework", String::class.java)
     jvm("junit") {
         attributes.attribute(testFrameworkAttribute, "junit")
     }
     jvm("testng") {
         attributes.attribute(testFrameworkAttribute, "testng")
-    }
+    }*/
     //The consumer has to add the attribute to a single target where the ambiguity arises.
 
     sourceSets {
-        val linuxMain by getting {
+        val nativeMain by getting {
+
             dependencies {
                 implementation("com.kgit2:kommand:1.0.2")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
@@ -90,7 +136,7 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.6")
             }
         }
-        val linuxTest by getting {
+        val nativeTest by getting {
             dependencies {
                 //or api()??
                 implementation(kotlin("test"))
@@ -106,6 +152,26 @@ kotlin {
                 implementation(Libs.kotest("assertions-core"))*/
             }
         }
+        val darwinMain by creating {
+            dependsOn(nativeMain)
+        }
+        darwinTargets.forEach {
+            getByName("${it.targetName}Main") {
+                dependsOn(darwinMain)
+            }
+        }
+        /*val linuxMain by creating {
+            dependsOn(nativeMain)
+        }
+        linuxTargets.forEach {
+
+            getByName("${it.targetName}Main") {
+                dependsOn(linuxMain)
+            }
+        }*/
+        /*val linuxX64 by getting {
+            dependsOn(nativeMain)
+        }*/
         /*val nativeMacMain by getting {
             dependsOn(nativeMain)
         }
@@ -126,5 +192,27 @@ kotlin {
                 implementation(libs.kotest.assertions.core)
             }
         }*/
+    }
+
+    //afterEvaluate {
+        /*afterEvaluate {
+            tasks.named("compileNativeMainKotlinMetadata") {
+                enabled = false
+            }
+        }*/
+    //}
+}
+
+afterEvaluate {
+    afterEvaluate {
+        tasks.configureEach {
+            if (
+                name.startsWith("compile")
+                && name.endsWith("KotlinMetadata")
+            ) {
+                println("disabling :$name")
+                enabled = false
+            }
+        }
     }
 }
