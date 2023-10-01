@@ -1,8 +1,9 @@
 package dogcat
 
 import Config.DEFAULT_MIN_LOG_LEVEL
-import dogcat.LogFilter.MinLogLevel
-import dogcat.LogFilter.Substring
+import LogFilter
+import LogFilter.MinLogLevel
+import LogFilter.Substring
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow

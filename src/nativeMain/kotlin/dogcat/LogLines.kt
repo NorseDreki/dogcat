@@ -1,5 +1,6 @@
 package dogcat
 
+import LogFilter
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import platform.Logger

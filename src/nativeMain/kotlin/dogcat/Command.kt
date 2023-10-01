@@ -1,5 +1,6 @@
 package dogcat
 
+import LogFilter
 import kotlin.reflect.KClass
 
 sealed interface Command {

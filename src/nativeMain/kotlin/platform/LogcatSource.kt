@@ -4,17 +4,12 @@ import dogcat.LogLinesSource
 import com.kgit2.process.Command
 import com.kgit2.process.Stdio
 import dogcat.InternalAppliedFiltersState
-import dogcat.LogFilter
-import dogcat.LogFilter.ByPackage
-import dogcat.LogFilter.MinLogLevel
+import LogFilter.ByPackage
+import LogFilter.MinLogLevel
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import ncurses.napms
-import platform.posix.INLCR
-import platform.posix.termios
-import kotlin.text.CharCategory.LINE_SEPARATOR
 
 @OptIn(ExperimentalStdlibApi::class)
 class LogcatSource(

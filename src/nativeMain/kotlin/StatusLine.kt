@@ -1,6 +1,5 @@
 import dogcat.AppliedFilters
-import dogcat.LogFilter
-import dogcat.LogFilter.*
+import LogFilter.*
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.currentCoroutineContext

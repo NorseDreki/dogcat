@@ -2,8 +2,8 @@ package dogcat
 
 import dogcat.Command.*
 import dogcat.Command.Start.*
-import dogcat.LogFilter.ByPackage
-import dogcat.LogFilter.Substring
+import LogFilter.ByPackage
+import LogFilter.Substring
 import dogcat.PublicState.*
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.currentCoroutineContext

@@ -1,6 +1,6 @@
 import ServiceLocator.dogcat
 import dogcat.Command.*
-import dogcat.LogFilter.*
+import LogFilter.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import ncurses.*
