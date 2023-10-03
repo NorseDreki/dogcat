@@ -34,7 +34,7 @@ class LogcatSource(
 
 
             val logcat = Command("adb")
-                .args("logcat", "-s", "-v", "brief")
+                .args("logcat", "-v", "brief")
                 .args(userId, minLogLevel)
                 .stdout(Stdio.Pipe)
                 .spawn()
@@ -55,7 +55,8 @@ class LogcatSource(
                     val line = dst1*/
                     /*val num1 = stdoutReader.readUntilDelimiter(0x0A, dst)
                     val line = dst.decodeToString()*/
-                    val line = stdoutReader.readUTF8Line() ?: break
+                    //val line = stdoutReader.readUTF8Line() ?: break
+                    val line = stdoutReader.readLine() ?: break
                     //Logger.d("------> [${(currentCoroutineContext()[CoroutineDispatcher])}] $line")
 
                     emit(line)

@@ -29,7 +29,7 @@ class DummyLogSource : LogLinesSource {
     val subject = MutableSharedFlow<String>(100)
 
     override fun lines() = lines.asFlow()
-    override fun clear(): Boolean {
+    suspend override fun clear(): Boolean {
         return true
     }
     /*flow {

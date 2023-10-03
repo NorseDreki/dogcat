@@ -17,7 +17,7 @@ class Fake2LogSource : LogLinesSource {
 
     override fun lines() = source.asSharedFlow()
 
-    override fun clear(): Boolean {
+    suspend override fun clear(): Boolean {
         TODO("Not yet implemented")
     }
 }

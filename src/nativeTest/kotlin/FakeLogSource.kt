@@ -22,7 +22,7 @@ class FakeLogSource : LogLinesSource {
         throw RuntimeException("Boom")
     }
 
-    override fun clear(): Boolean {
+    suspend override fun clear(): Boolean {
         TODO("Not yet implemented")
     }
 }
