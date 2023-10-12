@@ -1,11 +1,11 @@
 import ServiceLocator.dogcat
 import dogcat.Command.*
-import LogFilter.*
+import dogcat.LogFilter.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import ncurses.*
-import platform.Logger
 import platform.posix.exit
+import ui.Pad
 
 @OptIn(ExperimentalForeignApi::class)
 class Keymap(

@@ -1,9 +1,11 @@
+package ui
+
+import Config
 import Config.tagWidth
 import dogcat.LogLine
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.yield
 import ncurses.*
-import platform.Logger
 import kotlin.math.min
 
 @OptIn(ExperimentalForeignApi::class)

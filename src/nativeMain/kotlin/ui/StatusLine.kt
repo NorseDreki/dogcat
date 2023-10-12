@@ -1,11 +1,13 @@
+package ui
+
+import Logger
 import dogcat.AppliedFilters
-import LogFilter.*
+import dogcat.LogFilter.*
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.yield
 import ncurses.*
-import platform.Logger
 
 @OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
 suspend fun Pad.printStatusLine(it: AppliedFilters) {

@@ -1,8 +1,5 @@
-package flow
-
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.runningFold
 
 //TODO would not drain until new tag is met (thus not producing intermediate results)
 fun <T> Flow<T>.bufferedTransform(

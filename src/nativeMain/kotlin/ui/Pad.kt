@@ -1,3 +1,6 @@
+package ui
+
+import Config
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
 

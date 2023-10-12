@@ -8,14 +8,17 @@ import kotlinx.cinterop.memScoped
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import ncurses.*
-import platform.Logger
+import ui.Pad
+import ui.PadPosition
+import ui.printStatusLine
+import ui.processLogLine
 
 @OptIn(
     ExperimentalForeignApi::class,
     ExperimentalCoroutinesApi::class,
     DelicateCoroutinesApi::class,
 )
-fun main(args: Array<String>) = memScoped {
+fun main(args: Array<String>): Unit = memScoped {
     Arguments.validate(args)
 
     val ui = newSingleThreadContext("UI1")

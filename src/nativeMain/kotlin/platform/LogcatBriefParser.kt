@@ -1,5 +1,6 @@
 package platform
 
+import Logger
 import dogcat.LogLine
 import dogcat.LogLineParser
 

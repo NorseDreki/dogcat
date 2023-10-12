@@ -1,15 +1,14 @@
 package dogcat
 
 import Config.DEFAULT_MIN_LOG_LEVEL
-import LogFilter
-import LogFilter.MinLogLevel
-import LogFilter.Substring
+import dogcat.LogFilter.MinLogLevel
+import dogcat.LogFilter.Substring
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import platform.Logger
+import Logger
 import kotlin.reflect.KClass
 
 interface AppliedFiltersState {

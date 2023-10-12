@@ -9,10 +9,11 @@ object ServiceLocator {
 
     private val dogcatModule = DI.Module("dogcat") {
         bindSingleton<InternalAppliedFiltersState> { InternalAppliedFiltersState() }
+        bindSingleton<Environment> { AndroidEnvironment() }
         bindSingleton<LogLinesSource> { LogcatSource(instance()) }
         bindSingleton<LogLineParser> { LogcatBriefParser() }
         bindSingleton<LogLines> { LogLines(instance(), instance(), instance()) }
-        bindSingleton<Dogcat> { Dogcat(instance(), instance()) }
+        bindSingleton<Dogcat> { Dogcat(instance(), instance(), instance()) }
     }
 
     private val serviceLocator = DI {

@@ -1,3 +1,5 @@
+package dogcat
+
 sealed interface LogFilter {
     data class Substring(val substring: String) : LogFilter
     data class MinLogLevel(val logLevel: String) : LogFilter

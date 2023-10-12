@@ -15,7 +15,6 @@ interface LogLineParser {
 
 interface LogLinesSource {
     fun lines(): Flow<String>
-    suspend fun clear(): Boolean
 }
 
 enum class LogLevel {

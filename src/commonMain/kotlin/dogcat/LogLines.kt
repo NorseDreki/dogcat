@@ -1,9 +1,9 @@
 package dogcat
 
-import LogFilter
+import Config
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import platform.Logger
+import Logger
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
 class LogLines(
