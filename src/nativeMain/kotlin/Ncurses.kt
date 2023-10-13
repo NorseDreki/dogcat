@@ -16,20 +16,20 @@ class Ncurses {
         //noecho();
 
 
-        intrflush(stdscr, false)
+        //intrflush(stdscr, false)
         //savetty()
-        noecho()
-        savetty()
+        //noecho()
+        //savetty()
 
-        nl()
+        //nl()
         //Use the ncurses functions for output. My guess is that initscr changes terminal settings such that \n only performs a line feed, not a carriage return. –
         //melpomene
 
-        nodelay(stdscr, true) //The nodelay option causes getch to be a non-blocking call. If no input is ready, getch returns ERR. If disabled (bf is  FALSE),  getch waits until a key is pressed
+        //nodelay(stdscr, true) //The nodelay option causes getch to be a non-blocking call. If no input is ready, getch returns ERR. If disabled (bf is  FALSE),  getch waits until a key is pressed
         //cbreak(); //Disable line buffering
-        cbreak() //making getch() work without a buffer I.E. raw characters
-        keypad(stdscr, true) //allows use of special keys, namely the arrow keys
-        clear()
+        //cbreak() //making getch() work without a buffer I.E. raw characters
+        //keypad(stdscr, true) //allows use of special keys, namely the arrow keys
+        //clear()
 
         //whline(topBar, '_',80); //draw line for bottom
 
