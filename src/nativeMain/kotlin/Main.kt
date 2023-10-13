@@ -30,29 +30,29 @@ fun main(args: Array<String>): Unit = memScoped {
     val sy = getmaxy(stdscr)
 
     echo()
-    val fp = newwin(0,0,40, 0)
+    /*val fp = newwin(0,0,sy - 2, 0)
     wmove(fp, 0, 0)
     wattron(fp, COLOR_PAIR(12))
 
-    waddstr(fp, "2".repeat(sx))
+    waddstr(fp, "2".repeat(sx))*/
     //wrefresh(fp)
 
     //noraw()
 
-    /*val padPosition = PadPosition(0, 50, sx, sy - 3)
-    val pad = Pad(padPosition)*/
+    val padPosition = PadPosition(0, 0, sx, sy - 5)
+    val pad = Pad(padPosition)
 
-    /*val padPosition2 = PadPosition(0, sy - 2, sx, sy - 1)
-    val pad2 = Pad(padPosition2, 2)
+    val padPosition2 = PadPosition(0, sy - 2, sx, sy - 1)
+    val pad2 = Pad(padPosition2, 2, true)
 
-    val keymap = Keymap(this, pad, pad2, packageName)*/
+    val keymap = Keymap(this, pad, pad2, packageName)
 
 
 
     runBlocking(ui) {
         launch(Dispatchers.IO) {
             while (true) {
-                val key = wgetch(fp)
+                val key = wgetch(pad2.fp)
 
                 if (key == ERR) { //!= EOF
                     delay(30)
@@ -60,7 +60,7 @@ fun main(args: Array<String>): Unit = memScoped {
                 }
 
                 withContext(ui) {
-                   // keymap.processInputKey(key)
+                    keymap.processInputKey(key)
                 }
             }
         }
@@ -69,7 +69,7 @@ fun main(args: Array<String>): Unit = memScoped {
             .state
             .filterIsInstance<CapturingInput>()
             .flatMapLatest { it.applied }
-            //.onEach { pad2.printStatusLine(it) }
+            .onEach { pad2.printStatusLine(it) }
             .launchIn(this)
 
         dogcat
@@ -86,7 +86,7 @@ fun main(args: Array<String>): Unit = memScoped {
                     }
                     InputCleared -> {
                         Logger.d("Cleared Logcat and re-started\r")
-                        //pad.clear()
+                        pad.clear()
 
                         emptyFlow()
                     }
@@ -97,7 +97,7 @@ fun main(args: Array<String>): Unit = memScoped {
                     }
                 }
             }
-            //.onEach { pad.processLogLine(it) }
+            .onEach { pad.processLogLine(it) }
             .launchIn(this)
 
         when {

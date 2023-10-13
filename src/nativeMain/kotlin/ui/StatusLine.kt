@@ -16,7 +16,10 @@ suspend fun Pad.printStatusLine(it: AppliedFilters) {
     Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Preparing to draw applied filters: $it")
     wmove(fp, 0, 0)
     wattron(fp, COLOR_PAIR(12))
-    wclrtoeol(fp)
+
+    waddstr(fp, " ".repeat(sx))
+
+    //wclrtoeol(fp)
 
     it.forEach {
         when (it.key) {
@@ -31,9 +34,11 @@ suspend fun Pad.printStatusLine(it: AppliedFilters) {
             }
         }
     }
-    prefresh(fp, 0, 0, 0, 0, 2, sx)
+    //prefresh(fp, 0, 0, 0, 0, 2, sx)
+   // prefresh(fp, 0, 0, position.startY, position.startX, position.endY, position.endX);
 
     wattroff(fp, COLOR_PAIR(12))
-    refresh()
+    wrefresh(fp)
+    //refresh()
     yield()
 }

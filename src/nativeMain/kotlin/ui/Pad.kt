@@ -12,9 +12,13 @@ data class PadPosition(
 )
 
 @OptIn(ExperimentalForeignApi::class)
-class Pad(val position: PadPosition, i: Int = Config.LogLinesBufferCount) {
+class Pad(val position: PadPosition, i: Int = Config.LogLinesBufferCount, isWin: Boolean = false) {
 
-    val fp = newpad(i, position.endX)
+    val fp = if (isWin) {
+        newwin(0, 0, position.startY,0)
+    } else {
+        newpad(i, position.endX)
+    }
 
     init {
         scrollok(fp, true)
@@ -83,7 +87,7 @@ class Pad(val position: PadPosition, i: Int = Config.LogLinesBufferCount) {
     fun refresh() {
         //Logger.d("FVL $firstVisibleLine")
 
-        prefresh(fp, firstVisibleLine, 0, position.startY, position.startX, position.endY - 1, position.endX)
+        prefresh(fp, firstVisibleLine, 0, position.startY, position.startX, position.endY, position.endX)
         //pnoutrefresh(fp, firstVisibleLine, 0, position.startY, position.startX, position.endY - 1, position.endX)
         //doupdate()
     }

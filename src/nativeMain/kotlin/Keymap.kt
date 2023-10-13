@@ -34,13 +34,26 @@ class Keymap(
                 //echo()
 
                 val bytePtr = memScope.allocArray<ByteVar>(200)
+                echo()
+                //wmove(pad2.fp, 0, 1)
+                mvwprintw(pad2.fp, 1, 0, "filter-by: ")
+                //prefresh(pad2.fp, 0, 0, 0, 0, 2, 100);
+                //prefresh(pad2.fp, 0, 0, pad2.position.startY, pad2.position.startX, pad2.position.endY, pad2.position.endX);
 
-                wmove(pad2.fp, 0, 0)
+
+                yield()
 
                 withContext(Dispatchers.IO) {
+                    //nocbreak()
+                    //echo()
                     wgetnstr(pad2.fp, bytePtr, 200)
+
+
+                    //noecho()
+                    //cbreak()
+                    //raw()
                 }
-                //noecho()
+
                 //pad.clear()
 
                 dogcat(FilterBy(Substring(bytePtr.toKString())))
