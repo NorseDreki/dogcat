@@ -140,7 +140,7 @@ private fun wrapLine(
     pad: Pad,
     message: String
 ): String {
-    val width = pad.position.endX - 1 // fix this
+    val width = pad.position.endX
     val header = Config.tagWidth + 1 + 3 + 1// space, level, space
     val line = message.replace("\t", "    ") //prevent escape characters leaking
     val wrapArea = width - header
@@ -151,7 +151,7 @@ private fun wrapLine(
         val next = min(current + wrapArea, line.length)
         buf += line.substring(current, next)
         if (next < line.length) {
-            buf += "\n"
+            //buf += "\n"
             buf += " ".repeat(header) //
         }
         current = next
