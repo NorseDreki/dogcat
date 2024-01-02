@@ -1,4 +1,4 @@
-package ui
+package ui.status
 
 import dogcat.AppliedFilters
 import dogcat.LogFilter
@@ -7,6 +7,14 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.yield
 import ncurses.*
+import ui.PadPosition
+
+data class ViewState(
+    val filters: AppliedFilters,
+    val emulator: String,
+    val autoscroll: Boolean
+)
+
 
 @OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
 class StatusView {
@@ -18,11 +26,29 @@ class StatusView {
 
     val fp = newwin(0, 0, position.startY,0)
 
+    suspend fun stop() {
+        delwin(fp)
+    }
 
-    suspend fun printStatusLine(it: AppliedFilters) {
+    suspend fun inputFilter(): String {
+        /*
+                val bytePtr = memScope.allocArray<ByteVar>(200)
+                echo()
+                mvwprintw(pad2.fp, 1, 0, "Enter filter: ")
+                yield()
+
+                withContext(Dispatchers.IO) {
+                    wgetnstr(pad2.fp, bytePtr, 200)
+                }
+*/
+        return ""
+    }
+
+
+    suspend fun updateFilters(filters: AppliedFilters) {
         val sx = getmaxx(stdscr)
 
-        Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Preparing to draw applied filters: $it")
+        Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Preparing to draw applied filters: $filters")
         wmove(fp, 0, 0)
         wattron(fp, COLOR_PAIR(12))
 
@@ -30,7 +56,7 @@ class StatusView {
 
         //wclrtoeol(fp)
 
-        it.forEach {
+        filters.forEach {
             when (it.key) {
                 LogFilter.Substring::class -> {
                     mvwprintw(fp, 0, 0, "Filter by: ${(it.value as LogFilter.Substring).substring}")

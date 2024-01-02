@@ -52,7 +52,7 @@ fun main(args: Array<String>): Unit = memScoped {
     runBlocking(ui) {
         launch(Dispatchers.IO) {
             while (true) {
-                val key = wgetch(pad2.fp)
+                val key = wgetch(stdscr)
 
                 if (key == ERR) { //!= EOF
                     delay(30)
