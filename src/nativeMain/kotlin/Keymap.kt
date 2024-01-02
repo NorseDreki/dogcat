@@ -1,3 +1,4 @@
+import ServiceLocator.appStateFlow
 import ServiceLocator.dogcat
 import dogcat.Command.*
 import dogcat.LogFilter.*
@@ -24,6 +25,10 @@ class Keymap(
         Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Process key $key")
 
         when (key) {
+            'p'.code -> {
+                appStateFlow.autoscroll(!appStateFlow.state.value.autoscroll)
+            }
+
             'f'.code -> {
                 //mvwprintw(stdscr, 0, 0, ":")
                 //mvwprintw(pad2.fp, 0, 0, "Filter by: ")
@@ -36,7 +41,7 @@ class Keymap(
                 val bytePtr = memScope.allocArray<ByteVar>(200)
                 echo()
                 //wmove(pad2.fp, 0, 1)
-                mvwprintw(pad2.fp, 1, 0, "filter-by: ")
+                mvwprintw(pad2.fp, 1, 0, "Enter filter: ")
                 //prefresh(pad2.fp, 0, 0, 0, 0, 2, 100);
                 //prefresh(pad2.fp, 0, 0, pad2.position.startY, pad2.position.startX, pad2.position.endY, pad2.position.endX);
 
@@ -68,9 +73,15 @@ class Keymap(
                 exit(0)
             }
 
-            'a'.code, KEY_HOME -> pad.home()
+            'a'.code, KEY_HOME -> {
+                appStateFlow.autoscroll(false)
+                pad.home()
+            }
 
-            'z'.code, KEY_END -> pad.end()
+            'z'.code, KEY_END -> {
+                appStateFlow.autoscroll(true)
+                pad.end()
+            }
 
             'w'.code, KEY_UP -> pad.lineUp()
 

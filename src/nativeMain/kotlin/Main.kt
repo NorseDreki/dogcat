@@ -45,7 +45,7 @@ fun main(args: Array<String>): Unit = memScoped {
     val padPosition2 = PadPosition(0, sy - 2, sx, sy - 1)
     val pad2 = Pad(padPosition2, 2, true)
 
-    val keymap = Keymap(this, pad, pad2, packageName)
+    val keymap = Keymap(  this, pad, pad2, packageName)
 
 
 

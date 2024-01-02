@@ -14,6 +14,7 @@ object ServiceLocator {
         bindSingleton<LogLineParser> { LogcatBriefParser() }
         bindSingleton<LogLines> { LogLines(instance(), instance(), instance()) }
         bindSingleton<Dogcat> { Dogcat(instance(), instance(), instance()) }
+        bindSingleton<AppStateFlow> { InternalAppStateFlow() }
     }
 
     private val serviceLocator = DI {
@@ -21,4 +22,6 @@ object ServiceLocator {
     }
 
     val dogcat: Dogcat by serviceLocator.instance()
+
+    val appStateFlow: AppStateFlow by serviceLocator.instance()
 }

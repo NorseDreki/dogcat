@@ -1,12 +1,12 @@
 package ui
 
 import Logger
+import ServiceLocator
 import dogcat.AppliedFilters
 import dogcat.LogFilter.*
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.yield
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collectLatest
 import ncurses.*
 
 @OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
@@ -36,6 +36,24 @@ suspend fun Pad.printStatusLine(it: AppliedFilters) {
     }
     //prefresh(fp, 0, 0, 0, 0, 2, sx)
    // prefresh(fp, 0, 0, position.startY, position.startX, position.endY, position.endX);
+
+
+    withContext(Dispatchers.IO) {
+        launch {
+            ServiceLocator.appStateFlow.state.collectLatest {
+            //    withContext(Dispatchers.Main) {
+                    mvwprintw(fp, 0, 70, "Autoscroll ${it.autoscroll}")
+                    wattroff(fp, COLOR_PAIR(12))
+                    wrefresh(fp)
+                    //refresh()
+                    yield()
+            //    }
+            }
+        }
+    }
+    /*ServiceLocator.appStateFlow.state.collect() {
+
+    }*/
 
     wattroff(fp, COLOR_PAIR(12))
     wrefresh(fp)

@@ -72,13 +72,14 @@ suspend fun Pad.processLogLine(
 
     waddstr(fp, " ")
 
-    val wrapped = wrapLine(this, "${it.index} ${logLine.message}") + "\n"
+    val wrappedLine  = wrapLine(this, "${it.index} ${logLine.message}")
+    val wrapped = wrappedLine.first
 
     /*wrapped.lines().withIndex().forEach {
         Logger.d("${it.index} ${it.value}")
     }*/
 
-    recordLine(wrapped.lines().size - 1)
+    recordLine(wrappedLine.second)
 
     when (logLine.level) {
         "W" -> {
@@ -139,7 +140,7 @@ suspend fun Pad.processLogLine(
 private fun wrapLine(
     pad: Pad,
     message: String
-): String {
+): Pair<String, Int> {
     val width = pad.position.endX
     val header = Config.tagWidth + 1 + 3 + 1// space, level, space
     val line = message.replace("\t", "    ") //prevent escape characters leaking
@@ -147,14 +148,17 @@ private fun wrapLine(
     var buf = ""
     var current = 0
 
+    var count = 1
+
     while (current < line.length) {
         val next = min(current + wrapArea, line.length)
         buf += line.substring(current, next)
         if (next < line.length) {
             //buf += "\n"
+            count += 1
             buf += " ".repeat(header) //
         }
         current = next
     }
-    return buf //+ "\n\r"
+    return buf + "\n" to count //+ "\n\r"
 }

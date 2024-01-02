@@ -1,6 +1,7 @@
 package ui
 
 import Config
+import ServiceLocator
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
 
@@ -100,7 +101,9 @@ class Pad(val position: PadPosition, i: Int = Config.LogLinesBufferCount, isWin:
         //Logger.d("record $count")
         linesCount += count
 
-        if (snapY) {
+
+        //if (snapY) {
+        if (ServiceLocator.appStateFlow.state.value.autoscroll) {
             end()
             //pageUp()
             //pageDown()
