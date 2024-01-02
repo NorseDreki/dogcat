@@ -1,5 +1,5 @@
 plugins {
-    kotlin("multiplatform") version "1.9.0"
+    kotlin("multiplatform") version "1.9.22"
 }
 
 group = "com.norsedreki"
@@ -58,7 +58,7 @@ kotlin {
             //dependsOn(commonMain)
 
             dependencies {
-                implementation("com.kgit2:kommand:1.1.0")
+                implementation("com.kgit2:kommand:2.0.1")
                 implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.6")
             }
         }

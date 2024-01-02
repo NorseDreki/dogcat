@@ -7,4 +7,6 @@ interface Environment {
     suspend fun foregroundPackageName(): String
 
     suspend fun clearSource(): Boolean
+
+    suspend fun devices(): List<String>
 }

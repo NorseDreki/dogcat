@@ -1,24 +1,25 @@
 package platform
 
 import Config
+import Environment
 import Logger
 import dogcat.LogLinesSource
-import com.kgit2.process.Command
-import com.kgit2.process.Stdio
+import com.kgit2.kommand.process.Command
+import com.kgit2.kommand.process.Stdio
 import dogcat.InternalAppliedFiltersState
 import dogcat.LogFilter.ByPackage
 import dogcat.LogFilter.MinLogLevel
-import io.ktor.utils.io.core.internal.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
 @OptIn(ExperimentalStdlibApi::class)
 class LogcatSource(
     private val state: InternalAppliedFiltersState,
+    private val environment: Environment,
     private val dispatchersIO: CoroutineDispatcher = Dispatchers.IO,
 ) : LogLinesSource {
 
-    override fun lines() =
+    override fun lines() : Flow<String> =
         flow {
             val af = state.applied.value
 
@@ -33,24 +34,33 @@ class LogcatSource(
             }
             Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Starting adb logcat")
 
+            val d = environment.devices()
+            //println("1111 $d")
+
+
             val logcat = Command("adb")
-                .args("logcat", "-v", "brief")
-                .args(userId, minLogLevel)
+                .args(
+                    listOf("logcat", "-v", "brief", userId, minLogLevel)
+                )
                 .stdout(Stdio.Pipe)
                 .spawn()
 
-            val stdoutReader = logcat.getChildStdout()!!
+
+            val stdoutReader = logcat.bufferedStdout()!!// .getChildStdout()!!
 
             try {
                 while (true) {
+                    //println("1111111 line")
                     val line = stdoutReader.readLine() ?: break
                     emit(line)
                     //yield() //?
                 }
-            } catch (e: MalformedUTF8InputException) {
-                Logger.d("!!!!!!!!!!! MalformedUTF8InputException! ${e.message} [${(currentCoroutineContext()[CoroutineDispatcher])}]")
             } catch (e: CancellationException) {
                 Logger.d("!!!!!!!!!!! Cancellation! $e")
+            } catch (e: RuntimeException) {
+                Logger.d(
+                    "!!!!!!!!!!! Runtime! ${e.message} [${(currentCoroutineContext()[CoroutineDispatcher])}]"
+                )
             }
 
             Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] !!!!!!!!! Killing logcat ${currentCoroutineContext().isActive}")

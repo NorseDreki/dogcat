@@ -1,5 +1,5 @@
-import com.kgit2.process.Command
-import com.kgit2.process.Stdio
+import com.kgit2.kommand.process.Command
+import com.kgit2.kommand.process.Stdio
 import kotlinx.coroutines.*
 
 @OptIn(ExperimentalStdlibApi::class)
@@ -11,13 +11,15 @@ class AndroidEnvironment(
 
         val output = withTimeout(Config.AdbCommandTimeoutMillis) {
             Command("adb")
-                .args("shell", "dumpsys", "package")
+                .args(
+                    listOf("shell", "dumpsys", "package")
+                )
                 .arg(packageName)
                 .stdout(Stdio.Pipe)
                 .output()
         }
 
-        val userId = output?.let {
+        val userId = output.stdout?.let {
             val match = UID_CONTEXT.find(it)
             match?.let {
                 val (userId) = it.destructured
@@ -30,9 +32,12 @@ class AndroidEnvironment(
 
     override suspend fun currentEmulatorName() = withContext(Dispatchers.IO) {
             Command("adb")
-                .args("emu", "avd", "name")
+                .args(
+                    listOf("emu", "avd", "name")
+                )
                 .stdout(Stdio.Pipe)
                 .output()
+                .stdout
                 ?.lines()
                 ?.first()
     }
@@ -41,11 +46,13 @@ class AndroidEnvironment(
         val FG_LINE = """^ +ResumedActivity: +ActivityRecord\{[^ ]* [^ ]* ([^ ^\/]*).*$""".toRegex()
 
         val out = Command("adb")
-            .args("shell", "dumpsys", "activity", "activities")
+            .args(
+                listOf("shell", "dumpsys", "activity", "activities")
+            )
             .stdout(Stdio.Pipe)
             .spawn()
 
-        val stdoutReader = out.getChildStdout()!!
+        val stdoutReader = out.bufferedStdout()!!// getChildStdout()!!
 
         var proc: String? = null
 
@@ -69,12 +76,38 @@ class AndroidEnvironment(
     override suspend fun clearSource(): Boolean {
         val childStatus = withContext(dispatcherIo) {
                 Command("adb")
-                    .args("logcat", "-c")
+                    .args(
+                        listOf("logcat", "-c")
+                    )
                     .status()
         }
 
-        Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Exit code for 'adb logcat -c': ${childStatus.code}")
+        Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Exit code for 'adb logcat -c': ${childStatus}")
 
-        return childStatus.code == 0
+        return childStatus == 0
+    }
+
+    override suspend fun devices(): List<String>  = withContext(dispatcherIo) {
+        val DEVICES = """List of devices attached\n(.*)""".toRegex()
+
+
+        val output = withContext(dispatcherIo) {
+            Command("adb")
+                .args(
+                    listOf("devices")
+                )
+                .output()
+        }
+
+        val userId = output.stdout?.let {
+            println("11111 $it")
+            val match = DEVICES.find(it)
+            match?.let {
+                val (userId) = it.destructured
+                userId
+            }
+        } ?: ""
+
+        listOf(userId) ?: throw RuntimeException("UserId not found!")
     }
 }
