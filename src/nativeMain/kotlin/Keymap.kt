@@ -45,6 +45,7 @@ class Keymap(
                 //prefresh(pad2.fp, 0, 0, 0, 0, 2, 100);
                 //prefresh(pad2.fp, 0, 0, pad2.position.startY, pad2.position.startX, pad2.position.endY, pad2.position.endX);
 
+                //wgetnstr(pad2.fp, bytePtr, 200)
 
                 yield()
 

@@ -34,7 +34,7 @@ class LogcatSource(
             }
             Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Starting adb logcat")
 
-            val d = environment.devices()
+            //val d = environment.devices()
             //println("1111 $d")
 
 

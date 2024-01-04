@@ -2,10 +2,8 @@ package ui.status
 
 import dogcat.AppliedFilters
 import dogcat.LogFilter
-import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.yield
+import kotlinx.cinterop.*
+import kotlinx.coroutines.*
 import ncurses.*
 import ui.logLines.PadPosition
 
@@ -30,18 +28,23 @@ class StatusView {
         delwin(fp)
     }
 
-    suspend fun inputFilter(): String {
-        /*
-                val bytePtr = memScope.allocArray<ByteVar>(200)
-                echo()
-                mvwprintw(pad2.fp, 1, 0, "Enter filter: ")
-                yield()
+    suspend fun inputFilter(): String = memScoped {
 
-                withContext(Dispatchers.IO) {
-                    wgetnstr(pad2.fp, bytePtr, 200)
-                }
-*/
-        return ""
+                val bytePtr = allocArray<ByteVar>(200)
+                echo()
+                mvwprintw(fp, 1, 0, "Enter filter: ")
+                //yield()
+
+                //withContext(Dispatchers.IO) {
+                    wgetnstr(fp, bytePtr, 200)
+                //}
+
+        wmove(fp, 1, 0)
+        waddstr(fp, " ".repeat(sx))
+        //clrtoeol()
+        wrefresh(fp)
+
+        return bytePtr.toKString()
     }
 
 
