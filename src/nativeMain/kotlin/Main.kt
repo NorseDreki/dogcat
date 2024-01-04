@@ -1,5 +1,6 @@
 import Arguments.current
 import Arguments.packageName
+import ServiceLocator.appStateFlow
 import ServiceLocator.dogcat
 import dogcat.Command.Start
 import dogcat.PublicState.*
@@ -12,6 +13,7 @@ import ui.*
 import ui.logLines.LogLinesView
 import ui.logLines.PadPosition
 import ui.logLines.processLogLine
+import ui.status.StatusPresenter
 
 @OptIn(
     ExperimentalForeignApi::class,
@@ -65,12 +67,9 @@ fun main(args: Array<String>): Unit = memScoped {
             }
         }
 
-        dogcat
-            .state
-            .filterIsInstance<CapturingInput>()
-            .flatMapLatest { it.applied }
-            .onEach { pad2.printStatusLine(it) }
-            .launchIn(this)
+        val input = DefaultInput(Dispatchers.IO)
+        val status = StatusPresenter(dogcat, appStateFlow, input, this)
+        status.start()
 
         dogcat
             .state

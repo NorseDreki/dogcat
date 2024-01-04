@@ -38,7 +38,7 @@ class LogLinesPresenter(
                     }
                     PublicState.InputCleared -> {
                         Logger.d("Cleared Logcat and re-started\r")
-                        pad.clear()
+                        //pad.clear()
 
                         emptyFlow()
                     }
@@ -49,8 +49,8 @@ class LogLinesPresenter(
                     }
                 }
             }
-            .onEach { pad.processLogLine(it) }
-            .launchIn(this)
+            //.onEach { pad.processLogLine(it) }
+            .launchIn(scope)
 
         input
             .keypresses

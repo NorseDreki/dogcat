@@ -29,7 +29,7 @@ class StatusPresenter(
             .onEach { view.updateFilters(it) }
             .launchIn(scope)
 
-        input
+        /*input
             .keypresses
             .filter { it == 'f'.code }
             .onEach {
@@ -44,7 +44,7 @@ class StatusPresenter(
             .onEach {
 
             }
-            .launchIn(scope)
+            .launchIn(scope)*/
     }
 
     suspend fun stop() {
