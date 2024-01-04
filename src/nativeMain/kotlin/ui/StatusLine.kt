@@ -8,9 +8,10 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collectLatest
 import ncurses.*
+import ui.logLines.LogLinesView
 
 @OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
-suspend fun Pad.printStatusLine(it: AppliedFilters) {
+suspend fun LogLinesView.printStatusLine(it: AppliedFilters) {
     val sx = getmaxx(stdscr)
 
     Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Preparing to draw applied filters: $it")

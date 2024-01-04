@@ -7,7 +7,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.yield
 import ncurses.*
-import ui.PadPosition
+import ui.logLines.PadPosition
 
 data class ViewState(
     val filters: AppliedFilters,

@@ -16,4 +16,6 @@ sealed interface PublicState {
     ) : PublicState, AppliedFiltersState
 
     data object Stopped : PublicState
+
+    //add heartbeat which listens to emulator all the time
 }

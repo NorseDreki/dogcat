@@ -8,10 +8,10 @@ import kotlinx.cinterop.memScoped
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import ncurses.*
-import ui.Pad
-import ui.PadPosition
-import ui.printStatusLine
-import ui.processLogLine
+import ui.*
+import ui.logLines.LogLinesView
+import ui.logLines.PadPosition
+import ui.logLines.processLogLine
 
 @OptIn(
     ExperimentalForeignApi::class,
@@ -23,7 +23,7 @@ fun main(args: Array<String>): Unit = memScoped {
 
     val ui = newSingleThreadContext("UI1")
 
-    val ncurses = Ncurses()
+    val ncurses = DogcatPresenter()
     ncurses.start()
 
     val sx = getmaxx(stdscr)
@@ -40,10 +40,10 @@ fun main(args: Array<String>): Unit = memScoped {
     //noraw()
 
     val padPosition = PadPosition(0, 0, sx, sy - 5)
-    val pad = Pad(padPosition)
+    val pad = LogLinesView(padPosition)
 
     val padPosition2 = PadPosition(0, sy - 2, sx, sy - 1)
-    val pad2 = Pad(padPosition2, 2, true)
+    val pad2 = LogLinesView(padPosition2, 2, true)
 
     val keymap = Keymap(  this, pad, pad2, packageName)
 

@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalForeignApi::class)
 
-package ui
+package ui.logLines
 
 import Config
 import Config.tagWidth
@@ -11,7 +11,7 @@ import ncurses.*
 import kotlin.math.min
 
 @OptIn(ExperimentalForeignApi::class)
-private fun printTag(pad: Pad, tag: String) {
+private fun printTag(pad: LogLinesView, tag: String) {
     val c = allocateColor(tag)
 
     wattron(pad.fp, COLOR_PAIR(ccpp[c]!!))
@@ -62,7 +62,7 @@ private fun String.massage(): String {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-suspend fun Pad.processLogLine(
+suspend fun LogLinesView.processLogLine(
     it: IndexedValue<LogLine>,
 ) {
     //waddstr(fp, "${it.index} ")
@@ -138,7 +138,7 @@ suspend fun Pad.processLogLine(
 }
 
 private fun wrapLine(
-    pad: Pad,
+    pad: LogLinesView,
     message: String
 ): Pair<String, Int> {
     val width = pad.position.endX

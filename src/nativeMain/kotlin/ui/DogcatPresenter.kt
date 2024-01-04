@@ -1,9 +1,11 @@
+package ui
+
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
 import platform.posix.*
 
 @OptIn(ExperimentalForeignApi::class)
-class Ncurses {
+class DogcatPresenter {
 
     fun start() {
 

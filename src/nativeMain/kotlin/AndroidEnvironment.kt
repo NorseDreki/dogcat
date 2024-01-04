@@ -90,7 +90,6 @@ class AndroidEnvironment(
     override suspend fun devices(): List<String>  = withContext(dispatcherIo) {
         val DEVICES = """List of devices attached\n(.*)""".toRegex()
 
-
         val output = withContext(dispatcherIo) {
             Command("adb")
                 .args(

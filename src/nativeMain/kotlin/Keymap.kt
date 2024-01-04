@@ -6,13 +6,13 @@ import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import ncurses.*
 import platform.posix.exit
-import ui.Pad
+import ui.logLines.LogLinesView
 
 @OptIn(ExperimentalForeignApi::class)
 class Keymap(
     val memScope: MemScope,
-    val pad: Pad,
-    val pad2: Pad,
+    val pad: LogLinesView,
+    val pad2: LogLinesView,
     val pkg: String? = null
 ) {
 

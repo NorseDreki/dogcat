@@ -1,4 +1,4 @@
-package ui
+package ui.logLines
 
 import Config
 import ServiceLocator
@@ -13,7 +13,7 @@ data class PadPosition(
 )
 
 @OptIn(ExperimentalForeignApi::class)
-class Pad(val position: PadPosition, i: Int = Config.LogLinesBufferCount, isWin: Boolean = false) {
+class LogLinesView(val position: PadPosition, i: Int = Config.LogLinesBufferCount, isWin: Boolean = false) {
 
     val fp = if (isWin) {
         newwin(0, 0, position.startY,0)
