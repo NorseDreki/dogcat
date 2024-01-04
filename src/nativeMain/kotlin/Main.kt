@@ -10,6 +10,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import ncurses.*
 import ui.*
+import ui.logLines.LogLinesPresenter
 import ui.logLines.LogLinesView
 import ui.logLines.PadPosition
 import ui.logLines.processLogLine
@@ -41,18 +42,18 @@ fun main(args: Array<String>): Unit = memScoped {
 
     //noraw()
 
-    val padPosition = PadPosition(0, 0, sx, sy - 5)
+    /*val padPosition = PadPosition(0, 0, sx, sy - 5)
     val pad = LogLinesView(padPosition)
 
     val padPosition2 = PadPosition(0, sy - 2, sx, sy - 1)
     val pad2 = LogLinesView(padPosition2, 2, true)
 
-    val keymap = Keymap(  this, pad, pad2, packageName)
+    val keymap = Keymap(  this, pad, pad2, packageName)*/
 
 
 
     runBlocking(ui) {
-        launch(Dispatchers.IO) {
+        /*launch(Dispatchers.IO) {
             while (true) {
                 val key = wgetch(stdscr)
 
@@ -65,13 +66,18 @@ fun main(args: Array<String>): Unit = memScoped {
                     keymap.processInputKey(key)
                 }
             }
-        }
+        }*/
 
-        val input = DefaultInput(Dispatchers.IO)
+        val input = DefaultInput(this, Dispatchers.IO)
+        input.start()
+
         val status = StatusPresenter(dogcat, appStateFlow, input, this)
         status.start()
 
-        dogcat
+        val logLines = LogLinesPresenter(dogcat, appStateFlow, input, this)
+        logLines.start()
+
+        /*dogcat
             .state
             .flatMapLatest {
                 when (it) {
@@ -97,7 +103,7 @@ fun main(args: Array<String>): Unit = memScoped {
                 }
             }
             .onEach { pad.processLogLine(it) }
-            .launchIn(this)
+            .launchIn(this)*/
 
         when {
             packageName != null -> dogcat(Start.SelectAppByPackage(packageName!!))

@@ -8,19 +8,27 @@ import dogcat.Command
 import dogcat.Dogcat
 import dogcat.LogFilter
 import dogcat.PublicState
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import ncurses.*
 
+@OptIn(ExperimentalForeignApi::class)
 class LogLinesPresenter(
     private val dogcat: Dogcat,
     private val appStateFlow: AppStateFlow,
     private val input: Input,
     private val scope: CoroutineScope
 ) {
-    //views can come and go, when input disappears
-    private val view = StatusView()
+    val sx = getmaxx(stdscr)
+    val sy = getmaxy(stdscr)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
+    val padPosition = PadPosition(0, 0, sx, sy - 5)
+
+    //views can come and go, when input disappears
+    private val view = LogLinesView(padPosition)
+
+    @OptIn(ExperimentalCoroutinesApi::class, ExperimentalForeignApi::class)
     suspend fun start() {
         //what is tail-call as in launchIn?
 
@@ -38,7 +46,7 @@ class LogLinesPresenter(
                     }
                     PublicState.InputCleared -> {
                         Logger.d("Cleared Logcat and re-started\r")
-                        //pad.clear()
+                        view.clear()
 
                         emptyFlow()
                     }
@@ -49,16 +57,33 @@ class LogLinesPresenter(
                     }
                 }
             }
-            //.onEach { pad.processLogLine(it) }
+            .onEach { view.processLogLine(it) }
             .launchIn(scope)
 
         input
             .keypresses
-            .filter { it == 'f'.code }
             .onEach {
-                val filterString = view.inputFilter()
+                when (it) {
 
-                dogcat(Command.FilterBy(LogFilter.Substring(filterString)))
+                    'a'.code, KEY_HOME -> {
+                        appStateFlow.autoscroll(false)
+                        view.home()
+                    }
+
+                    'z'.code, KEY_END -> {
+                        appStateFlow.autoscroll(true)
+                        view.end()
+                    }
+
+                    'w'.code, KEY_UP -> view.lineUp()
+
+                    's'.code, KEY_DOWN -> view.lineDown()
+
+                    'd'.code, KEY_NPAGE -> view.pageDown()
+
+                    'e'.code, KEY_PPAGE -> view.pageUp()
+
+                }
             }
             .launchIn(scope)
 
@@ -71,6 +96,6 @@ class LogLinesPresenter(
     }
 
     suspend fun stop() {
-        view.stop()
+        //view.stop()
     }
 }
