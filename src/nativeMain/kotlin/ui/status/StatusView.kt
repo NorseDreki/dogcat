@@ -23,7 +23,7 @@ class StatusView {
 
     val position = PadPosition(0, sy - 2, sx, sy - 1)
 
-    val fp = newwin(0, 0, position.startY,0)
+    val fp = newwin(0, 0, position.startY, 0)
 
     suspend fun stop() {
         delwin(fp)
@@ -31,21 +31,29 @@ class StatusView {
 
     suspend fun inputFilter(): String = memScoped {
 
-                val bytePtr = allocArray<ByteVar>(200)
-                echo()
-                mvwprintw(fp, 1, 0, "Enter filter: ")
-                //yield()
+        val bytePtr = allocArray<ByteVar>(200)
+        echo()
+        mvwprintw(fp, 1, 0, "Enter filter: ")
+        //yield()
 
-                //withContext(Dispatchers.IO) {
-                    wgetnstr(fp, bytePtr, 200)
-                //}
+        //withContext(Dispatchers.IO) {
+        wgetnstr(fp, bytePtr, 200)
+        //}
 
+        noecho()
         wmove(fp, 1, 0)
         waddstr(fp, " ".repeat(sx))
         //clrtoeol()
         wrefresh(fp)
 
         return bytePtr.toKString()
+    }
+
+    fun updateAutoscroll(autoscroll: Boolean) {
+        wattron(fp, COLOR_PAIR(12))
+        mvwprintw(fp, 0, 70, "Autoscroll ${autoscroll}")
+        wattroff(fp, COLOR_PAIR(12))
+        wrefresh(fp)
     }
 
 
@@ -65,9 +73,11 @@ class StatusView {
                 LogFilter.Substring::class -> {
                     mvwprintw(fp, 0, 0, "Filter by: ${(it.value as LogFilter.Substring).substring}")
                 }
+
                 LogFilter.MinLogLevel::class -> {
                     mvwprintw(fp, 0, 30, "${(it.value as LogFilter.MinLogLevel).logLevel} and up")
                 }
+
                 LogFilter.ByPackage::class -> {
                     mvwprintw(fp, 0, 80, "${(it.value as LogFilter.ByPackage).packageName} on")
                 }
@@ -80,19 +90,5 @@ class StatusView {
         wrefresh(fp)
         //refresh()
         yield()
-
-        /*withContext(Dispatchers.IO) {
-            launch {
-                ServiceLocator.appStateFlow.state.collectLatest {
-                    //    withContext(Dispatchers.Main) {
-                    mvwprintw(fp, 0, 70, "Autoscroll ${it.autoscroll}")
-                    wattroff(fp, COLOR_PAIR(12))
-                    wrefresh(fp)
-                    //refresh()
-                    yield()
-                    //    }
-                }
-            }
-        }*/
     }
 }

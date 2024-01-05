@@ -13,13 +13,14 @@ class StatusPresenter(
     private val dogcat: Dogcat,
     private val appStateFlow: AppStateFlow,
     private val input: Input,
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
+    private val ui: CloseableCoroutineDispatcher
 ) {
     //views can come and go, when input disappears
     private val view = StatusView()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    suspend fun start() {
+     fun start() {
         //what is tail-call as in launchIn?
 
         dogcat
@@ -33,7 +34,7 @@ class StatusPresenter(
             .keypresses
             .filter { it == 'f'.code }
             .onEach {
-                val filterString = view.inputFilter()
+                val filterString = withContext(ui) { view.inputFilter()}
 
                 dogcat(Command.FilterBy(LogFilter.Substring(filterString)))
             }
@@ -42,7 +43,9 @@ class StatusPresenter(
         appStateFlow
             .state
             .onEach {
-
+                withContext(ui) {
+                    view.updateAutoscroll(it.autoscroll)
+                }
             }
             .launchIn(scope)
     }

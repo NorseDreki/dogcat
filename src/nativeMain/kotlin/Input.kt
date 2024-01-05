@@ -17,9 +17,11 @@ class DefaultInput(
 
     override val keypresses = MutableSharedFlow<Int>()
 
+    val s = CoroutineScope(inputDispatcher)
+
     @OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
-    suspend fun start() {
-        scope.launch(inputDispatcher) {
+    fun start() {
+        s.launch {
             while (true) {
                 val key = wgetch(stdscr)
 
@@ -37,5 +39,9 @@ class DefaultInput(
                 //}
             }
         }
+    }
+
+    fun stop() {
+        s.cancel()
     }
 }

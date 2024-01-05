@@ -21,7 +21,7 @@ fun main(args: Array<String>) {
         val app = DogcatPresenter(dogcat, appStateFlow, input, packageName, this)
         app.start()
 
-        val status = StatusPresenter(dogcat, appStateFlow, input, this)
+        val status = StatusPresenter(dogcat, appStateFlow, input, this, ui)
         status.start()
 
         val logLines = LogLinesPresenter(dogcat, appStateFlow, input, this)
