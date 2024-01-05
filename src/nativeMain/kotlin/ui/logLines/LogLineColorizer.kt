@@ -131,6 +131,8 @@ suspend fun LogLinesView.processLogLine(
         }
         //waddstr(fp, "${it.value.message} \n")
     }
+
+    refresh()
      yield()
 
     //pad.recordLine()

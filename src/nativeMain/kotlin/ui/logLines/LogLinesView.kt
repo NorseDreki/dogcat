@@ -1,6 +1,6 @@
 package ui.logLines
 
-import Config
+import Config.LogLinesBufferCount
 import ServiceLocator
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
@@ -13,13 +13,10 @@ data class PadPosition(
 )
 
 @OptIn(ExperimentalForeignApi::class)
-class LogLinesView(val position: PadPosition, i: Int = Config.LogLinesBufferCount, isWin: Boolean = false) {
+class LogLinesView(val position: PadPosition) {
 
-    val fp = if (isWin) {
-        newwin(0, 0, position.startY,0)
-    } else {
-        newpad(i, position.endX)
-    }
+    val fp = newpad(LogLinesBufferCount, position.endX)
+    val pageSize = position.endY - position.startY + 1
 
     init {
         scrollok(fp, true)
@@ -33,34 +30,39 @@ class LogLinesView(val position: PadPosition, i: Int = Config.LogLinesBufferCoun
     private var linesCount = 0
 
     fun pageUp() {
-        /*firstVisibleLine -= position.endY - 1 - position.startY
-        refresh()*/
+        //firstVisibleLine -= pageSize
+        //refresh()
 
-        (1..53).forEach {
+        repeat(pageSize) {
             firstVisibleLine--
             refresh()
         }
+
+        Logger.d("Page Up by $pageSize, $firstVisibleLine")
     }
 
     fun pageDown() {
-        /*firstVisibleLine += position.endY - 1 - position.startY
-        //delay(100)
-        refresh()
-*/
-        (1..53).forEach {
+        //firstVisibleLine += pageSize
+        //refresh()
+
+        repeat(pageSize) {
             firstVisibleLine++
             refresh()
         }
+
+        Logger.d("Page Down by $pageSize, $firstVisibleLine")
     }
 
     fun lineUp() {
         firstVisibleLine--
         refresh()
+        Logger.d("Up, $firstVisibleLine")
     }
 
     fun lineDown() {
         firstVisibleLine++
         refresh()
+        Logger.d("Down, $firstVisibleLine")
     }
 
     fun home() {
@@ -74,19 +76,23 @@ class LogLinesView(val position: PadPosition, i: Int = Config.LogLinesBufferCoun
     }
 
     fun end() {
-        firstVisibleLine = linesCount - (position.endY - 1 - position.startY)
+        firstVisibleLine = linesCount// - (position.endY - 1 - position.startY)
         refresh()
+
+        Logger.d("End $firstVisibleLine")
     }
 
     fun clear() {
         linesCount = 0
         wclear(fp)
         //werase(fp)
-        refresh()
+       // refresh()
     }
 
     fun refresh() {
         //Logger.d("FVL $firstVisibleLine")
+        //int prefresh(WINDOW *pad, int pminrow, int pmincol,
+        //int sminrow, int smincol, int smaxrow, int smaxcol);
 
         prefresh(fp, firstVisibleLine, 0, position.startY, position.startX, position.endY, position.endX)
         //pnoutrefresh(fp, firstVisibleLine, 0, position.startY, position.startX, position.endY - 1, position.endX)
@@ -98,8 +104,8 @@ class LogLinesView(val position: PadPosition, i: Int = Config.LogLinesBufferCoun
     }
 
     fun recordLine(count: Int = 1) {
-        //Logger.d("record $count")
         linesCount += count
+        Logger.d("record $count, $linesCount")
 
 
         //if (snapY) {

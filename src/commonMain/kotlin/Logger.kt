@@ -1,6 +1,6 @@
 import kotlin.native.concurrent.ThreadLocal
 
-@ThreadLocal
+//@ThreadLocal
 var logger: L? = null
 
 object Logger {

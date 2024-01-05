@@ -32,7 +32,7 @@ class StatusPresenter(
 
         input
             .keypresses
-            .filter { it == 'f'.code }
+            .filter { it == 'f'.code } //add escape to cancel filter
             .onEach {
                 val filterString = withContext(ui) { view.inputFilter()}
 

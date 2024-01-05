@@ -1,4 +1,3 @@
-import L
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.posix.*
@@ -20,4 +19,3 @@ class FileLogger : L {
         fclose(f)
     }
 }
-

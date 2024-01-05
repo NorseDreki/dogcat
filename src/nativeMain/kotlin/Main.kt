@@ -15,6 +15,9 @@ fun main(args: Array<String>) {
     val ui = newSingleThreadContext("UI1")
 
     runBlocking(ui) {
+        val logger = FileLogger()
+        Logger.set(logger)
+
         val input = DefaultInput(this, Dispatchers.IO)
         input.start()
 
