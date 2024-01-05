@@ -4,6 +4,7 @@ import dogcat.AppliedFilters
 import dogcat.LogFilter
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collectLatest
 import ncurses.*
 import ui.logLines.PadPosition
 
@@ -79,5 +80,19 @@ class StatusView {
         wrefresh(fp)
         //refresh()
         yield()
+
+        /*withContext(Dispatchers.IO) {
+            launch {
+                ServiceLocator.appStateFlow.state.collectLatest {
+                    //    withContext(Dispatchers.Main) {
+                    mvwprintw(fp, 0, 70, "Autoscroll ${it.autoscroll}")
+                    wattroff(fp, COLOR_PAIR(12))
+                    wrefresh(fp)
+                    //refresh()
+                    yield()
+                    //    }
+                }
+            }
+        }*/
     }
 }

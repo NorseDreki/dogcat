@@ -1,69 +1,94 @@
 package ui
 
+import AppStateFlow
+import Input
+import dogcat.Command
+import dogcat.Dogcat
+import dogcat.LogFilter
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import ncurses.*
 import platform.posix.*
+import ui.status.StatusView
 
 @OptIn(ExperimentalForeignApi::class)
-class DogcatPresenter {
+class DogcatPresenter(
+    private val dogcat: Dogcat,
+    private val appStateFlow: AppStateFlow,
+    private val input: Input,
+    val pkg: String? = null,
+    private val scope: CoroutineScope
+) {
+    private val view = DogcatView()
+
+    var isPackageFilteringEnabled = pkg != null
+
 
     fun start() {
+        input
+            .keypresses
+            .onEach {
+                when (it) {
+                    'p'.code -> {
+                        appStateFlow.autoscroll(!appStateFlow.state.value.autoscroll)
+                    }
+                    'q'.code -> { // catch control-c
+                        dogcat(Command.Stop)
+                        //pad.terminate()
+                        //pad2.terminate()
+                        endwin()
+                        //resetty()
+                        exit(0)
+                    }
+                    '3'.code -> {
+                        isPackageFilteringEnabled =
+                            if (isPackageFilteringEnabled) {
+                                dogcat(Command.ResetFilter(LogFilter.ByPackage::class))
+                                false
+                            } else {
+                                dogcat(Command.Start.SelectAppByPackage(pkg!!))
+                                true
+                            }
+                    }
 
+                    '4'.code -> {
+                        dogcat(Command.ResetFilter(LogFilter.Substring::class))
+                    }
 
-        setlocale(LC_ALL, "en_US.UTF-8") // should be before initscr()
-        initscr()
+                    '5'.code -> {
+                        dogcat(Command.ResetFilter(LogFilter.MinLogLevel::class))
+                    }
 
-        //raw();
-        //keypad(stdscr, TRUE);
-        //noecho();
+                    '6'.code -> {
+                        dogcat(Command.FilterBy(LogFilter.MinLogLevel("V")))
+                    }
 
+                    '7'.code -> {
+                        dogcat(Command.FilterBy(LogFilter.MinLogLevel("D")))
+                    }
 
-        //intrflush(stdscr, false)
-        //savetty()
-        //noecho()
-        //savetty()
+                    '8'.code -> {
+                        dogcat(Command.FilterBy(LogFilter.MinLogLevel("I")))
+                    }
 
-        //nl()
-        //Use the ncurses functions for output. My guess is that initscr changes terminal settings such that \n only performs a line feed, not a carriage return. –
-        //melpomene
+                    '9'.code -> {
+                        dogcat(Command.FilterBy(LogFilter.MinLogLevel("W")))
+                    }
 
-        //nodelay(stdscr, true) //The nodelay option causes getch to be a non-blocking call. If no input is ready, getch returns ERR. If disabled (bf is  FALSE),  getch waits until a key is pressed
-        //cbreak(); //Disable line buffering
-        //cbreak() //making getch() work without a buffer I.E. raw characters
-        //keypad(stdscr, true) //allows use of special keys, namely the arrow keys
-        //clear()
+                    '0'.code -> {
+                        dogcat(Command.FilterBy(LogFilter.MinLogLevel("E")))
+                    }
 
-        //whline(topBar, '_',80); //draw line for bottom
+                    'c'.code -> {
+                        dogcat(Command.ClearLogSource)
+                    }
 
-        if (!has_colors()) {
-            endwin()
-            printf("Your terminal does not support color\n")
-            exit(1)
-        }
-        use_default_colors()
-        start_color()
-        init_pair(1, COLOR_RED.toShort(), -1)
-        init_pair(2, COLOR_GREEN.toShort(), COLOR_BLACK.toShort())
-        init_pair(3, COLOR_YELLOW.toShort(), -1)
-        init_pair(4, COLOR_CYAN.toShort(), COLOR_BLACK.toShort())
+                }
+            }
+            .launchIn(scope)
 
-        init_pair(11, COLOR_BLACK.toShort(), COLOR_RED.toShort())
-        init_pair(12, COLOR_BLACK.toShort(), COLOR_WHITE.toShort())
-        init_pair(6, COLOR_BLACK.toShort(), COLOR_YELLOW.toShort())
-
-
-        /*raw();
-        noraw()*/
-
-        //fflush(stdout); // added
-        //hideCursor()
-    }
-
-    fun end() {
-        endwin()
-    }
-
-    private fun hideCursor() {
-        curs_set(0)
+        view.start()
     }
 }

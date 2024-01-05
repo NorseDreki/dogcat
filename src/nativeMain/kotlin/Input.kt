@@ -17,7 +17,7 @@ class DefaultInput(
 
     override val keypresses = MutableSharedFlow<Int>()
 
-    @OptIn(ExperimentalForeignApi::class)
+    @OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
     suspend fun start() {
         scope.launch(inputDispatcher) {
             while (true) {
@@ -28,8 +28,13 @@ class DefaultInput(
                     continue
                 }
 
+                Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Process key $key")
+
                 keypresses.emit(key)
 
+                //withContext(ui) {
+                //    keymap.processInputKey(key)
+                //}
             }
         }
     }
