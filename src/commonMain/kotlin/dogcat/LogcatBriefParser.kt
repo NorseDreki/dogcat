@@ -1,8 +1,6 @@
-package platform
+package dogcat
 
 import Logger
-import dogcat.LogLine
-import dogcat.LogLineParser
 
 class LogcatBriefParser : LogLineParser {
     val r2 = """^([A-Z])/(.+?)\( *(\d+)\): (.*?)$""".toRegex()

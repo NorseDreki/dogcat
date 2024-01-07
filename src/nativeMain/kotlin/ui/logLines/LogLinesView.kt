@@ -3,7 +3,10 @@ package ui.logLines
 import Config.LogLinesBufferCount
 import ServiceLocator
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.currentCoroutineContext
 import ncurses.*
+import kotlin.math.min
 
 data class PadPosition(
     val startX: Int,
@@ -12,14 +15,14 @@ data class PadPosition(
     val endY: Int,
 )
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
 class LogLinesView(val position: PadPosition) {
 
-    val fp = newpad(LogLinesBufferCount, position.endX)
-    val pageSize = position.endY - position.startY + 1
+    internal val pad = newpad(LogLinesBufferCount, position.endX)
+    private val pageSize = position.endY - position.startY + 1
 
     init {
-        scrollok(fp, true)
+        scrollok(pad, true)
         //keypad(fp, true)
     }
 
@@ -33,7 +36,9 @@ class LogLinesView(val position: PadPosition) {
         //firstVisibleLine -= pageSize
         //refresh()
 
-        repeat(pageSize) {
+        val num = min(pageSize, firstVisibleLine)
+
+        repeat(num) {
             firstVisibleLine--
             refresh()
         }
@@ -54,20 +59,28 @@ class LogLinesView(val position: PadPosition) {
     }
 
     fun lineUp() {
+        if (firstVisibleLine == 0) return
+
         firstVisibleLine--
         refresh()
         Logger.d("Up, $firstVisibleLine")
     }
 
     fun lineDown() {
+        if (firstVisibleLine == linesCount) return
+
         firstVisibleLine++
         refresh()
         Logger.d("Down, $firstVisibleLine")
     }
 
     fun home() {
-        firstVisibleLine = 0
-        refresh()
+        //firstVisibleLine = 0
+        //refresh()
+        if (firstVisibleLine == 0) return
+
+        firstVisibleLine = pageSize
+        pageUp()
     }
 
     fun toLine(line: Int) {
@@ -76,7 +89,7 @@ class LogLinesView(val position: PadPosition) {
     }
 
     fun end() {
-        firstVisibleLine = linesCount// - (position.endY - 1 - position.startY)
+        firstVisibleLine = linesCount - pageSize / 2
         refresh()
 
         Logger.d("End $firstVisibleLine")
@@ -84,35 +97,27 @@ class LogLinesView(val position: PadPosition) {
 
     fun clear() {
         linesCount = 0
-        wclear(fp)
+        wclear(pad)
         //werase(fp)
        // refresh()
     }
 
     fun refresh() {
         //Logger.d("FVL $firstVisibleLine")
-        //int prefresh(WINDOW *pad, int pminrow, int pmincol,
-        //int sminrow, int smincol, int smaxrow, int smaxcol);
-
-        prefresh(fp, firstVisibleLine, 0, position.startY, position.startX, position.endY, position.endX)
-        //pnoutrefresh(fp, firstVisibleLine, 0, position.startY, position.startX, position.endY - 1, position.endX)
-        //doupdate()
+        prefresh(pad, firstVisibleLine, 0, position.startY, position.startX, position.endY, position.endX)
     }
 
-    fun terminate() {
-        delwin(fp)
+    fun stop() {
+        delwin(pad)
     }
 
-    fun recordLine(count: Int = 1) {
+    suspend fun recordLine(count: Int = 1) {
         linesCount += count
-        Logger.d("record $count, $linesCount")
-
+        Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] record $count, $linesCount")
 
         //if (snapY) {
         if (ServiceLocator.appStateFlow.state.value.autoscroll) {
             end()
-            //pageUp()
-            //pageDown()
         }
     }
 }

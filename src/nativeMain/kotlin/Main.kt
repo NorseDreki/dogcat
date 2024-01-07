@@ -27,7 +27,7 @@ fun main(args: Array<String>) {
         val status = StatusPresenter(dogcat, appStateFlow, input, this, ui)
         status.start()
 
-        val logLines = LogLinesPresenter(dogcat, appStateFlow, input, this)
+        val logLines = LogLinesPresenter(dogcat, appStateFlow, input, this, ui)
         logLines.start()
 
         when {

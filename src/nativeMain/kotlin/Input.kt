@@ -33,10 +33,6 @@ class DefaultInput(
                 Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Process key $key")
 
                 keypresses.emit(key)
-
-                //withContext(ui) {
-                //    keymap.processInputKey(key)
-                //}
             }
         }
     }

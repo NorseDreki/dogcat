@@ -1,7 +1,8 @@
 object Config {
 
-    const val LogLinesBufferCount = 10000//32767
+    const val LogLinesBufferCount = 20000//32767
 
+    //below goes to nativeMain
     const val tagWidth = 23
 
     const val AdbCommandTimeoutMillis = 3000L

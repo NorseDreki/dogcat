@@ -9,7 +9,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.*
-import platform.LogcatBriefParser
+import dogcat.LogcatBriefParser
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 

@@ -25,7 +25,6 @@ class DogcatPresenter(
 
     var isPackageFilteringEnabled = pkg != null
 
-
     fun start() {
         input
             .keypresses
@@ -84,7 +83,6 @@ class DogcatPresenter(
                     'c'.code -> {
                         dogcat(Command.ClearLogSource)
                     }
-
                 }
             }
             .launchIn(scope)
