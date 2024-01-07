@@ -1,4 +1,8 @@
+import kotlinx.coroutines.flow.Flow
+
 interface Environment {
+
+    fun lines(minLogLevel: String, userId: String = "") : Flow<String>
 
     suspend fun userIdFor(packageName: String): String
 

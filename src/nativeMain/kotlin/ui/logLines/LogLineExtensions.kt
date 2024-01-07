@@ -3,7 +3,9 @@
 package ui.logLines
 
 import Config
+import dogcat.BriefLogLine
 import dogcat.LogLine
+import dogcat.UnparseableLogLine
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.yield
 import ncurses.*
@@ -13,7 +15,15 @@ import kotlin.math.min
 suspend fun LogLinesView.processLogLine(
     it: IndexedValue<LogLine>,
 ) {
-    val logLine = it.value
+    if (it.value is UnparseableLogLine) {
+        printTag("")
+        //use System.line ending
+        waddstr(pad, " ".repeat(1 + 3 + 1))
+        waddstr(pad, (it.value as UnparseableLogLine).line + "\n")
+        return
+    }
+
+    val logLine = it.value as BriefLogLine //do not cast
     printTag(logLine.tag)
 
     val wrappedLine = wrapLine("${it.index} ${logLine.message}")

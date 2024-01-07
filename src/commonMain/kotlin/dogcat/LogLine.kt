@@ -1,23 +1,21 @@
 package dogcat
 
-import kotlinx.coroutines.flow.Flow
-
-data class LogLine(
+sealed interface LogLine
+data class BriefLogLine(
     val level: String,
     val tag: String,
     val owner: String,
     val message: String
-)
+) : LogLine
+
+data class UnparseableLogLine(val line: String) : LogLine
+
+
 
 interface LogLineParser {
     fun parse(line: String) : LogLine
 }
 
-interface LogLinesSource {
-    fun lines(): Flow<String>
-}
-
 enum class LogLevel {
     V, D, I, W, E, F
 }
-

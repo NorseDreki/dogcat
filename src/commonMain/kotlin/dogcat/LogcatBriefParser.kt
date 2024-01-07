@@ -10,10 +10,10 @@ class LogcatBriefParser : LogLineParser {
 
         return if (m != null) {
             val (level, tag, owner, message) = m.destructured //use newest feature, 'named capturing groups'
-            LogLine(level, tag, owner, message)
+            BriefLogLine(level, tag, owner, message)
         } else {
-            Logger.d("! Unparseable log line: '$line'")
-            LogLine("?", "<>", "", line)
+            Logger.d("Unparseable log line: '$line'")
+            UnparseableLogLine(line)
         }
     }
 }

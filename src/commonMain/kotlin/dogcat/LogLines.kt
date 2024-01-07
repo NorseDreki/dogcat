@@ -1,15 +1,16 @@
 package dogcat
 
 import Config
+import Environment
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import Logger
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
 class LogLines(
-    val logLinesSource: LogLinesSource,
     private val lineParser: LogLineParser,
     private val s: InternalAppliedFiltersState,
+    private val environment: Environment,
     private val dispatcherCpu: CoroutineDispatcher = Dispatchers.Default,
     private val dispatcherIo: CoroutineDispatcher = Dispatchers.IO,
 ) {
@@ -76,24 +77,38 @@ class LogLines(
             .flowOn(dispatcherCpu)
     }
 
-    private fun createSharedLines() = logLinesSource
-        .lines()
-        .onCompletion { cause ->
-            if (cause == null) {
-                Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] (4) COMPLETED, loglinessource.lines $cause\r")
-                emit("[${(currentCoroutineContext()[CoroutineDispatcher])}] INPUT HAS EXITED")
-            } else {
-                Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] EXIT COMPLETE $cause\r")
-            }
+    private fun createSharedLines(): Flow<String> {
+        val af = s.applied.value
+
+        val minLogLevel =
+            af[LogFilter.MinLogLevel::class]?.let { "*:${(it as LogFilter.MinLogLevel).logLevel}" } ?: ""
+        val pkgE = true
+        val userId = if (pkgE) {
+            af[LogFilter.ByPackage::class]?.let { "--uid=${(it as LogFilter.ByPackage).resolvedUserId}" }
+                ?: ""
+        } else {
+            ""
         }
-        .onStart { Logger.d("[${currentCoroutineContext()[CoroutineDispatcher]}] Start subscription to logLinesSource\r") }
-        .shareIn(
-            scope,
-            SharingStarted.Lazily,
-            Config.LogLinesBufferCount,
-        )
-        .onSubscription { Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Subscribing to shareIn\r") }
-        .onCompletion { Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] (3) COMPLETED Subscription to shareIn\r") }
+
+        return environment
+            .lines(minLogLevel, userId)
+            .onCompletion { cause ->
+                if (cause == null) {
+                    Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] (4) COMPLETED, loglinessource.lines $cause\r")
+                    emit("[${(currentCoroutineContext()[CoroutineDispatcher])}] INPUT HAS EXITED")
+                } else {
+                    Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] EXIT COMPLETE $cause\r")
+                }
+            }
+            .onStart { Logger.d("[${currentCoroutineContext()[CoroutineDispatcher]}] Start subscription to logLinesSource\r") }
+            .shareIn(
+                scope,
+                SharingStarted.Lazily,
+                Config.LogLinesBufferCount,
+            )
+            .onSubscription { Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Subscribing to shareIn\r") }
+            .onCompletion { Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] (3) COMPLETED Subscription to shareIn\r") }
+    }
 }
 
 interface Debug {
