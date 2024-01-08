@@ -20,6 +20,7 @@ class LogLinesView(val position: PadPosition) {
 
     internal val pad = newpad(LogLinesBufferCount, position.endX)
     private val pageSize = position.endY - position.startY + 1
+    private val lastPageSize = pageSize * 2 / 3
 
     init {
         scrollok(pad, true)
@@ -35,6 +36,7 @@ class LogLinesView(val position: PadPosition) {
     fun pageUp() {
         //firstVisibleLine -= pageSize
         //refresh()
+        ServiceLocator.appStateFlow.autoscroll(false)
 
         val num = min(pageSize, firstVisibleLine)
 
@@ -49,8 +51,15 @@ class LogLinesView(val position: PadPosition) {
     fun pageDown() {
         //firstVisibleLine += pageSize
         //refresh()
+        val num = if (ServiceLocator.appStateFlow.state.value.autoscroll) {
+            min(pageSize, linesCount - lastPageSize - firstVisibleLine)
+        } else {
+            min(pageSize, linesCount - firstVisibleLine)
+        }
 
-        repeat(pageSize) {
+        //val num = min(pageSize, linesCount - firstVisibleLine)
+
+        repeat(num) {
             firstVisibleLine++
             refresh()
         }
@@ -60,6 +69,8 @@ class LogLinesView(val position: PadPosition) {
 
     fun lineUp() {
         if (firstVisibleLine == 0) return
+
+        ServiceLocator.appStateFlow.autoscroll(false)
 
         firstVisibleLine--
         refresh()
@@ -79,7 +90,9 @@ class LogLinesView(val position: PadPosition) {
         //refresh()
         if (firstVisibleLine == 0) return
 
-        firstVisibleLine = pageSize
+        val num = min(pageSize, firstVisibleLine)
+
+        firstVisibleLine = num
         pageUp()
     }
 
@@ -89,7 +102,7 @@ class LogLinesView(val position: PadPosition) {
     }
 
     fun end() {
-        firstVisibleLine = linesCount - pageSize / 2
+        firstVisibleLine = linesCount - lastPageSize
         refresh()
 
         Logger.d("End $firstVisibleLine")
@@ -117,6 +130,7 @@ class LogLinesView(val position: PadPosition) {
 
         //if (snapY) {
         if (ServiceLocator.appStateFlow.state.value.autoscroll) {
+            //handle a case when current lines take less than a screen
             end()
         }
     }

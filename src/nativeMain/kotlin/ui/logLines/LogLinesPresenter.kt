@@ -54,7 +54,11 @@ class LogLinesPresenter(
                     }
                 }
             }
-            .onEach { view.processLogLine(it) }
+            .onEach {
+                withContext(ui) {
+                    view.processLogLine(it)
+                }
+            }
             .launchIn(scope)
 
         input

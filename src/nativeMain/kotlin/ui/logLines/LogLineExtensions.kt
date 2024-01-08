@@ -20,6 +20,8 @@ suspend fun LogLinesView.processLogLine(
         //use System.line ending
         waddstr(pad, " ".repeat(1 + 3 + 1))
         waddstr(pad, (it.value as UnparseableLogLine).line + "\n")
+        recordLine(1)
+
         return
     }
 
