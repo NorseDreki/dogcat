@@ -55,8 +55,11 @@ class StatusView {
         wrefresh(fp)
     }
 
-    fun updateDevice(device: String?) {
+    fun updateDevice(device: String?, running: Boolean) {
+        val cp = if (running) 2 else 1
+        wattron(fp, COLOR_PAIR(cp))
         mvwprintw(fp, 1, 70, device)
+        wattroff(fp, COLOR_PAIR(cp))
         wrefresh(fp)
     }
 

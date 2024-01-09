@@ -137,6 +137,7 @@ class AdbEnvironment(
                 .output()
         }
 
+
         val userId = output.stdout?.let {
             println("11111 $it")
             val match = DEVICES.find(it)
@@ -147,5 +148,27 @@ class AdbEnvironment(
         } ?: ""
 
         listOf(userId) ?: throw RuntimeException("UserId not found!")
+    }
+
+    override fun heartbeat(): Flow<Boolean> = flow {
+        repeat(Int.MAX_VALUE) {
+            val name = Command("adb")
+                .args(
+                    listOf("emu", "avd", "status")
+                )
+                .stdout(Stdio.Pipe)
+                .output()
+                .stdout
+                ?.lines()
+                ?.first()
+
+            val running = name?.contains("running") ?: false
+
+            Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] !Emulator $name")
+
+            emit(running)
+
+            delay(1000L)
+        }
     }
 }

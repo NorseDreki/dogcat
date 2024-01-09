@@ -2,6 +2,7 @@ import Arguments.current
 import Arguments.packageName
 import ServiceLocator.appStateFlow
 import ServiceLocator.dogcat
+import ServiceLocator.environment
 import dogcat.Command.Start
 import kotlinx.coroutines.*
 import ui.DogcatPresenter
@@ -24,7 +25,7 @@ fun main(args: Array<String>) {
         val app = DogcatPresenter(dogcat, appStateFlow, input, packageName, this)
         app.start()
 
-        val status = StatusPresenter(dogcat, appStateFlow, input, this, ui)
+        val status = StatusPresenter(dogcat, appStateFlow, environment, input, this, ui)
         status.start()
 
         val logLines = LogLinesPresenter(dogcat, appStateFlow, input, this, ui)

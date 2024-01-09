@@ -13,4 +13,6 @@ interface Environment {
     suspend fun clearSource(): Boolean
 
     suspend fun devices(): List<String>
+
+    fun heartbeat(): Flow<Boolean>
 }

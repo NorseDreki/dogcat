@@ -44,7 +44,7 @@ class DogcatView {
         use_default_colors()
         start_color()
         init_pair(1, COLOR_RED.toShort(), -1)
-        init_pair(2, COLOR_GREEN.toShort(), COLOR_BLACK.toShort())
+        init_pair(2, COLOR_GREEN.toShort(), -1)//COLOR_BLACK.toShort())
         init_pair(3, COLOR_YELLOW.toShort(), -1)
         init_pair(4, COLOR_CYAN.toShort(), COLOR_BLACK.toShort())
 

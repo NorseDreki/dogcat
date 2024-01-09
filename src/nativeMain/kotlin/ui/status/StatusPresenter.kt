@@ -1,6 +1,7 @@
 package ui.status
 
 import AppStateFlow
+import Environment
 import Input
 import dogcat.Command
 import dogcat.Dogcat
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.*
 class StatusPresenter(
     private val dogcat: Dogcat,
     private val appStateFlow: AppStateFlow,
+    private val environment: Environment,
     private val input: Input,
     private val scope: CoroutineScope,
     private val ui: CloseableCoroutineDispatcher
@@ -45,7 +47,7 @@ class StatusPresenter(
                 view.updateAutoscroll(appStateFlow.state.value.autoscroll)
 
                 Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] !Emulator ${it.deviceName}")
-                view.updateDevice(it.deviceName)
+                view.updateDevice(it.deviceName, true)
             }
             .launchIn(scope)
 
@@ -65,6 +67,13 @@ class StatusPresenter(
                 withContext(ui) {
                     view.updateAutoscroll(it.autoscroll)
                 }
+            }
+            .launchIn(scope)
+
+        environment
+            .heartbeat()
+            .onEach {
+                view.updateDevice("Device", it)
             }
             .launchIn(scope)
     }

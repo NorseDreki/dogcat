@@ -22,4 +22,6 @@ object ServiceLocator {
     val dogcat: Dogcat by serviceLocator.instance()
 
     val appStateFlow: AppStateFlow by serviceLocator.instance()
+
+    val environment: Environment by serviceLocator.instance()
 }
