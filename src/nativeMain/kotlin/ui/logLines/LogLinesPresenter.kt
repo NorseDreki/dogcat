@@ -8,6 +8,7 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import ncurses.*
+import ui.ViewPosition
 
 @OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
 class LogLinesPresenter(
@@ -17,13 +18,14 @@ class LogLinesPresenter(
     private val scope: CoroutineScope,
     private val ui: CloseableCoroutineDispatcher
 ) {
+    //decouple presentation from views
     private val sx = getmaxx(stdscr)
     private val sy = getmaxy(stdscr)
 
-    private val padPosition = PadPosition(0, 0, sx, sy - 4) //- 5)
+    private val viewPosition = ViewPosition(0, 0, sx, sy - 4) //- 5)
 
     //views can come and go, when input disappears
-    private val view = LogLinesView(padPosition)
+    private val view = LogLinesView(viewPosition)
 
     @OptIn(ExperimentalCoroutinesApi::class, ExperimentalForeignApi::class)
     suspend fun start() {

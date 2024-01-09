@@ -6,17 +6,11 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.currentCoroutineContext
 import ncurses.*
+import ui.ViewPosition
 import kotlin.math.min
 
-data class PadPosition(
-    val startX: Int,
-    val startY: Int,
-    val endX: Int,
-    val endY: Int,
-)
-
 @OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
-class LogLinesView(val position: PadPosition) {
+class LogLinesView(val position: ViewPosition) {
 
     internal val pad = newpad(LogLinesBufferCount, position.endX)
     private val pageSize = position.endY - position.startY + 1
@@ -28,9 +22,6 @@ class LogLinesView(val position: PadPosition) {
     }
 
     private var firstVisibleLine = 0
-
-    var snapY = true
-
     private var linesCount = 0
 
     fun pageUp() {
@@ -51,6 +42,9 @@ class LogLinesView(val position: PadPosition) {
     fun pageDown() {
         //firstVisibleLine += pageSize
         //refresh()
+
+        //disable page down for some cases?
+
         val num = if (ServiceLocator.appStateFlow.state.value.autoscroll) {
             min(pageSize, linesCount - lastPageSize - firstVisibleLine)
         } else {
@@ -96,6 +90,7 @@ class LogLinesView(val position: PadPosition) {
         pageUp()
     }
 
+    // useful for bookmarking then quickly moving between marked lines
     fun toLine(line: Int) {
         firstVisibleLine = line
         refresh()

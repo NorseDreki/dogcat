@@ -4,9 +4,8 @@ import dogcat.AppliedFilters
 import dogcat.LogFilter
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collectLatest
 import ncurses.*
-import ui.logLines.PadPosition
+import ui.ViewPosition
 
 data class ViewState(
     val filters: AppliedFilters,
@@ -21,7 +20,7 @@ class StatusView {
     val sx = getmaxx(stdscr)
     val sy = getmaxy(stdscr)
 
-    val position = PadPosition(0, sy - 2, sx, sy - 1)
+    val position = ViewPosition(0, sy - 2, sx, sy - 1)
 
     val fp = newwin(0, 0, position.startY, 0)
 
