@@ -20,7 +20,7 @@ class LogLinesView(val position: PadPosition) {
 
     internal val pad = newpad(LogLinesBufferCount, position.endX)
     private val pageSize = position.endY - position.startY + 1
-    private val lastPageSize = pageSize * 2 / 3
+    private val lastPageSize = pageSize - 1 // * 9 / 10
 
     init {
         scrollok(pad, true)
@@ -102,8 +102,15 @@ class LogLinesView(val position: PadPosition) {
     }
 
     fun end() {
+        //to few lines for page down
+        if (linesCount <= pageSize) {
+            return
+        }
+
+        prefresh(pad, linesCount, 0, position.startY, position.startX, position.endY, position.endX)
+
         firstVisibleLine = linesCount - lastPageSize
-        refresh()
+        //refresh()
 
         Logger.d("End $firstVisibleLine")
     }
@@ -117,6 +124,13 @@ class LogLinesView(val position: PadPosition) {
 
     fun refresh() {
         //Logger.d("FVL $firstVisibleLine")
+
+        if (firstVisibleLine <= linesCount - pageSize) {
+            curs_set(0)
+        } else {
+            curs_set(1)
+        }
+
         prefresh(pad, firstVisibleLine, 0, position.startY, position.startX, position.endY, position.endX)
     }
 

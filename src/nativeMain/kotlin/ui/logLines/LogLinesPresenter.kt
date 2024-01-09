@@ -20,7 +20,7 @@ class LogLinesPresenter(
     private val sx = getmaxx(stdscr)
     private val sy = getmaxy(stdscr)
 
-    private val padPosition = PadPosition(0, 0, sx, sy - 5)
+    private val padPosition = PadPosition(0, 0, sx, sy - 4) //- 5)
 
     //views can come and go, when input disappears
     private val view = LogLinesView(padPosition)

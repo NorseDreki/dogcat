@@ -16,7 +16,7 @@ class DogcatView {
 
         //raw();
         //keypad(stdscr, TRUE);
-        //noecho();
+        noecho();
 
 
         //intrflush(stdscr, false)
