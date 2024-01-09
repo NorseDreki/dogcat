@@ -10,7 +10,12 @@ import ui.ViewPosition
 import kotlin.math.min
 
 @OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
-class LogLinesView(val position: ViewPosition) {
+class LogLinesView {
+    private val sx = getmaxx(stdscr)
+    private val sy = getmaxy(stdscr)
+
+    internal val position = ViewPosition(0, 0, sx, sy - 4) //- 5)
+
 
     internal val pad = newpad(LogLinesBufferCount, position.endX)
     private val pageSize = position.endY - position.startY + 1
@@ -110,11 +115,17 @@ class LogLinesView(val position: ViewPosition) {
         Logger.d("End $firstVisibleLine")
     }
 
-    fun clear() {
-        linesCount = 0
+    suspend fun clear() {
+        prefresh(pad, linesCount, 0, position.startY, position.startX, position.endY, position.endX)
+
         wclear(pad)
+        linesCount = 0
+
+        Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Cleared pad")
         //werase(fp)
        // refresh()
+
+        curs_set(1)
     }
 
     fun refresh() {

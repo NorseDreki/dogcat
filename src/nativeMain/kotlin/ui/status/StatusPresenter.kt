@@ -19,7 +19,7 @@ class StatusPresenter(
     //views can come and go, when input disappears
     private val view = StatusView()
 
-    @OptIn(ExperimentalCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
      fun start() {
         //what is tail-call as in launchIn?
 
@@ -27,7 +27,26 @@ class StatusPresenter(
             .state
             .filterIsInstance<PublicState.CapturingInput>()
             .flatMapLatest { it.applied }
-            .onEach { view.updateFilters(it) }
+            .onEach {
+                view.updateFilters(it)
+
+                it[LogFilter.ByPackage::class]?.let {
+                    appStateFlow.filterByPackage(it as LogFilter.ByPackage, true)
+                }
+            }
+            .launchIn(scope)
+
+
+        dogcat
+            .state
+            .filterIsInstance<PublicState.CapturingInput>()
+            .mapLatest { it }
+            .onEach {
+                view.updateAutoscroll(appStateFlow.state.value.autoscroll)
+
+                Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] !Emulator ${it.deviceName}")
+                view.updateDevice(it.deviceName)
+            }
             .launchIn(scope)
 
         input

@@ -41,6 +41,14 @@ class DogcatPresenter(
                         //resetty()
                         exit(0)
                     }
+
+                    'c'.code -> {
+
+                        dogcat(Command.ClearLogSource)
+                    }
+
+
+
                     '3'.code -> {
                         isPackageFilteringEnabled =
                             if (isPackageFilteringEnabled) {
@@ -80,9 +88,7 @@ class DogcatPresenter(
                         dogcat(Command.FilterBy(LogFilter.MinLogLevel("E")))
                     }
 
-                    'c'.code -> {
-                        dogcat(Command.ClearLogSource)
-                    }
+
                 }
             }
             .launchIn(scope)

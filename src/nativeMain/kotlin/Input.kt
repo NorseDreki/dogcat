@@ -32,6 +32,7 @@ class DefaultInput(
 
                 Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Process key $key")
 
+                //debounce key presses
                 keypresses.emit(key)
             }
         }

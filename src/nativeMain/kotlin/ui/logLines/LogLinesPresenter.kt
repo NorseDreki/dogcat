@@ -2,15 +2,20 @@ package ui.logLines
 
 import AppStateFlow
 import Input
+import Logger
 import dogcat.Dogcat
-import dogcat.PublicState
+import dogcat.PublicState.*
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CloseableCoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.withContext
 import ncurses.*
-import ui.ViewPosition
 
-@OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
 class LogLinesPresenter(
     private val dogcat: Dogcat,
     private val appStateFlow: AppStateFlow,
@@ -18,16 +23,10 @@ class LogLinesPresenter(
     private val scope: CoroutineScope,
     private val ui: CloseableCoroutineDispatcher
 ) {
-    //decouple presentation from views
-    private val sx = getmaxx(stdscr)
-    private val sy = getmaxy(stdscr)
-
-    private val viewPosition = ViewPosition(0, 0, sx, sy - 4) //- 5)
-
     //views can come and go, when input disappears
-    private val view = LogLinesView(viewPosition)
+    private val view = LogLinesView()
 
-    @OptIn(ExperimentalCoroutinesApi::class, ExperimentalForeignApi::class)
+    @OptIn(ExperimentalForeignApi::class, ExperimentalCoroutinesApi::class)
     suspend fun start() {
         //what is tail-call as in launchIn?
 
@@ -35,21 +34,24 @@ class LogLinesPresenter(
             .state
             .flatMapLatest {
                 when (it) {
-                    is PublicState.WaitingInput -> {
+                    is WaitingInput -> {
                         Logger.d("Waiting for log lines...\r")
 
                         emptyFlow()
                     }
-                    is PublicState.CapturingInput -> {
-                        it.lines//.take(10)
+                    is CapturingInput -> {
+                        //make sure no capturing happens after clearing
+                        it.lines
                     }
-                    PublicState.InputCleared -> {
+                    InputCleared -> {
                         Logger.d("Cleared Logcat and re-started\r")
-                        view.clear()
+                        withContext(ui) {
+                            view.clear()
+                        }
 
                         emptyFlow()
                     }
-                    PublicState.Stopped -> {
+                    Stopped -> {
                         //cancel()
                         Logger.d("No more reading lines, terminated\r")
                         emptyFlow()
@@ -68,6 +70,7 @@ class LogLinesPresenter(
             .onEach {
                 withContext(ui) {
                     when (it) {
+                        //introduce keymap to get rid of ncurses
                         'a'.code, KEY_HOME -> {
                             appStateFlow.autoscroll(false)
                             view.home()
@@ -79,7 +82,6 @@ class LogLinesPresenter(
                         }
 
                         'w'.code, KEY_UP -> {
-                            Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Key up")
                             view.lineUp()
                         }
 

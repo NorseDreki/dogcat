@@ -3,10 +3,9 @@ import com.kgit2.kommand.process.Stdio
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 
 @OptIn(ExperimentalStdlibApi::class)
-class AndroidEnvironment(
+class AdbEnvironment(
     private val dispatcherIo: CoroutineDispatcher = Dispatchers.IO
 ) : Environment {
     override fun lines(minLogLevel: String, userId: String): Flow<String> =
@@ -68,7 +67,7 @@ class AndroidEnvironment(
     }
 
     override suspend fun currentEmulatorName() = withContext(Dispatchers.IO) {
-        Command("adb")
+        val name = Command("adb")
             .args(
                 listOf("emu", "avd", "name")
             )
@@ -77,6 +76,9 @@ class AndroidEnvironment(
             .stdout
             ?.lines()
             ?.first()
+
+        Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] !Emulator $name")
+        name
     }
 
     override suspend fun foregroundPackageName() = withContext(dispatcherIo) {

@@ -55,6 +55,11 @@ class StatusView {
         wrefresh(fp)
     }
 
+    fun updateDevice(device: String?) {
+        mvwprintw(fp, 1, 70, device)
+        wrefresh(fp)
+    }
+
 
     suspend fun updateFilters(filters: AppliedFilters) {
         val sx = getmaxx(stdscr)
