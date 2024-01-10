@@ -120,6 +120,7 @@ class LogLinesView {
 
         wclear(pad)
         linesCount = 0
+        firstVisibleLine = 0
 
         Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Cleared pad")
         //werase(fp)
