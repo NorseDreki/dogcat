@@ -22,7 +22,7 @@ fun main(args: Array<String>) {
         val input = DefaultInput(this, Dispatchers.IO)
         input.start()
 
-        val app = DogcatPresenter(dogcat, appStateFlow, input, packageName, this)
+        val app = DogcatPresenter(dogcat, appStateFlow, input, this)
         app.start()
 
         val status = StatusPresenter(dogcat, appStateFlow, environment, input, this, ui)

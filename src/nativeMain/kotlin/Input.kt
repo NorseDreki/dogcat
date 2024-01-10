@@ -2,6 +2,7 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.debounce
 import ncurses.ERR
 import ncurses.stdscr
 import ncurses.wgetch
@@ -15,7 +16,11 @@ class DefaultInput(
     private val inputDispatcher: CoroutineDispatcher
 ) : Input {
 
-    override val keypresses = MutableSharedFlow<Int>()
+    private val keypressesSubject = MutableSharedFlow<Int>()
+
+    @OptIn(FlowPreview::class)
+    // debounce somewhere else?
+    override val keypresses = keypressesSubject.debounce(300)
 
     val s = CoroutineScope(inputDispatcher)
 
@@ -33,7 +38,7 @@ class DefaultInput(
                 Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Process key $key")
 
                 //debounce key presses
-                keypresses.emit(key)
+                keypressesSubject.emit(key)
             }
         }
     }

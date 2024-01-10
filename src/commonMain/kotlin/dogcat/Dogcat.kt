@@ -40,6 +40,7 @@ class Dogcat(
             is FilterBy -> {
                 stateSubject.emit(InputCleared)
 
+                // Do not re-capture log lines if filter hasn't changed
                 filters.apply(command.filter)
 
 

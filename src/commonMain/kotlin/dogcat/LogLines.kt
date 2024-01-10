@@ -38,6 +38,11 @@ class LogLines(
                 it.values.asFlow()
             }
             .filterIsInstance<LogFilter.Substring>()
+            //never called, always restarted
+            .distinctUntilChanged { old, new ->
+                Logger.d("] Distinct? $old $new")
+                old.substring == new.substring
+            }
             .flatMapLatest { filter ->
                 val f = sharedLines
                     .filter { it.contains(filter.substring, ignoreCase = true) }

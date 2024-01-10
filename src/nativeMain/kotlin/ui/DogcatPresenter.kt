@@ -2,35 +2,35 @@ package ui
 
 import AppStateFlow
 import Input
+import Logger
 import dogcat.Command
+import dogcat.Command.*
 import dogcat.Dogcat
-import dogcat.LogFilter
+import dogcat.LogFilter.*
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import ncurses.*
-import platform.posix.*
-import ui.status.StatusView
+import ncurses.endwin
+import platform.posix.exit
 
 @OptIn(ExperimentalForeignApi::class)
 class DogcatPresenter(
     private val dogcat: Dogcat,
     private val appStateFlow: AppStateFlow,
     private val input: Input,
-    val pkg: String? = null,
     private val scope: CoroutineScope
 ) {
     private val view = DogcatView()
-
-    var isPackageFilteringEnabled = pkg != null
 
     @OptIn(ExperimentalStdlibApi::class)
     fun start() {
         input
             .keypresses
+            .debounce(200)
             .onEach {
                 when (it) {
                     'p'.code -> {
@@ -46,11 +46,8 @@ class DogcatPresenter(
                     }
 
                     'c'.code -> {
-
-                        dogcat(Command.ClearLogSource)
+                        dogcat(ClearLogSource)
                     }
-
-
 
                     '3'.code -> {
                         val f = appStateFlow.state.value.packageFilter
@@ -58,52 +55,41 @@ class DogcatPresenter(
                         if (f.second) {
                             Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] !DeselectSelectAppByPackage")
                             appStateFlow.filterByPackage(f.first, false)
-                            dogcat(Command.ResetFilter(LogFilter.ByPackage::class))
+                            dogcat(ResetFilter(ByPackage::class))
                         } else {
                             Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] !SelectAppByPackage")
-                            dogcat(Command.Start.SelectAppByPackage(f.first!!.packageName))
+                            dogcat(Start.SelectAppByPackage(f.first!!.packageName))
                             appStateFlow.filterByPackage(f.first, true)
                         }
-
-                        /*isPackageFilteringEnabled =
-                            if (isPackageFilteringEnabled) {
-                                dogcat(Command.ResetFilter(LogFilter.ByPackage::class))
-                                false
-                            } else {
-                                dogcat(Command.Start.SelectAppByPackage(pkg!!))
-                                true
-                            }*/
                     }
 
                     '4'.code -> {
-                        dogcat(Command.ResetFilter(LogFilter.Substring::class))
+                        dogcat(ResetFilter(Substring::class))
                     }
 
                     '5'.code -> {
-                        dogcat(Command.ResetFilter(LogFilter.MinLogLevel::class))
+                        dogcat(ResetFilter(MinLogLevel::class))
                     }
 
                     '6'.code -> {
-                        dogcat(Command.FilterBy(LogFilter.MinLogLevel("V")))
+                        dogcat(FilterBy(MinLogLevel("V")))
                     }
 
                     '7'.code -> {
-                        dogcat(Command.FilterBy(LogFilter.MinLogLevel("D")))
+                        dogcat(FilterBy(MinLogLevel("D")))
                     }
 
                     '8'.code -> {
-                        dogcat(Command.FilterBy(LogFilter.MinLogLevel("I")))
+                        dogcat(FilterBy(MinLogLevel("I")))
                     }
 
                     '9'.code -> {
-                        dogcat(Command.FilterBy(LogFilter.MinLogLevel("W")))
+                        dogcat(FilterBy(MinLogLevel("W")))
                     }
 
                     '0'.code -> {
-                        dogcat(Command.FilterBy(LogFilter.MinLogLevel("E")))
+                        dogcat(FilterBy(MinLogLevel("E")))
                     }
-
-
                 }
             }
             .launchIn(scope)
