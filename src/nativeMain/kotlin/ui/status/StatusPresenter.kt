@@ -66,6 +66,14 @@ class StatusPresenter(
             .onEach {
                 withContext(ui) {
                     view.updateAutoscroll(it.autoscroll)
+
+
+                    val p = if (it.packageFilter.second) {
+                        it.packageFilter.first!!.packageName
+                    } else {
+                        ""
+                    }
+                    view.updatePackageName(p)
                 }
             }
             .launchIn(scope)

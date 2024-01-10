@@ -6,7 +6,9 @@ import dogcat.Command
 import dogcat.Dogcat
 import dogcat.LogFilter
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import ncurses.*
@@ -25,6 +27,7 @@ class DogcatPresenter(
 
     var isPackageFilteringEnabled = pkg != null
 
+    @OptIn(ExperimentalStdlibApi::class)
     fun start() {
         input
             .keypresses
@@ -50,14 +53,26 @@ class DogcatPresenter(
 
 
                     '3'.code -> {
-                        isPackageFilteringEnabled =
+                        val f = appStateFlow.state.value.packageFilter
+
+                        if (f.second) {
+                            Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] !DeselectSelectAppByPackage")
+                            appStateFlow.filterByPackage(f.first, false)
+                            dogcat(Command.ResetFilter(LogFilter.ByPackage::class))
+                        } else {
+                            Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] !SelectAppByPackage")
+                            dogcat(Command.Start.SelectAppByPackage(f.first!!.packageName))
+                            appStateFlow.filterByPackage(f.first, true)
+                        }
+
+                        /*isPackageFilteringEnabled =
                             if (isPackageFilteringEnabled) {
                                 dogcat(Command.ResetFilter(LogFilter.ByPackage::class))
                                 false
                             } else {
                                 dogcat(Command.Start.SelectAppByPackage(pkg!!))
                                 true
-                            }
+                            }*/
                     }
 
                     '4'.code -> {

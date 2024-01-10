@@ -29,10 +29,11 @@ class InternalAppStateFlow : AppStateFlow {
     }
 
     override fun filterByPackage(f: ByPackage?, enable: Boolean) {
-        if (f != null) {
-            state.value = state.value.copy(packageFilter = f to true)
-        } else {
-            state.value = state.value.copy(packageFilter = state.value.packageFilter.first to enable)
-        }
+        //if (f != null) {
+        //    state.value = state.value.copy(packageFilter = f to true)
+        //} else {
+            //state.value = state.value.copy(packageFilter = state.value.packageFilter.first to enable)
+            state.value = state.value.copy(packageFilter = f to enable)
+        //}
     }
 }

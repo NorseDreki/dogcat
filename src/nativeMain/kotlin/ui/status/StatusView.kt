@@ -2,6 +2,7 @@ package ui.status
 
 import dogcat.AppliedFilters
 import dogcat.LogFilter
+import dogcat.LogFilter.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import ncurses.*
@@ -50,7 +51,7 @@ class StatusView {
 
     fun updateAutoscroll(autoscroll: Boolean) {
         wattron(fp, COLOR_PAIR(12))
-        mvwprintw(fp, 0, 70, "Autoscroll ${autoscroll}")
+        mvwprintw(fp, 0, 50, "Autoscroll ${autoscroll}")
         wattroff(fp, COLOR_PAIR(12))
         wrefresh(fp)
     }
@@ -63,39 +64,37 @@ class StatusView {
         wrefresh(fp)
     }
 
+    fun updatePackageName(packageName: String) {
+        mvwprintw(fp, 0, 80, "${packageName}")
+        wrefresh(fp)
+    }
 
     suspend fun updateFilters(filters: AppliedFilters) {
-        val sx = getmaxx(stdscr)
-
         Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Preparing to draw applied filters: $filters")
         wmove(fp, 0, 0)
         wattron(fp, COLOR_PAIR(12))
 
         waddstr(fp, " ".repeat(sx))
-
         //wclrtoeol(fp)
 
         filters.forEach {
             when (it.key) {
-                LogFilter.Substring::class -> {
-                    mvwprintw(fp, 0, 0, "Filter by: ${(it.value as LogFilter.Substring).substring}")
+                Substring::class -> {
+                    mvwprintw(fp, 0, 0, "Filter by: ${(it.value as Substring).substring}")
                 }
 
-                LogFilter.MinLogLevel::class -> {
-                    mvwprintw(fp, 0, 30, "${(it.value as LogFilter.MinLogLevel).logLevel} and up")
+                MinLogLevel::class -> {
+                    mvwprintw(fp, 0, 30, "${(it.value as MinLogLevel).logLevel} and up")
                 }
 
-                LogFilter.ByPackage::class -> {
-                    mvwprintw(fp, 0, 80, "${(it.value as LogFilter.ByPackage).packageName} on")
+                ByPackage::class -> {
+                    mvwprintw(fp, 0, 80, "${(it.value as ByPackage).packageName}")
                 }
             }
         }
-        //prefresh(fp, 0, 0, 0, 0, 2, sx)
-        // prefresh(fp, 0, 0, position.startY, position.startX, position.endY, position.endX);
-
         wattroff(fp, COLOR_PAIR(12))
         wrefresh(fp)
-        //refresh()
+
         yield()
     }
 }
