@@ -11,7 +11,6 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import ncurses.endwin
@@ -30,7 +29,7 @@ class DogcatPresenter(
     fun start() {
         input
             .keypresses
-            .debounce(200)
+            //.debounce(200)
             .onEach {
                 when (it) {
                     'p'.code -> {
@@ -58,7 +57,7 @@ class DogcatPresenter(
                             dogcat(ResetFilter(ByPackage::class))
                         } else {
                             Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] !SelectAppByPackage")
-                            dogcat(Start.SelectAppByPackage(f.first!!.packageName))
+                            dogcat(Start.PickApp(f.first!!.packageName))
                             appStateFlow.filterByPackage(f.first, true)
                         }
                     }

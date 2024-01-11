@@ -2,7 +2,6 @@
 
 package ui.logLines
 
-import Config
 import dogcat.BriefLogLine
 import dogcat.LogLine
 import dogcat.UnparseableLogLine
@@ -74,7 +73,7 @@ private fun LogLinesView.wrapLine(
     message: String
 ): Pair<String, Int> {
     val width = position.endX
-    val header = Config.tagWidth + 1 + 3 + 1// space, level, space
+    val header = AppConfig.DEFAULT_TAG_WIDTH + 1 + 3 + 1// space, level, space
     val line = message.replace("\t", "    ") //prevent escape characters leaking
     val wrapArea = width - header
     var buf = ""

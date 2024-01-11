@@ -4,9 +4,9 @@ import kotlin.reflect.KClass
 
 sealed interface Command {
     sealed interface Start : Command {
-        data object SelectForegroundApp : Start
+        data object PickForegroundApp : Start
         data object All : Start
-        data class SelectAppByPackage(val packageName: String) : Start
+        data class PickApp(val packageName: String) : Start
     }
     data object Stop : Command
 

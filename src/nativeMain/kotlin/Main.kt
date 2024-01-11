@@ -32,8 +32,8 @@ fun main(args: Array<String>) {
         logLines.start()
 
         when {
-            packageName != null -> dogcat(Start.SelectAppByPackage(packageName!!))
-            current == true -> dogcat(Start.SelectForegroundApp)
+            packageName != null -> dogcat(Start.PickApp(packageName!!))
+            current == true -> dogcat(Start.PickForegroundApp)
             else -> dogcat(Start.All)
         }
     }

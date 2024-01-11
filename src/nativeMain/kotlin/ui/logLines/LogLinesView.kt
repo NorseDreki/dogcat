@@ -1,6 +1,6 @@
 package ui.logLines
 
-import Config.LogLinesBufferCount
+import DogcatConfig.MAX_LOG_LINES
 import ServiceLocator
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineDispatcher
@@ -17,7 +17,7 @@ class LogLinesView {
     internal val position = ViewPosition(0, 0, sx, sy - 4) //- 5)
 
 
-    internal val pad = newpad(LogLinesBufferCount, position.endX)
+    internal val pad = newpad(MAX_LOG_LINES, position.endX)
     private val pageSize = position.endY - position.startY + 1
     private val lastPageSize = pageSize - 1 // * 9 / 10
 

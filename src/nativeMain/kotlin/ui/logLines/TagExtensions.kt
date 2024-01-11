@@ -5,7 +5,7 @@
 
 package ui.logLines
 
-import Config.tagWidth
+import AppConfig.DEFAULT_TAG_WIDTH
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
 
@@ -58,12 +58,12 @@ private val ccpp = (LAST_USED + KNOWN_TAGS.values)
     }
 
 private fun String.massage() = //prokrust
-    if (length > tagWidth) {
-        val excess = 1 - tagWidth % 2
+    if (length > DEFAULT_TAG_WIDTH) {
+        val excess = 1 - DEFAULT_TAG_WIDTH % 2
         // performance impact?
-        take(tagWidth / 2 - excess) +
+        take(DEFAULT_TAG_WIDTH / 2 - excess) +
                 Typography.ellipsis +
-                takeLast(tagWidth / 2)
+                takeLast(DEFAULT_TAG_WIDTH / 2)
     } else {
-        trim().padStart(tagWidth)
+        trim().padStart(DEFAULT_TAG_WIDTH)
     }

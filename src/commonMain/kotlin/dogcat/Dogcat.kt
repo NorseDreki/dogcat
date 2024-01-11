@@ -21,10 +21,10 @@ class Dogcat(
 )  {
 
     private val stateSubject = MutableStateFlow<PublicState>(WaitingInput)
-    val state = stateSubject.asStateFlow().onCompletion { Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] (5) COMPLETION, state") }
+    val state = stateSubject.asStateFlow().onCompletion { Logger.d("[${ctx()}] (5) COMPLETION, state") }
 
     suspend operator fun invoke(command: Command) {
-        Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Command $command")
+        Logger.d("[${ctx()}] Command $command")
 
         when (command) {
             is Start -> start(command)
@@ -71,7 +71,7 @@ class Dogcat(
 
     private suspend fun start(subcommand: Start) {
         when (subcommand) {
-            is SelectForegroundApp -> {
+            is PickForegroundApp -> {
                 val packageName = environment.foregroundPackageName()
                 val userId = environment.userIdFor(packageName)
 
@@ -79,7 +79,7 @@ class Dogcat(
                 Logger.d("Startup with foreground app, resolved to package '$packageName' and user ID '$userId'")
             }
 
-            is SelectAppByPackage -> {
+            is PickApp -> {
                 stateSubject.emit(InputCleared)
 
                 val packageName = subcommand.packageName
@@ -104,7 +104,7 @@ class Dogcat(
 
         val ci = CapturingInput(
             filterLines
-                .onCompletion { Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] (1) COMPLETED: Capturing input filterLines $it\r") },
+                .onCompletion { Logger.d("[${ctx()}] (1) COMPLETED: Capturing input filterLines $it\r") },
 
             filters.applied,
 
@@ -112,4 +112,6 @@ class Dogcat(
         )
         stateSubject.emit(ci)
     }
+
+    private suspend fun ctx() = currentCoroutineContext()[CoroutineDispatcher]
 }

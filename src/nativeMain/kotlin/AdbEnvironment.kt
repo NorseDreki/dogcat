@@ -1,3 +1,4 @@
+import AppConfig.COMMAND_TIMEOUT_MILLIS
 import com.kgit2.kommand.process.Command
 import com.kgit2.kommand.process.Stdio
 import kotlinx.coroutines.*
@@ -45,7 +46,7 @@ class AdbEnvironment(
     override suspend fun userIdFor(packageName: String) = withContext(dispatcherIo) {
         val UID_CONTEXT = """Packages:\n\s+Package\s+\[$packageName]\s+\(.*\):\n\s+userId=(\d*)""".toRegex()
 
-        val output = withTimeout(Config.AdbCommandTimeoutMillis) {
+        val output = withTimeout(COMMAND_TIMEOUT_MILLIS) {
             Command("adb")
                 .args(
                     listOf("shell", "dumpsys", "package")

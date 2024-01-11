@@ -1,6 +1,6 @@
 package dogcat
 
-import Config
+import DogcatConfig
 import Environment
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -109,7 +109,7 @@ class LogLines(
             .shareIn(
                 scope,
                 SharingStarted.Lazily,
-                Config.LogLinesBufferCount,
+                DogcatConfig.MAX_LOG_LINES,
             )
             .onSubscription { Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Subscribing to shareIn\r") }
             .onCompletion { Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] (3) COMPLETED Subscription to shareIn\r") }

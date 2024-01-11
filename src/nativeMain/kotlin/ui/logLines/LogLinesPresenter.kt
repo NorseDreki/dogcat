@@ -40,15 +40,22 @@ class LogLinesPresenter(
                         emptyFlow()
                     }
                     is CapturingInput -> {
+                        Logger.d("Capturing input...\r")
                         //make sure no capturing happens after clearing
-                        it.lines
-                    }
-                    InputCleared -> {
-                        Logger.d("Cleared Logcat and re-started\r")
                         withContext(ui) {
                             view.clear()
                         }
 
+
+                        it.lines
+                    }
+                    InputCleared -> {
+                        Logger.d("Cleared Logcat and re-started\r")
+/*
+                        withContext(ui) {
+                            view.clear()
+                        }
+*/
                         emptyFlow()
                     }
                     Stopped -> {

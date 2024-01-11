@@ -20,7 +20,7 @@ class DefaultInput(
 
     @OptIn(FlowPreview::class)
     // debounce somewhere else?
-    override val keypresses = keypressesSubject.debounce(300)
+    override val keypresses = keypressesSubject//.debounce(300)
 
     val s = CoroutineScope(inputDispatcher)
 
