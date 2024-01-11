@@ -23,7 +23,7 @@ class InternalAppliedFiltersState : AppliedFiltersState {
     private val defaultFilters: AppliedFilters =
         mapOf(
             Substring::class to Substring(""),
-            MinLogLevel::class to MinLogLevel(DEFAULT_MIN_LOG_LEVEL) //use log level as enum
+            MinLogLevel::class to MinLogLevel(DEFAULT_MIN_LOG_LEVEL)
         )
 
     private val appliedFiltersState = MutableStateFlow(defaultFilters)

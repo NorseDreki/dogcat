@@ -2,9 +2,10 @@
 
 package ui.logLines
 
-import dogcat.BriefLogLine
+import dogcat.Brief
+import dogcat.LogLevel.*
 import dogcat.LogLine
-import dogcat.UnparseableLogLine
+import dogcat.Unparseable
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.yield
 import ncurses.*
@@ -14,17 +15,17 @@ import kotlin.math.min
 suspend fun LogLinesView.processLogLine(
     it: IndexedValue<LogLine>,
 ) {
-    if (it.value is UnparseableLogLine) {
+    if (it.value is Unparseable) {
         printTag("")
         //use System.line ending
         waddstr(pad, " ".repeat(1 + 3 + 1))
-        waddstr(pad, (it.value as UnparseableLogLine).line + "\n")
+        waddstr(pad, (it.value as Unparseable).line + "\n")
         recordLine(1)
 
         return
     }
 
-    val logLine = it.value as BriefLogLine //do not cast
+    val logLine = it.value as Brief //do not cast
     printTag(logLine.tag)
 
     val wrappedLine = wrapLine("${it.index} ${logLine.message}")
@@ -32,17 +33,17 @@ suspend fun LogLinesView.processLogLine(
     recordLine(wrappedLine.second)
 
     when (logLine.level) {
-        "W" -> {
-            printLevelAndMessage(logLine.level, 6, wrapped, COLOR_PAIR(3))
+        W -> {
+            printLevelAndMessage(logLine.level.name, 6, wrapped, COLOR_PAIR(3))
         }
-        "E", "F" -> {
-            printLevelAndMessage(logLine.level, 11, wrapped, COLOR_PAIR(1))
+        E, F -> {
+            printLevelAndMessage(logLine.level.name, 11, wrapped, COLOR_PAIR(1))
         }
-        "I" -> {
-            printLevelAndMessage(logLine.level, 12, wrapped, A_BOLD.toInt())
+        I -> {
+            printLevelAndMessage(logLine.level.name, 12, wrapped, A_BOLD.toInt())
         }
         else -> {
-            printLevelAndMessage(logLine.level, 12, wrapped, 0)
+            printLevelAndMessage(logLine.level.name, 12, wrapped, 0)
         }
     }
 

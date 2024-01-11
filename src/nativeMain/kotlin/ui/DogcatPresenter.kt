@@ -7,6 +7,7 @@ import dogcat.Command
 import dogcat.Command.*
 import dogcat.Dogcat
 import dogcat.LogFilter.*
+import dogcat.LogLevel.*
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -71,23 +72,23 @@ class DogcatPresenter(
                     }
 
                     '6'.code -> {
-                        dogcat(FilterBy(MinLogLevel("V")))
+                        dogcat(FilterBy(MinLogLevel(V)))
                     }
 
                     '7'.code -> {
-                        dogcat(FilterBy(MinLogLevel("D")))
+                        dogcat(FilterBy(MinLogLevel(D)))
                     }
 
                     '8'.code -> {
-                        dogcat(FilterBy(MinLogLevel("I")))
+                        dogcat(FilterBy(MinLogLevel(I)))
                     }
 
                     '9'.code -> {
-                        dogcat(FilterBy(MinLogLevel("W")))
+                        dogcat(FilterBy(MinLogLevel(W)))
                     }
 
                     '0'.code -> {
-                        dogcat(FilterBy(MinLogLevel("E")))
+                        dogcat(FilterBy(MinLogLevel(E)))
                     }
                 }
             }
