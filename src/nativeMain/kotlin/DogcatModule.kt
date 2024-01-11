@@ -5,11 +5,11 @@ import org.kodein.di.instance
 import dogcat.LogcatBriefParser
 import dogcat.state.DefaultAppliedFiltersState
 
-object ServiceLocator {
+object DogcatModule {
 
     private val dogcatModule = DI.Module("dogcat") {
         bindSingleton<DefaultAppliedFiltersState> { DefaultAppliedFiltersState() }
-        bindSingleton<Shell> { AdbEnvironment() }
+        bindSingleton<Shell> { AdbShell() }
         bindSingleton<LogLineParser> { LogcatBriefParser() }
         bindSingleton<LogLines> { LogLines(instance(), instance(), instance()) }
         bindSingleton<Dogcat> { Dogcat(instance(), instance(), instance()) }

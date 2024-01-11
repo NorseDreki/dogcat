@@ -1,11 +1,11 @@
 import Arguments.current
 import Arguments.packageName
-import ServiceLocator.appStateFlow
-import ServiceLocator.dogcat
+import DogcatModule.appStateFlow
+import DogcatModule.dogcat
 import dogcat.Command.Start
 import kotlinx.coroutines.*
 import logger.Logger
-import ui.DogcatPresenter
+import ui.AppPresenter
 import ui.logLines.LogLinesPresenter
 import ui.status.StatusPresenter
 
@@ -22,7 +22,7 @@ fun main(args: Array<String>) {
         val input = DefaultInput(this, Dispatchers.IO)
         input.start()
 
-        val app = DogcatPresenter(dogcat, appStateFlow, input, this)
+        val app = AppPresenter(dogcat, appStateFlow, input, this)
         app.start()
 
         val status = StatusPresenter(dogcat, appStateFlow, input, this, ui)

@@ -8,7 +8,7 @@ import platform.posix.printf
 import platform.posix.setlocale
 
 @OptIn(ExperimentalForeignApi::class)
-class DogcatView {
+class AppView {
 
     fun start() {
         setlocale(LC_ALL, "en_US.UTF-8") // should be before initscr()

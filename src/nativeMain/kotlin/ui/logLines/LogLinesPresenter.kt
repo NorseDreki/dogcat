@@ -2,6 +2,7 @@ package ui.logLines
 
 import AppStateFlow
 import Input
+import Keymap.Actions.*
 import logger.Logger
 import dogcat.Dogcat
 import dogcat.state.PublicState.*
@@ -14,7 +15,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
-import ncurses.*
 
 class LogLinesPresenter(
     private val dogcat: Dogcat,
@@ -76,27 +76,37 @@ class LogLinesPresenter(
             .keypresses
             .onEach {
                 withContext(ui) {
-                    when (it) {
-                        //introduce keymap to get rid of ncurses
-                        'a'.code, KEY_HOME -> {
+                    when (Keymap.bindings[it]) {
+
+                        Home -> {
                             appStateFlow.autoscroll(false)
                             view.home()
                         }
 
-                        'z'.code, KEY_END -> {
+                        End -> {
                             appStateFlow.autoscroll(true)
                             view.end()
                         }
 
-                        'w'.code, KEY_UP -> {
+                        LineUp -> {
                             view.lineUp()
                         }
 
-                        's'.code, KEY_DOWN -> view.lineDown()
+                        LineDown -> {
+                            view.lineDown()
+                        }
 
-                        'd'.code, KEY_NPAGE -> view.pageDown()
+                        PageDown -> {
+                            view.pageDown()
+                        }
 
-                        'e'.code, KEY_PPAGE -> view.pageUp()
+                        PageUp -> {
+                            view.pageUp()
+                        }
+
+                        else -> {
+                            //
+                        }
                     }
                 }
             }

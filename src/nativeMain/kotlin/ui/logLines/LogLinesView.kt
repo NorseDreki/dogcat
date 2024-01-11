@@ -1,7 +1,7 @@
 package ui.logLines
 
 import dogcat.DogcatConfig.MAX_LOG_LINES
-import ServiceLocator
+import DogcatModule
 import kotlinx.cinterop.ExperimentalForeignApi
 import logger.Logger
 import logger.context
@@ -32,7 +32,7 @@ class LogLinesView {
     fun pageUp() {
         //firstVisibleLine -= pageSize
         //refresh()
-        ServiceLocator.appStateFlow.autoscroll(false)
+        DogcatModule.appStateFlow.autoscroll(false)
 
         val num = min(pageSize, firstVisibleLine)
 
@@ -50,7 +50,7 @@ class LogLinesView {
 
         //disable page down for some cases?
 
-        val num = if (ServiceLocator.appStateFlow.state.value.autoscroll) {
+        val num = if (DogcatModule.appStateFlow.state.value.autoscroll) {
             min(pageSize, linesCount - lastPageSize - firstVisibleLine)
         } else {
             min(pageSize, linesCount - firstVisibleLine)
@@ -69,7 +69,7 @@ class LogLinesView {
     fun lineUp() {
         if (firstVisibleLine == 0) return
 
-        ServiceLocator.appStateFlow.autoscroll(false)
+        DogcatModule.appStateFlow.autoscroll(false)
 
         firstVisibleLine--
         refresh()
@@ -150,7 +150,7 @@ class LogLinesView {
         Logger.d("${context()} record $count, $linesCount")
 
         //if (snapY) {
-        if (ServiceLocator.appStateFlow.state.value.autoscroll) {
+        if (DogcatModule.appStateFlow.state.value.autoscroll) {
             //handle a case when current lines take less than a screen
             end()
         }

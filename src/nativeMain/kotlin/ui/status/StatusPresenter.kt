@@ -2,6 +2,7 @@ package ui.status
 
 import AppStateFlow
 import Input
+import Keymap.Actions.*
 import dogcat.Command
 import dogcat.Dogcat
 import dogcat.LogFilter
@@ -53,7 +54,9 @@ class StatusPresenter(
 
         input
             .keypresses
-            .filter { it == 'f'.code } //add escape to cancel filter
+            .filter {
+                Keymap.bindings[it] == InputFilterBySubstring
+            }
             .onEach {
                 val filterString = withContext(ui) { view.inputFilter()}
 
@@ -66,7 +69,6 @@ class StatusPresenter(
             .onEach {
                 withContext(ui) {
                     view.updateAutoscroll(it.autoscroll)
-
 
                     val p = if (it.packageFilter.second) {
                         it.packageFilter.first!!.packageName

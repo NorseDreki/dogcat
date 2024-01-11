@@ -8,8 +8,7 @@ import kotlinx.coroutines.flow.flow
 import logger.Logger
 import logger.context
 
-@OptIn(ExperimentalStdlibApi::class)
-class AdbEnvironment(
+class AdbShell(
     private val dispatcherIo: CoroutineDispatcher = Dispatchers.IO
 ) : Shell {
     override fun lines(minLogLevel: String, userId: String): Flow<String> =
