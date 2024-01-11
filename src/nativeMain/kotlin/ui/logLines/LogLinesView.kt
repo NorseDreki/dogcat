@@ -5,6 +5,8 @@ import ServiceLocator
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.currentCoroutineContext
+import logger.Logger
+import logger.context
 import ncurses.*
 import ui.ViewPosition
 import kotlin.math.min
@@ -122,7 +124,7 @@ class LogLinesView {
         linesCount = 0
         firstVisibleLine = 0
 
-        Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Cleared pad")
+        Logger.d("${context()} Cleared pad")
         //werase(fp)
        // refresh()
 
@@ -130,7 +132,7 @@ class LogLinesView {
     }
 
     fun refresh() {
-        //Logger.d("FVL $firstVisibleLine")
+        //logger.Logger.d("FVL $firstVisibleLine")
 
         if (firstVisibleLine <= linesCount - pageSize) {
             curs_set(0)
@@ -147,7 +149,7 @@ class LogLinesView {
 
     suspend fun recordLine(count: Int = 1) {
         linesCount += count
-        Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] record $count, $linesCount")
+        Logger.d("${context()} record $count, $linesCount")
 
         //if (snapY) {
         if (ServiceLocator.appStateFlow.state.value.autoscroll) {

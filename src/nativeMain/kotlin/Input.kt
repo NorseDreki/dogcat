@@ -2,7 +2,8 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.debounce
+import logger.Logger
+import logger.context
 import ncurses.ERR
 import ncurses.stdscr
 import ncurses.wgetch
@@ -35,7 +36,7 @@ class DefaultInput(
                     continue
                 }
 
-                Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Process key $key")
+                Logger.d("${context()} Process key $key")
 
                 //debounce key presses
                 keypressesSubject.emit(key)

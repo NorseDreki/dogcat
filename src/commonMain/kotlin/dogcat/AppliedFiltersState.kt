@@ -8,7 +8,8 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import Logger
+import logger.Logger
+import logger.context
 import kotlin.reflect.KClass
 
 interface AppliedFiltersState {
@@ -17,7 +18,6 @@ interface AppliedFiltersState {
 
 typealias AppliedFilters = Map<KClass<out LogFilter>, LogFilter>
 
-@OptIn(ExperimentalStdlibApi::class)
 class InternalAppliedFiltersState : AppliedFiltersState {
 
     private val defaultFilters: AppliedFilters =
@@ -33,7 +33,7 @@ class InternalAppliedFiltersState : AppliedFiltersState {
         val next = appliedFiltersState.value + (filter::class to filter)
         appliedFiltersState.emit(next)
 
-        Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Upsert filter: $next")
+        Logger.d("${context()} Upsert filter: $next")
     }
 
     suspend fun reset(filterClass: KClass<out LogFilter>) {
@@ -46,6 +46,6 @@ class InternalAppliedFiltersState : AppliedFiltersState {
         }
         appliedFiltersState.emit(next)
 
-        Logger.d("[${currentCoroutineContext()[CoroutineDispatcher]}] After removing: $next")
+        Logger.d("${context()} After removing: $next")
     }
 }

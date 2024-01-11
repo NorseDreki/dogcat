@@ -1,10 +1,11 @@
 package ui.status
 
 import dogcat.AppliedFilters
-import dogcat.LogFilter
 import dogcat.LogFilter.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
+import logger.Logger
+import logger.context
 import ncurses.*
 import ui.ViewPosition
 
@@ -70,7 +71,7 @@ class StatusView {
     }
 
     suspend fun updateFilters(filters: AppliedFilters) {
-        Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Preparing to draw applied filters: $filters")
+        Logger.d("${context()} Preparing to draw applied filters: $filters")
         wmove(fp, 0, 0)
         wattron(fp, COLOR_PAIR(12))
 

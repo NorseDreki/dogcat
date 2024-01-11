@@ -1,21 +1,23 @@
+import AppConfig.APP_LOG_FILENAME
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
+import logger.CanLog
 import platform.posix.*
 
 @OptIn(ExperimentalForeignApi::class)
-class FileLogger : L {
+class FileLogger : CanLog {
 
-    private val f: CPointer<FILE> = fopen("log.txt", "w") ?: throw RuntimeException()
+    // I/O is not cool for field initializers, but would be OK when debugging
+    private val file: CPointer<FILE> = fopen(APP_LOG_FILENAME, "w")
+            ?: throw RuntimeException("Was not able to open log file for writing.")
 
     override fun d(line: String) {
-        fprintf(f, "$line\r\n")
-        fflush(f)
+        fprintf(file, "$line\r\n")
+        fflush(file)
     }
 
     override fun close() {
-        d("close logger")
-        //remove()
-        fflush(f)
-        fclose(f)
+        fflush(file)
+        fclose(file)
     }
 }

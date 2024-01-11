@@ -4,6 +4,8 @@ import com.kgit2.kommand.process.Stdio
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import logger.Logger
+import logger.context
 
 @OptIn(ExperimentalStdlibApi::class)
 class AdbEnvironment(
@@ -11,7 +13,7 @@ class AdbEnvironment(
 ) : Environment {
     override fun lines(minLogLevel: String, userId: String): Flow<String> =
         flow {
-            Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Starting adb logcat")
+            Logger.d("${context()} Starting adb logcat")
 
             val logcat = Command("adb")
                 .args(
@@ -32,11 +34,11 @@ class AdbEnvironment(
                 Logger.d("!!!!!!!!!!! Cancellation! $e")
             } catch (e: RuntimeException) {
                 Logger.d(
-                    "!!!!!!!!!!! Runtime! ${e.message} [${(currentCoroutineContext()[CoroutineDispatcher])}]"
+                    "!!!!!!!!!!! Runtime! ${e.message} ${context()}"
                 )
             }
 
-            Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] !!!!!!!!! Killing logcat ${currentCoroutineContext().isActive}")
+            Logger.d("${context()} !!!!!!!!! Killing logcat ${currentCoroutineContext().isActive}")
             // tried timeout, need async IO so badly
             // command would be killed when next line appears.
             // also, no leftover adb upon app exit
@@ -78,7 +80,7 @@ class AdbEnvironment(
             ?.lines()
             ?.first()
 
-        Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] !Emulator $name")
+        Logger.d("${context()} !Emulator $name")
         name
     }
 
@@ -122,7 +124,7 @@ class AdbEnvironment(
                 .status()
         }
 
-        Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Exit code for 'adb logcat -c': ${childStatus}")
+        Logger.d("${context()} Exit code for 'adb logcat -c': ${childStatus}")
 
         return childStatus == 0
     }
@@ -165,7 +167,7 @@ class AdbEnvironment(
 
             val running = name?.contains("running") ?: false
 
-            Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] !Emulator $name")
+            Logger.d("${context()} !Emulator $name")
 
             emit(running)
 

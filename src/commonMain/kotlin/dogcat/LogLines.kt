@@ -4,7 +4,8 @@ import DogcatConfig
 import Environment
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import Logger
+import logger.Logger
+import logger.context
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
 class LogLines(
@@ -22,7 +23,7 @@ class LogLines(
     suspend fun capture(restartSource: Boolean = true): Flow<IndexedValue<LogLine>> {
         if (restartSource) {
             if (this::scope.isInitialized) {
-                Logger.d("[${currentCoroutineContext()[CoroutineDispatcher]}] !!!!! cancelling scope")
+                Logger.d("${context()} !!!!! cancelling scope")
                 withContext(dispatcherCpu) {
                     scope.cancel()
                 }
@@ -34,7 +35,7 @@ class LogLines(
 
         return s.applied
             .flatMapConcat {
-                Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Applied filters flat map concat")
+                Logger.d("${context()} Applied filters flat map concat")
                 it.values.asFlow()
             }
             .filterIsInstance<LogFilter.Substring>()
@@ -47,7 +48,7 @@ class LogLines(
                 val f = sharedLines
                     .filter { it.contains(filter.substring, ignoreCase = true) }
                     .onEach {
-                        //Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] !!!!!!!!!!!!  '${filter.substring}' $restartSource Shared lines flat map latest")
+                        //logger.Logger.d("${context()} !!!!!!!!!!!!  '${filter.substring}' $restartSource Shared lines flat map latest")
                     }
 
                 f
@@ -78,7 +79,7 @@ class LogLines(
             )*/
             .withIndex()
             //.flowOn()
-            .onCompletion { Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] (2) COMPLETED Full LogLines chain\r") }
+            .onCompletion { Logger.d("${context()} (2) COMPLETED Full LogLines chain\r") }
             .flowOn(dispatcherCpu)
     }
 
@@ -99,40 +100,19 @@ class LogLines(
             .lines(minLogLevel, userId)
             .onCompletion { cause ->
                 if (cause == null) {
-                    Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] (4) COMPLETED, loglinessource.lines $cause\r")
-                    emit("[${(currentCoroutineContext()[CoroutineDispatcher])}] INPUT HAS EXITED")
+                    Logger.d("${context()} (4) COMPLETED, loglinessource.lines $cause\r")
+                    emit("${context()} INPUT HAS EXITED")
                 } else {
-                    Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] EXIT COMPLETE $cause\r")
+                    Logger.d("${context()} EXIT COMPLETE $cause\r")
                 }
             }
-            .onStart { Logger.d("[${currentCoroutineContext()[CoroutineDispatcher]}] Start subscription to logLinesSource\r") }
+            .onStart { Logger.d("${context()} Start subscription to logLinesSource\r") }
             .shareIn(
                 scope,
                 SharingStarted.Lazily,
                 DogcatConfig.MAX_LOG_LINES,
             )
-            .onSubscription { Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] Subscribing to shareIn\r") }
-            .onCompletion { Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] (3) COMPLETED Subscription to shareIn\r") }
-    }
-}
-
-interface Debug {
-    val enabled: Boolean
-    fun log(message: String)
-
-    object Disabled : Debug {
-        override val enabled get() = false
-        override fun log(message: String) = Unit
-    }
-
-    object Console : Debug {
-        override val enabled get() = true
-        override fun log(message: String) = println("[DEBUG] $message")
-    }
-}
-
-inline fun Debug.log(message: () -> String) {
-    if (enabled) {
-        log(message())
+            .onSubscription { Logger.d("${context()} Subscribing to shareIn\r") }
+            .onCompletion { Logger.d("${context()} (3) COMPLETED Subscription to shareIn\r") }
     }
 }

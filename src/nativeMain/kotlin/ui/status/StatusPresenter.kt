@@ -9,6 +9,8 @@ import dogcat.LogFilter
 import dogcat.PublicState
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import logger.Logger
+import logger.context
 
 class StatusPresenter(
     private val dogcat: Dogcat,
@@ -46,7 +48,7 @@ class StatusPresenter(
             .onEach {
                 view.updateAutoscroll(appStateFlow.state.value.autoscroll)
 
-                Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] !Emulator ${it.deviceName}")
+                Logger.d("${context()} !Emulator ${it.deviceName}")
                 view.updateDevice(it.deviceName, true)
             }
             .launchIn(scope)

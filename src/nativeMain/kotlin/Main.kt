@@ -5,6 +5,7 @@ import ServiceLocator.dogcat
 import ServiceLocator.environment
 import dogcat.Command.Start
 import kotlinx.coroutines.*
+import logger.Logger
 import ui.DogcatPresenter
 import ui.logLines.LogLinesPresenter
 import ui.status.StatusPresenter

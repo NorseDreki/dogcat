@@ -11,9 +11,9 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.onCompletion
-import Logger
+import logger.Logger
+import logger.context
 
-@OptIn(ExperimentalStdlibApi::class)
 class Dogcat(
     private val filters: InternalAppliedFiltersState = InternalAppliedFiltersState(),
     private val logLines: LogLines,
@@ -21,10 +21,10 @@ class Dogcat(
 )  {
 
     private val stateSubject = MutableStateFlow<PublicState>(WaitingInput)
-    val state = stateSubject.asStateFlow().onCompletion { Logger.d("[${ctx()}] (5) COMPLETION, state") }
+    val state = stateSubject.asStateFlow().onCompletion { Logger.d("${context()} (5) COMPLETION, state") }
 
     suspend operator fun invoke(command: Command) {
-        Logger.d("[${ctx()}] Command $command")
+        Logger.d("${context()} Command $command")
 
         when (command) {
             is Start -> start(command)
@@ -104,14 +104,13 @@ class Dogcat(
 
         val ci = CapturingInput(
             filterLines
-                .onCompletion { Logger.d("[${ctx()}] (1) COMPLETED: Capturing input filterLines $it\r") },
+                .onCompletion { Logger.d("${context()} (1) COMPLETED: Capturing input filterLines $it") },
 
             filters.applied,
 
             deviceName
         )
+
         stateSubject.emit(ci)
     }
-
-    private suspend fun ctx() = currentCoroutineContext()[CoroutineDispatcher]
 }

@@ -2,7 +2,7 @@ package ui
 
 import AppStateFlow
 import Input
-import Logger
+import logger.Logger
 import dogcat.Command
 import dogcat.Command.*
 import dogcat.Dogcat
@@ -14,6 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import logger.context
 import ncurses.endwin
 import platform.posix.exit
 
@@ -53,11 +54,11 @@ class DogcatPresenter(
                         val f = appStateFlow.state.value.packageFilter
 
                         if (f.second) {
-                            Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] !DeselectSelectAppByPackage")
+                            Logger.d("${context()} !DeselectSelectAppByPackage")
                             appStateFlow.filterByPackage(f.first, false)
                             dogcat(ResetFilter(ByPackage::class))
                         } else {
-                            Logger.d("[${(currentCoroutineContext()[CoroutineDispatcher])}] !SelectAppByPackage")
+                            Logger.d("${context()} !SelectAppByPackage")
                             dogcat(Start.PickApp(f.first!!.packageName))
                             appStateFlow.filterByPackage(f.first, true)
                         }

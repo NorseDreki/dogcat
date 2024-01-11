@@ -1,6 +1,6 @@
 package dogcat
 
-import Logger
+import logger.Logger
 
 interface LogLineParser {
     fun parse(line: String) : LogLine

@@ -2,7 +2,7 @@ package ui.logLines
 
 import AppStateFlow
 import Input
-import Logger
+import logger.Logger
 import dogcat.Dogcat
 import dogcat.PublicState.*
 import kotlinx.cinterop.ExperimentalForeignApi
