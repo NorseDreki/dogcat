@@ -4,7 +4,7 @@ import AppStateFlow
 import Input
 import logger.Logger
 import dogcat.Dogcat
-import dogcat.PublicState.*
+import dogcat.state.PublicState.*
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CloseableCoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope

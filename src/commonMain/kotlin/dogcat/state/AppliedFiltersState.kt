@@ -1,10 +1,9 @@
-package dogcat
+package dogcat.state
 
-import DogcatConfig.DEFAULT_MIN_LOG_LEVEL
+import dogcat.DogcatConfig.DEFAULT_MIN_LOG_LEVEL
+import dogcat.LogFilter
 import dogcat.LogFilter.MinLogLevel
 import dogcat.LogFilter.Substring
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,7 +17,7 @@ interface AppliedFiltersState {
 
 typealias AppliedFilters = Map<KClass<out LogFilter>, LogFilter>
 
-class InternalAppliedFiltersState : AppliedFiltersState {
+class DefaultAppliedFiltersState : AppliedFiltersState {
 
     private val defaultFilters: AppliedFilters =
         mapOf(

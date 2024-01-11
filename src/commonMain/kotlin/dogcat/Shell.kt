@@ -1,6 +1,8 @@
+package dogcat
+
 import kotlinx.coroutines.flow.Flow
 
-interface Environment {
+interface Shell {
 
     fun lines(minLogLevel: String, userId: String) : Flow<String>
 

@@ -1,5 +1,6 @@
-package dogcat
+package dogcat.state
 
+import dogcat.LogLine
 import kotlinx.coroutines.flow.Flow
 
 sealed interface PublicState {
@@ -12,10 +13,12 @@ sealed interface PublicState {
 
         override val applied: Flow<AppliedFilters>,
 
-        val deviceName: String?
+        val deviceName: String?,
+
+        val heartbeat: Flow<Boolean>
+
+
     ) : PublicState, AppliedFiltersState
 
     data object Stopped : PublicState
-
-    //add heartbeat which listens to emulator all the time
 }

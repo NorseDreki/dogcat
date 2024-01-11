@@ -1,3 +1,5 @@
+package dogcat
+
 import dogcat.LogLevel
 
 object DogcatConfig {

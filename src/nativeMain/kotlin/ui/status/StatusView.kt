@@ -1,6 +1,6 @@
 package ui.status
 
-import dogcat.AppliedFilters
+import dogcat.state.AppliedFilters
 import dogcat.LogFilter.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*

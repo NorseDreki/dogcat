@@ -1,6 +1,7 @@
 import AppConfig.COMMAND_TIMEOUT_MILLIS
 import com.kgit2.kommand.process.Command
 import com.kgit2.kommand.process.Stdio
+import dogcat.Shell
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -10,7 +11,7 @@ import logger.context
 @OptIn(ExperimentalStdlibApi::class)
 class AdbEnvironment(
     private val dispatcherIo: CoroutineDispatcher = Dispatchers.IO
-) : Environment {
+) : Shell {
     override fun lines(minLogLevel: String, userId: String): Flow<String> =
         flow {
             Logger.d("${context()} Starting adb logcat")

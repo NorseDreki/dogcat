@@ -1,5 +1,5 @@
-import dogcat.PublicState.CapturingInput
-import dogcat.PublicState.WaitingInput
+import dogcat.state.PublicState.CapturingInput
+import dogcat.state.PublicState.WaitingInput
 import app.cash.turbine.test
 import app.cash.turbine.turbineScope
 import dogcat.*
@@ -10,6 +10,8 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.*
 import dogcat.LogcatBriefParser
+import dogcat.state.DefaultAppliedFiltersState
+import dogcat.state.PublicState
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
@@ -32,7 +34,7 @@ class LogcatTest {
 
     @BeforeTest fun beforeTest() {
         val ls = DummyLogSource()
-        val s = InternalAppliedFiltersState()
+        val s = DefaultAppliedFiltersState()
         val lp = LogcatBriefParser()
 
         dogcat = Dogcat(s, LogLines(ls, lp, s, dispatcher, dispatcher))

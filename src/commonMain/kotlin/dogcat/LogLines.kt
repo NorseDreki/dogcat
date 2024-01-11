@@ -1,17 +1,16 @@
 package dogcat
 
-import DogcatConfig
-import Environment
+import dogcat.state.DefaultAppliedFiltersState
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import logger.Logger
 import logger.context
 
-@OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 class LogLines(
     private val lineParser: LogLineParser,
-    private val s: InternalAppliedFiltersState,
-    private val environment: Environment,
+    private val s: DefaultAppliedFiltersState,
+    private val shell: Shell,
     private val dispatcherCpu: CoroutineDispatcher = Dispatchers.Default,
     private val dispatcherIo: CoroutineDispatcher = Dispatchers.IO,
 ) {
@@ -96,7 +95,7 @@ class LogLines(
             ""
         }
 
-        return environment
+        return shell
             .lines(minLogLevel, userId)
             .onCompletion { cause ->
                 if (cause == null) {

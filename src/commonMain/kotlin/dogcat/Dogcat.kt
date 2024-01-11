@@ -1,13 +1,12 @@
 package dogcat
 
-import Environment
 import dogcat.Command.*
 import dogcat.Command.Start.*
 import dogcat.LogFilter.ByPackage
 import dogcat.LogFilter.Substring
-import dogcat.PublicState.*
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.currentCoroutineContext
+import dogcat.state.PublicState.*
+import dogcat.state.DefaultAppliedFiltersState
+import dogcat.state.PublicState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.onCompletion
@@ -15,9 +14,9 @@ import logger.Logger
 import logger.context
 
 class Dogcat(
-    private val filters: InternalAppliedFiltersState = InternalAppliedFiltersState(),
+    private val filters: DefaultAppliedFiltersState = DefaultAppliedFiltersState(),
     private val logLines: LogLines,
-    private val environment: Environment
+    private val shell: Shell
 )  {
 
     private val stateSubject = MutableStateFlow<PublicState>(WaitingInput)
@@ -31,7 +30,7 @@ class Dogcat(
 
             ClearLogSource -> {
                 // keyboard input hangs upon clearing? when no emulators
-                environment.clearSource()
+                shell.clearSource()
                 stateSubject.emit(InputCleared)
 
                 captureLogLines()
@@ -72,8 +71,8 @@ class Dogcat(
     private suspend fun start(subcommand: Start) {
         when (subcommand) {
             is PickForegroundApp -> {
-                val packageName = environment.foregroundPackageName()
-                val userId = environment.userIdFor(packageName)
+                val packageName = shell.foregroundPackageName()
+                val userId = shell.userIdFor(packageName)
 
                 filters.apply(ByPackage(packageName, userId))
                 Logger.d("Startup with foreground app, resolved to package '$packageName' and user ID '$userId'")
@@ -83,7 +82,7 @@ class Dogcat(
                 stateSubject.emit(InputCleared)
 
                 val packageName = subcommand.packageName
-                val userId = environment.userIdFor(packageName)
+                val userId = shell.userIdFor(packageName)
 
                 filters.apply(ByPackage(packageName, userId))
                 Logger.d("Startup package name '$packageName', resolved user ID to '$userId'")
@@ -100,7 +99,7 @@ class Dogcat(
     private suspend fun captureLogLines(restartSource: Boolean = true) {
         val filterLines = logLines.capture(restartSource)
 
-        val deviceName = environment.currentEmulatorName()
+        val deviceName = shell.currentEmulatorName()
 
         val ci = CapturingInput(
             filterLines
@@ -108,7 +107,9 @@ class Dogcat(
 
             filters.applied,
 
-            deviceName
+            deviceName,
+
+            shell.heartbeat()
         )
 
         stateSubject.emit(ci)

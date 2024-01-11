@@ -1,10 +1,8 @@
 package ui.logLines
 
-import DogcatConfig.MAX_LOG_LINES
+import dogcat.DogcatConfig.MAX_LOG_LINES
 import ServiceLocator
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.currentCoroutineContext
 import logger.Logger
 import logger.context
 import ncurses.*

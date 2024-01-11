@@ -1,12 +1,11 @@
 package ui.status
 
 import AppStateFlow
-import Environment
 import Input
 import dogcat.Command
 import dogcat.Dogcat
 import dogcat.LogFilter
-import dogcat.PublicState
+import dogcat.state.PublicState.CapturingInput
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import logger.Logger
@@ -15,7 +14,6 @@ import logger.context
 class StatusPresenter(
     private val dogcat: Dogcat,
     private val appStateFlow: AppStateFlow,
-    private val environment: Environment,
     private val input: Input,
     private val scope: CoroutineScope,
     private val ui: CloseableCoroutineDispatcher
@@ -23,13 +21,13 @@ class StatusPresenter(
     //views can come and go, when input disappears
     private val view = StatusView()
 
-    @OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class)
      fun start() {
         //what is tail-call as in launchIn?
 
         dogcat
             .state
-            .filterIsInstance<PublicState.CapturingInput>()
+            .filterIsInstance<CapturingInput>()
             .flatMapLatest { it.applied }
             .onEach {
                 view.updateFilters(it)
@@ -43,7 +41,7 @@ class StatusPresenter(
 
         dogcat
             .state
-            .filterIsInstance<PublicState.CapturingInput>()
+            .filterIsInstance<CapturingInput>()
             .mapLatest { it }
             .onEach {
                 view.updateAutoscroll(appStateFlow.state.value.autoscroll)
@@ -80,8 +78,10 @@ class StatusPresenter(
             }
             .launchIn(scope)
 
-        environment
-            .heartbeat()
+        dogcat
+            .state
+            .filterIsInstance<CapturingInput>()
+            .flatMapLatest { it.heartbeat }
             .onEach {
                 view.updateDevice("Device", it)
             }
