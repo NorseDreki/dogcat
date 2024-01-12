@@ -11,11 +11,12 @@ fun <T> Flow<T>.bufferedTransform(
     collect { item ->
         val willDrain = shouldDrain(storage, item)
         if (willDrain) {
-            storage.onEach { emit(it) }
+            //storage.onEach { emit(it) }
             storage.clear()
         }
 
         val newItem = transform(storage, item)
         storage.add(newItem)
+        emit(newItem)
     }
 }

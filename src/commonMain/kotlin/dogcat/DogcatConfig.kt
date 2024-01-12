@@ -1,7 +1,5 @@
 package dogcat
 
-import dogcat.LogLevel
-
 object DogcatConfig {
 
     // Lower the number, less memory consumption. Also note that NCurses pad, which is the current implementation

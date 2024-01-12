@@ -3,19 +3,29 @@ import Arguments.packageName
 import DogcatModule.appStateFlow
 import DogcatModule.dogcat
 import dogcat.Command.Start
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.toKString
 import kotlinx.coroutines.*
 import logger.Logger
+import platform.posix.getenv
 import ui.AppPresenter
 import ui.logLines.LogLinesPresenter
 import ui.status.StatusPresenter
 
-@OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class, ExperimentalForeignApi::class)
 fun main(args: Array<String>) {
     Arguments.validate(args)
 
     val ui = newSingleThreadContext("UI1")
 
     runBlocking(ui) {
+        val variable = "whatever..."
+
+
+
+        println(getenv(variable)?.toKString())
+
+
         val logger = FileLogger()
         Logger.set(logger)
 

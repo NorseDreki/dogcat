@@ -1,5 +1,6 @@
 package dogcat
 
+import bufferedTransform
 import dogcat.state.DefaultAppliedFiltersState
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -55,7 +56,8 @@ class LogLines(
             .map {
                 lineParser.parse(it)
             }
-            /*.bufferedTransform(
+            .filterIsInstance<Brief>()
+            .bufferedTransform(
                 { buffer, item ->
                     when {
                         buffer.isNotEmpty() -> {
@@ -72,10 +74,10 @@ class LogLines(
                     if (buffer.isEmpty()) {
                         item
                     } else {
-                        LogLine(item.level, "", item.owner, item.message)
+                        Brief(item.level, "", item.owner, item.message)
                     }
                 }
-            )*/
+            )
             .withIndex()
             //.flowOn()
             .onCompletion { Logger.d("${context()} (2) COMPLETED Full LogLines chain\r") }
