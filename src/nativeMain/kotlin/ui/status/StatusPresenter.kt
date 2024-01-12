@@ -1,8 +1,8 @@
 package ui.status
 
 import AppStateFlow
-import Input
-import Keymap.Actions.*
+import userInput.Input
+import userInput.Keymap.Actions.*
 import dogcat.Command
 import dogcat.Dogcat
 import dogcat.LogFilter
@@ -11,6 +11,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import logger.Logger
 import logger.context
+import userInput.Keymap
 
 class StatusPresenter(
     private val dogcat: Dogcat,

@@ -1,7 +1,7 @@
-import Arguments.current
-import Arguments.packageName
-import di.DogcatModule.appStateFlow
-import di.DogcatModule.dogcat
+import userInput.Arguments.current
+import userInput.Arguments.packageName
+import di.AppModule.appStateFlow
+import di.AppModule.dogcat
 import dogcat.Command.Start
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.*
@@ -9,6 +9,8 @@ import logger.Logger
 import ui.AppPresenter
 import ui.logLines.LogLinesPresenter
 import ui.status.StatusPresenter
+import userInput.Arguments
+import userInput.DefaultInput
 
 @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class, ExperimentalForeignApi::class)
 fun main(args: Array<String>) {

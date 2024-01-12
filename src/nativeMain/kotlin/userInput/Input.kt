@@ -1,3 +1,5 @@
+package userInput
+
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow

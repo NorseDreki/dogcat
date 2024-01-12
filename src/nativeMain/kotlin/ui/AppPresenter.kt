@@ -1,8 +1,8 @@
 package ui
 
 import AppStateFlow
-import Input
-import Keymap.Actions.*
+import userInput.Input
+import userInput.Keymap.Actions.*
 import logger.Logger
 import dogcat.Command
 import dogcat.Command.*
@@ -17,11 +17,10 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.withContext
 import logger.context
 import ncurses.endwin
 import platform.posix.exit
-import ui.logLines.processLogLine
+import userInput.Keymap
 
 @OptIn(ExperimentalForeignApi::class)
 class AppPresenter(

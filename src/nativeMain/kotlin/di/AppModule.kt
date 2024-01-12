@@ -3,6 +3,7 @@ package di
 import AdbShell
 import AppStateFlow
 import InternalAppStateFlow
+import di.DogcatModule.dogcatModule
 import dogcat.*
 import org.kodein.di.DI
 import org.kodein.di.bindSingleton
@@ -10,21 +11,18 @@ import org.kodein.di.instance
 import dogcat.LogcatBriefParser
 import dogcat.state.DefaultAppliedFiltersState
 
-object UiModule {
+object AppModule {
 
-    private val dogcatModule = DI.Module("ui") {
-        bindSingleton<DefaultAppliedFiltersState> { DefaultAppliedFiltersState() }
-        bindSingleton<Shell> { AdbShell() }
-        bindSingleton<LogLineParser> { LogcatBriefParser() }
-        bindSingleton<LogLines> { LogLines(instance(), instance(), instance()) }
-        bindSingleton<Dogcat> { Dogcat(instance(), instance(), instance()) }
+    private val appModule = DI.Module("app") {
         bindSingleton<AppStateFlow> { InternalAppStateFlow() }
     }
 
     private val serviceLocator = DI {
         import(dogcatModule)
+        import(appModule)
     }
 
+    //encapsulate
     val dogcat: Dogcat by serviceLocator.instance()
 
     val appStateFlow: AppStateFlow by serviceLocator.instance()

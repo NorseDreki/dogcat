@@ -1,4 +1,6 @@
-import Keymap.Actions.*
+package userInput
+
+import userInput.Keymap.Actions.*
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
 

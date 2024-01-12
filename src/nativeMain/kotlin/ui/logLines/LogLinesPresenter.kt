@@ -1,8 +1,8 @@
 package ui.logLines
 
 import AppStateFlow
-import Input
-import Keymap.Actions.*
+import userInput.Input
+import userInput.Keymap.Actions.*
 import logger.Logger
 import dogcat.Dogcat
 import dogcat.state.PublicState.*
@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
+import userInput.Keymap
 
 class LogLinesPresenter(
     private val dogcat: Dogcat,
