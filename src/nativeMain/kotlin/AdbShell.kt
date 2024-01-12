@@ -1,4 +1,5 @@
 import AppConfig.COMMAND_TIMEOUT_MILLIS
+import com.kgit2.kommand.exception.KommandException
 import com.kgit2.kommand.process.Command
 import com.kgit2.kommand.process.Stdio
 import dogcat.Shell
@@ -85,7 +86,7 @@ class AdbShell(
     }
 
     override suspend fun foregroundPackageName() = withContext(dispatcherIo) {
-        val FG_LINE = """^ +ResumedActivity: +ActivityRecord\{[^ ]* [^ ]* ([^ ^\/]*).*$""".toRegex()
+        val FG_LINE = """^ +ResumedActivity: +ActivityRecord\{[^ ]* [^ ]* ([^ ^/]*).*$""".toRegex()
 
         val out = Command("adb")
             .args(
@@ -172,6 +173,26 @@ class AdbShell(
             emit(running)
 
             delay(1000L)
+        }
+    }
+
+    //adb -s emulator-5554 emu avd name
+    override suspend fun isShellAvailable(): Boolean {
+        return withTimeout(1000) {
+            val s =try {
+                Command("adb")
+                    .args(
+                        listOf("version")
+                    )
+                    .stdout(Stdio.Pipe)
+                    .status()
+            } catch (e: KommandException) {
+                //whoa exception and not code if command not found
+                // maybe use 'which adb' instead
+                Logger.d("KommandException" + e.message + e.cause)
+                2
+            }
+            s == 0
         }
     }
 }

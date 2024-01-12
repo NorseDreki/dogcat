@@ -9,6 +9,7 @@ import dogcat.state.DefaultAppliedFiltersState
 import dogcat.state.PublicState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onCompletion
 import logger.Logger
 import logger.context
@@ -69,6 +70,16 @@ class Dogcat(
     }
 
     private suspend fun start(subcommand: Start) {
+        val shellAvailable = shell.isShellAvailable()
+
+        val running = shell.heartbeat().first()
+
+        if (!shellAvailable || !running) {
+            val ci = Stopped
+            stateSubject.emit(ci)
+            return
+        }
+
         when (subcommand) {
             is PickForegroundApp -> {
                 val packageName = shell.foregroundPackageName()

@@ -1,4 +1,5 @@
 import AppConfig.APP_LOG_FILENAME
+import AppConfig.LINE_SEPARATOR
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import logger.CanLog
@@ -12,7 +13,7 @@ class FileLogger : CanLog {
             ?: throw RuntimeException("Was not able to open log file for writing.")
 
     override fun d(line: String) {
-        fprintf(file, "$line\r\n")
+        fprintf(file, "$line$LINE_SEPARATOR")
         fflush(file)
     }
 

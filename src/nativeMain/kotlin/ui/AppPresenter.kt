@@ -9,13 +9,19 @@ import dogcat.Command.*
 import dogcat.Dogcat
 import dogcat.LogFilter.*
 import dogcat.LogLevel.*
+import dogcat.state.PublicState
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.withContext
 import logger.context
 import ncurses.endwin
 import platform.posix.exit
+import ui.logLines.processLogLine
 
 @OptIn(ExperimentalForeignApi::class)
 class AppPresenter(
@@ -26,7 +32,43 @@ class AppPresenter(
 ) {
     private val view = AppView()
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun start() {
+        dogcat
+            .state
+            .flatMapLatest {
+                when (it) {
+                    is PublicState.WaitingInput -> {
+                        Logger.d("Waiting for log lines...\r")
+
+                        emptyFlow()
+                    }
+                    is PublicState.CapturingInput -> {
+                        it.lines
+                    }
+                    PublicState.InputCleared -> {
+                        Logger.d("Cleared Logcat and re-started\r")
+                        /*
+                                                withContext(ui) {
+                                                    view.clear()
+                                                }
+                        */
+                        emptyFlow()
+                    }
+                    PublicState.Stopped -> {
+                        // or maybe SDK tools are not installed at all
+                        println("Either ADB is not found in your PATH or it's found but no emulator is running " +
+                                "(it may be disconnected or stopped). Quitting.\n")
+
+                        emptyFlow()
+                    }
+                }
+            }
+            .onEach {
+            }
+            .launchIn(scope)
+
+
         input
             .keypresses
             //.debounce(200)

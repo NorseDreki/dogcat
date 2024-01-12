@@ -1,13 +1,11 @@
 import Arguments.current
 import Arguments.packageName
-import DogcatModule.appStateFlow
-import DogcatModule.dogcat
+import di.DogcatModule.appStateFlow
+import di.DogcatModule.dogcat
 import dogcat.Command.Start
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.toKString
 import kotlinx.coroutines.*
 import logger.Logger
-import platform.posix.getenv
 import ui.AppPresenter
 import ui.logLines.LogLinesPresenter
 import ui.status.StatusPresenter
@@ -19,12 +17,6 @@ fun main(args: Array<String>) {
     val ui = newSingleThreadContext("UI1")
 
     runBlocking(ui) {
-        val variable = "whatever..."
-
-
-
-        println(getenv(variable)?.toKString())
-
 
         val logger = FileLogger()
         Logger.set(logger)
@@ -50,7 +42,5 @@ fun main(args: Array<String>) {
 
     ui.close()
     Logger.close()
-
     //input.stop()
-    //ncurses.end()
 }

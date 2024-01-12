@@ -1,7 +1,7 @@
 package ui.logLines
 
 import dogcat.DogcatConfig.MAX_LOG_LINES
-import DogcatModule
+import di.DogcatModule
 import kotlinx.cinterop.ExperimentalForeignApi
 import logger.Logger
 import logger.context

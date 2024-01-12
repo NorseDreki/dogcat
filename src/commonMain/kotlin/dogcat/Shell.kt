@@ -17,4 +17,6 @@ interface Shell {
     suspend fun devices(): List<String>
 
     fun heartbeat(): Flow<Boolean>
+
+    suspend fun isShellAvailable(): Boolean
 }
