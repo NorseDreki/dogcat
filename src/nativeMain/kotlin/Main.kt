@@ -1,16 +1,20 @@
-import userInput.Arguments.current
-import userInput.Arguments.packageName
+import di.AppModule.appPresenter
 import di.AppModule.appStateFlow
 import di.AppModule.dogcat
+import di.AppModule.fileLogger
+import di.AppModule.input
 import dogcat.Command.Start
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.coroutines.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.runBlocking
 import logger.Logger
-import ui.AppPresenter
 import ui.logLines.LogLinesPresenter
 import ui.status.StatusPresenter
 import userInput.Arguments
-import userInput.DefaultInput
+import userInput.Arguments.current
+import userInput.Arguments.packageName
 
 @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class, ExperimentalForeignApi::class)
 fun main(args: Array<String>) {
@@ -19,15 +23,11 @@ fun main(args: Array<String>) {
     val ui = newSingleThreadContext("UI1")
 
     runBlocking(ui) {
+        Logger.set(fileLogger)
 
-        val logger = FileLogger()
-        Logger.set(logger)
-
-        val input = DefaultInput(this, Dispatchers.IO)
         input.start()
 
-        val app = AppPresenter(dogcat, appStateFlow, input, this)
-        app.start()
+        appPresenter.start()
 
         val status = StatusPresenter(dogcat, appStateFlow, input, this, ui)
         status.start()

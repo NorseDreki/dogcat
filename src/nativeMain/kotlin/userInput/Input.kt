@@ -10,8 +10,15 @@ import ncurses.ERR
 import ncurses.stdscr
 import ncurses.wgetch
 
-interface Input {
+interface Input : HasHifecycle {
     val keypresses: Flow<Int>
+}
+
+interface HasHifecycle {
+
+    fun start()
+
+    fun stop()
 }
 
 class DefaultInput(
@@ -28,7 +35,7 @@ class DefaultInput(
     val s = CoroutineScope(inputDispatcher)
 
     @OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
-    fun start() {
+    override fun start() {
         s.launch {
             while (true) {
                 val key = wgetch(stdscr)
@@ -46,7 +53,7 @@ class DefaultInput(
         }
     }
 
-    fun stop() {
+    override fun stop() {
         s.cancel()
     }
 }
