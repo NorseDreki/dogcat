@@ -10,7 +10,7 @@ import platform.posix.setlocale
 @OptIn(ExperimentalForeignApi::class)
 class AppView {
 
-    fun start() {
+    suspend fun start() {
         setlocale(LC_ALL, "en_US.UTF-8") // should be before initscr()
         initscr()
 

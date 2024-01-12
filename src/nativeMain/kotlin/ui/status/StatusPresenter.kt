@@ -21,10 +21,12 @@ class StatusPresenter(
     private val ui: CloseableCoroutineDispatcher
 ) {
     //views can come and go, when input disappears
-    private val view = StatusView()
+    private lateinit var view: StatusView
 
     @OptIn(ExperimentalCoroutinesApi::class)
      fun start() {
+         view = StatusView()
+
         //what is tail-call as in launchIn?
 
         dogcat

@@ -13,6 +13,7 @@ import dogcat.state.PublicState
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
@@ -20,6 +21,9 @@ import kotlinx.coroutines.flow.onEach
 import logger.context
 import ncurses.endwin
 import platform.posix.exit
+import ui.logLines.LogLinesPresenter
+import ui.status.StatusPresenter
+import userInput.Arguments
 import userInput.Keymap
 
 @OptIn(ExperimentalForeignApi::class)
@@ -27,12 +31,14 @@ class AppPresenter(
     private val dogcat: Dogcat,
     private val appStateFlow: AppStateFlow,
     private val input: Input,
+    private val logLinesPresenter: LogLinesPresenter,
+    private val statusPresenter: StatusPresenter,
     private val scope: CoroutineScope
 ) {
     private val view = AppView()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun start() {
+    suspend fun start() {
         dogcat
             .state
             .flatMapLatest {
@@ -138,6 +144,15 @@ class AppPresenter(
             }
             .launchIn(scope)
 
+        when {
+            Arguments.packageName != null -> dogcat(Start.PickApp(Arguments.packageName!!))
+            Arguments.current == true -> dogcat(Start.PickForegroundApp)
+            else -> dogcat(Start.All)
+        }
+
         view.start()
+
+        statusPresenter.start()
+        logLinesPresenter.start()
     }
 }

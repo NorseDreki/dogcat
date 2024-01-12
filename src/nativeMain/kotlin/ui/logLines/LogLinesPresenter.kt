@@ -25,10 +25,11 @@ class LogLinesPresenter(
     private val ui: CloseableCoroutineDispatcher
 ) {
     //views can come and go, when input disappears
-    private val view = LogLinesView()
+    private lateinit var view: LogLinesView
 
     @OptIn(ExperimentalForeignApi::class, ExperimentalCoroutinesApi::class)
     suspend fun start() {
+        view = LogLinesView()
         //what is tail-call as in launchIn?
 
         dogcat
