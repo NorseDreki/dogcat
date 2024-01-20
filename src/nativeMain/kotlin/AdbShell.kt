@@ -4,47 +4,134 @@ import com.kgit2.kommand.process.Command
 import com.kgit2.kommand.process.Stdio
 import dogcat.Shell
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.*
 import logger.Logger
 import logger.context
 
 class AdbShell(
     private val dispatcherIo: CoroutineDispatcher = Dispatchers.IO
 ) : Shell {
-    override fun lines(minLogLevel: String, userId: String): Flow<String> =
-        flow {
+    override fun lines(minLogLevel: String, userId: String): Flow<String> {
+        val logcat = Command("adb")
+            .args(
+                listOf("logcat", "-v", "brief", userId, minLogLevel)
+            )
+            .stdout(Stdio.Pipe)
+            .spawn() // throws ex
+
+        return flow {
             Logger.d("${context()} Starting adb logcat")
 
-            val logcat = Command("adb")
-                .args(
-                    listOf("logcat", "-v", "brief", userId, minLogLevel)
-                )
-                .stdout(Stdio.Pipe)
-                .spawn()
 
-            val stdoutReader = logcat.bufferedStdout()!!// .getChildStdout()!!
+            val stdoutReader = logcat.bufferedStdout()!! //do not assert
 
             try {
-                while (true) {
+                coroutineScope {
+                    val lineChannel = Channel<String>()
+
+                    try {
+                    val j = launch(dispatcherIo) {
+                        while (currentCoroutineContext().isActive) {
+                            val line = stdoutReader.readLine()
+                            if (line != null) {
+                                lineChannel.send(line)
+                            } else {
+                                break
+                            }
+                        }
+                        Logger.d(">>>>>>>>>>>>>>>>> stop launch")
+                    }
+                    } catch (e: CancellationException) {
+                        Logger.d(">>>>>>>>>>>>>>>>> MTHRFRK! $e  $this") //never appeared
+                        logcat.kill()
+
+                        //j.cancel()
+                        //} catch (e: CancellationException) {
+                        //  Logger.d(">>>>>>>>>>>>>>>>> CancellationException   !!!!!!!!!!! Cancellation!  $this")
+                    }
+
+                    //throw RuntimeException("111111!")
+
+                    try {
+                        while (true) {
+                            //yield()
+                            //Logger.d("Reading line $this")
+                            val line = lineChannel.receive() ?: break
+                            //Logger.d("Read line $this")
+                            emit(line)
+                            //Logger.d("Emitted $this")
+
+                            /*if (!currentCoroutineContext().isActive) {
+                                throw RuntimeException("Coroutine was cancelled[[[[[")
+                            }*/
+                        }
+                    } catch (e: CancellationException) {
+                        Logger.d(">>>>>>>>>>>>>>>>> inner catch $e  $this")
+                        logcat.kill()
+
+                        //j.cancel()
+                    //} catch (e: CancellationException) {
+                      //  Logger.d(">>>>>>>>>>>>>>>>> CancellationException   !!!!!!!!!!! Cancellation!  $this")
+                    } finally {
+                        Logger.d(">>>>>>>>>>>>>>>>> finally   !!!!!!!!!n  $this")
+                        //delay(1000)
+                        //throw RuntimeException("2113242314")
+
+                    }
+                    /*catch (e: KommandException) {
+                        Logger.d("!!!!!!!!!!! KommandEx! $e")
+                    } catch (e: RuntimeException) {
+                        Logger.d(
+                            "!!!!!!!!!!! Runtime! ${e.message} ${context()}"
+                        )
+                    }*/
+                }
+            } catch (e: RuntimeException) {
+                Logger.d(">>>>>>>>>>>>>>>>> outer   Caught!  $e $this")
+                //logcat.kill()
+            }
+            /*try {
+                while (currentCoroutineContext().isActive) {
+                    yield()
+                    Logger.d("Reading line $this")
                     val line = stdoutReader.readLine() ?: break
+                    Logger.d("Read line $this")
                     emit(line)
-                    //yield() //?
+                    Logger.d("Emitted $this")
                 }
             } catch (e: CancellationException) {
-                Logger.d("!!!!!!!!!!! Cancellation! $e")
+                Logger.d("!!!!!!!!!!! Cancellation! $e $this")
+            } catch (e: KommandException) {
+                Logger.d("!!!!!!!!!!! KommandEx! $e")
             } catch (e: RuntimeException) {
                 Logger.d(
                     "!!!!!!!!!!! Runtime! ${e.message} ${context()}"
                 )
-            }
+            }*/
 
-            Logger.d("${context()} !!!!!!!!! Killing logcat ${currentCoroutineContext().isActive}")
+            Logger.d(">>>>>>>>>>>>>>>>>>>>>>>> ${context()} !!!!!!!!! Killing logcat ${currentCoroutineContext().isActive}")
             // tried timeout, need async IO so badly
             // command would be killed when next line appears.
             // also, no leftover adb upon app exit
-            logcat.kill()
+            //logcat.kill()
         }
+            .onCompletion {
+                Logger.d(">>>>>>>>>>>>  ${context()} !!!!!!!!! Killing logcat on Completion ${currentCoroutineContext().isActive}")
+                //logcat.kill()
+            }
+            .catch { cause ->
+                if (cause is CancellationException) {
+                    // Handle cancellation
+                    Logger.d("|||||||||||||||||||||||||||||||||||||||||||||||||||  Flow was cancelled, cleaning up resources...")
+                    // Clean up resources here
+                } else {
+                    // Handle other exceptions
+                    Logger.d("||||||||||||||||||||||||||||||||||||||||||||| An error occurred: $cause")
+                }
+            }
+            
+    }
 
     override suspend fun userIdFor(packageName: String) = withContext(dispatcherIo) {
         val UID_CONTEXT = """Packages:\R\s+Package\s+\[$packageName]\s+\(.*\):\R\s+(?:appId|userId)=(\d*)""".toRegex()
@@ -169,7 +256,7 @@ class AdbShell(
 
             val running = name?.contains("running") ?: false
 
-            Logger.d("${context()} !Emulator $name")
+            //Logger.d("${context()} !Emulator $name")
 
             emit(running)
 

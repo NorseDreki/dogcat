@@ -147,7 +147,7 @@ class LogLinesView {
 
     suspend fun recordLine(count: Int = 1) {
         linesCount += count
-        Logger.d("${context()} record $count, $linesCount")
+        //Logger.d("${context()} record $count, $linesCount")
 
         //if (snapY) {
         if (AppModule.appStateFlow.state.value.autoscroll) {

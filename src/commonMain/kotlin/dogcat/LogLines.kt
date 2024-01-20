@@ -27,6 +27,7 @@ class LogLines(
                 withContext(dispatcherCpu) {
                     scope.cancel()
                 }
+                scope.cancel()
             }
 
             scope = CoroutineScope(dispatcherIo + handler + Job())
@@ -100,6 +101,8 @@ class LogLines(
         return shell
             .lines(minLogLevel, userId)
             .onCompletion { cause ->
+                Logger.d("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! $cause\n")
+
                 if (cause == null) {
                     Logger.d("${context()} (4) COMPLETED, loglinessource.lines $cause\r")
                     emit("${context()} INPUT HAS EXITED")
@@ -107,6 +110,9 @@ class LogLines(
                     Logger.d("${context()} EXIT COMPLETE $cause\r")
                 }
             }
+            .catch { cause ->
+                Logger.d("|||||||||||||||||||||||||||||||||||||||||||||||||||  Flow was cancelled, cleaning up resources...")
+        }
             .onStart { Logger.d("${context()} Start subscription to logLinesSource\r") }
             .shareIn(
                 scope,
@@ -114,6 +120,9 @@ class LogLines(
                 DogcatConfig.MAX_LOG_LINES,
             )
             .onSubscription { Logger.d("${context()} Subscribing to shareIn\r") }
+            .catch { cause ->
+                Logger.d("|||||||||||||||||||||||||||||||||||||||||||||||||||  Flow was cancelled, cleaning up resources...")
+            }
             .onCompletion { Logger.d("${context()} (3) COMPLETED Subscription to shareIn\r") }
     }
 }
