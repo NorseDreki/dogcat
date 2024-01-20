@@ -47,7 +47,8 @@ class AdbShell(
         }
 
     override suspend fun userIdFor(packageName: String) = withContext(dispatcherIo) {
-        val UID_CONTEXT = """Packages:\n\s+Package\s+\[$packageName]\s+\(.*\):\n\s+userId=(\d*)""".toRegex()
+        val UID_CONTEXT = """Packages:\R\s+Package\s+\[$packageName]\s+\(.*\):\R\s+(?:appId|userId)=(\d*)""".toRegex()
+        //val UID_CONTEXT1 = """Packages:\n\s+Package\s+\[$packageName]\s+\(.*\):\n\s+appId=(\d*)""".toRegex()
 
         val output = withTimeout(COMMAND_TIMEOUT_MILLIS) {
             Command("adb")
@@ -131,7 +132,7 @@ class AdbShell(
     }
 
     override suspend fun devices(): List<String> = withContext(dispatcherIo) {
-        val DEVICES = """List of devices attached\n(.*)""".toRegex()
+        val DEVICES = """List of devices attached\R(.*)""".toRegex()
 
         val output = withContext(dispatcherIo) {
             Command("adb")

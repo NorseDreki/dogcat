@@ -5,6 +5,7 @@ import userInput.Input
 import userInput.Keymap.Actions.*
 import logger.Logger
 import dogcat.Dogcat
+import dogcat.Unparseable
 import dogcat.state.PublicState.*
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CloseableCoroutineDispatcher
@@ -39,6 +40,13 @@ class LogLinesPresenter(
                     is WaitingInput -> {
                         Logger.d("Waiting for log lines...\r")
 
+                        val waiting = "--------- log lines are empty, let's wait"
+
+                        withContext(ui) {
+                            view.processLogLine(IndexedValue(0, Unparseable(waiting)))
+                        }
+
+
                         emptyFlow()
                     }
                     is CapturingInput -> {
@@ -48,6 +56,11 @@ class LogLinesPresenter(
                             view.clear()
                         }
 
+                        val waiting = "--------- log lines are empty, let's wait"
+
+                        withContext(ui) {
+                            view.processLogLine(IndexedValue(0, Unparseable(waiting)))
+                        }
 
                         it.lines
                     }
@@ -57,7 +70,14 @@ class LogLinesPresenter(
                         withContext(ui) {
                             view.clear()
                         }
+
 */
+                        val waiting = "--------- log lines are empty, let's wait"
+
+                        withContext(ui) {
+                            view.processLogLine(IndexedValue(0, Unparseable(waiting)))
+                        }
+
                         emptyFlow()
                     }
                     Stopped -> {

@@ -15,7 +15,9 @@ class AppView {
         initscr()
 
         //raw();
-        //keypad(stdscr, TRUE);
+
+        //The keypad function enables the reading of function keys like arrow keys, Home, End, and so on.
+        keypad(stdscr, TRUE);
         noecho();
 
 
