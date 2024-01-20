@@ -1,4 +1,5 @@
 import AppConfig.COMMAND_TIMEOUT_MILLIS
+import com.kgit2.kommand.exception.ErrorType
 import com.kgit2.kommand.exception.KommandException
 import com.kgit2.kommand.process.Command
 import com.kgit2.kommand.process.Stdio
@@ -15,7 +16,7 @@ class AdbShell(
     override fun lines(minLogLevel: String, userId: String): Flow<String> {
         val logcat = Command("adb")
             .args(
-                listOf("logcat", "-v", "brief", userId, minLogLevel)
+                listOf("logcat", "-v", "brief", "-d", userId, minLogLevel)
             )
             .stdout(Stdio.Pipe)
             .spawn() // throws ex
@@ -30,28 +31,18 @@ class AdbShell(
                 coroutineScope {
                     val lineChannel = Channel<String>()
 
-                    try {
-                    val j = launch(dispatcherIo) {
-                        while (currentCoroutineContext().isActive) {
+                    launch(dispatcherIo) {
+                        while (isActive) {
                             val line = stdoutReader.readLine()
                             if (line != null) {
                                 lineChannel.send(line)
                             } else {
+                                Logger.d(">>>>>>>>>>>>>>>>> stop break $isActive")
                                 break
                             }
                         }
                         Logger.d(">>>>>>>>>>>>>>>>> stop launch")
                     }
-                    } catch (e: CancellationException) {
-                        Logger.d(">>>>>>>>>>>>>>>>> MTHRFRK! $e  $this") //never appeared
-                        logcat.kill()
-
-                        //j.cancel()
-                        //} catch (e: CancellationException) {
-                        //  Logger.d(">>>>>>>>>>>>>>>>> CancellationException   !!!!!!!!!!! Cancellation!  $this")
-                    }
-
-                    //throw RuntimeException("111111!")
 
                     try {
                         while (true) {
@@ -61,14 +52,11 @@ class AdbShell(
                             //Logger.d("Read line $this")
                             emit(line)
                             //Logger.d("Emitted $this")
-
-                            /*if (!currentCoroutineContext().isActive) {
-                                throw RuntimeException("Coroutine was cancelled[[[[[")
-                            }*/
                         }
                     } catch (e: CancellationException) {
                         Logger.d(">>>>>>>>>>>>>>>>> inner catch $e  $this")
                         logcat.kill()
+                        cancel()
 
                         //j.cancel()
                     //} catch (e: CancellationException) {
@@ -87,8 +75,9 @@ class AdbShell(
                         )
                     }*/
                 }
-            } catch (e: RuntimeException) {
+            } catch (e: CancellationException) {
                 Logger.d(">>>>>>>>>>>>>>>>> outer   Caught!  $e $this")
+                //throw KommandException("12323",ErrorType.Utf8)
                 //logcat.kill()
             }
             /*try {

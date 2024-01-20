@@ -23,11 +23,12 @@ class LogLines(
     suspend fun capture(restartSource: Boolean = true): Flow<IndexedValue<LogLine>> {
         if (restartSource) {
             if (this::scope.isInitialized) {
-                Logger.d("${context()} !!!!! cancelling scope")
+                Logger.d("${context()} !!!!! cancelling scope ${scope.coroutineContext[Job]}")
                 withContext(dispatcherCpu) {
+
                     scope.cancel()
                 }
-                scope.cancel()
+                //scope.cancel()
             }
 
             scope = CoroutineScope(dispatcherIo + handler + Job())
@@ -104,8 +105,8 @@ class LogLines(
                 Logger.d("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! $cause\n")
 
                 if (cause == null) {
-                    Logger.d("${context()} (4) COMPLETED, loglinessource.lines $cause\r")
-                    emit("${context()} INPUT HAS EXITED")
+                    emit("${context()} INPUT HAS EXITED") //will suspend
+                    Logger.d("${context()} (4) COMPLETED, loglinessource.lines $cause\n")
                 } else {
                     Logger.d("${context()} EXIT COMPLETE $cause\r")
                 }
