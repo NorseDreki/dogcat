@@ -1,11 +1,13 @@
 import AppConfig.COMMAND_TIMEOUT_MILLIS
 import com.kgit2.kommand.exception.ErrorType
 import com.kgit2.kommand.exception.KommandException
+import com.kgit2.kommand.process.Child
 import com.kgit2.kommand.process.Command
 import com.kgit2.kommand.process.Stdio
 import dogcat.Shell
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.flow.*
 import logger.Logger
 import logger.context
@@ -13,101 +15,109 @@ import logger.context
 class AdbShell(
     private val dispatcherIo: CoroutineDispatcher = Dispatchers.IO
 ) : Shell {
-    override fun lines(minLogLevel: String, userId: String): Flow<String> {
-        val logcat = Command("adb")
-            .args(
-                listOf("logcat", "-v", "brief", "-d", userId, minLogLevel)
-            )
-            .stdout(Stdio.Pipe)
-            .spawn() // throws ex
 
+    private fun Child.shutdownSafely() {
+        try {
+            kill()
+        } catch (e: KommandException) {
+            Logger.d("")
+        }
+    }
+
+    override fun lines(minLogLevel: String, userId: String): Flow<String> {
         return flow {
             Logger.d("${context()} Starting adb logcat")
 
+            val logcat = try {
+                Command("adb")
+                    .args(
+                        listOf("logcat", "-v", "brief", userId, minLogLevel)
+                    )
+                    .stdout(Stdio.Pipe)
+                    .spawn()
 
-            val stdoutReader = logcat.bufferedStdout()!! //do not assert
+            } catch (e: KommandException) {
+                emit("--- ADB couldn't start: ${e.message}, ${e.errorType}, ${e.cause}")
+                Logger.d(">>>>>>>>>>>>>>>>>>>>>>>>>>  KommandException" + e.message + e.errorType)
+
+                return@flow
+            }
 
             try {
+                /*val logcat = Command("adb")
+                    .args(
+                        listOf("logcat", "-v", "brief", userId, minLogLevel, "-d")
+                    )
+                    .stdout(Stdio.Pipe).
+                    .spawn() // throws ex*/
+
+                if (logcat.bufferedStdout() == null) {
+                    throw KommandException("Must have stdout", ErrorType.IO)
+                }
+                val stdoutReader = logcat.bufferedStdout()!!
+
                 coroutineScope {
-                    val lineChannel = Channel<String>()
+                    val linesChannel = Channel<String>()
 
                     launch(dispatcherIo) {
                         while (isActive) {
                             val line = stdoutReader.readLine()
+                            //try send test KommandException
                             if (line != null) {
-                                lineChannel.send(line)
+                                linesChannel.send(line)
                             } else {
                                 Logger.d(">>>>>>>>>>>>>>>>> stop break $isActive")
+                                linesChannel.close()
                                 break
                             }
+                            //throw KommandException("whoa", ErrorType.Utf8)
                         }
                         Logger.d(">>>>>>>>>>>>>>>>> stop launch")
                     }
 
                     try {
                         while (true) {
-                            //yield()
-                            //Logger.d("Reading line $this")
-                            val line = lineChannel.receive() ?: break
-                            //Logger.d("Read line $this")
+                            val line = linesChannel.receive()
                             emit(line)
-                            //Logger.d("Emitted $this")
                         }
                     } catch (e: CancellationException) {
                         Logger.d(">>>>>>>>>>>>>>>>> inner catch $e  $this")
-                        logcat.kill()
+
+                        logcat.shutdownSafely()
+
+                        //logcat.kill() //should also be called on KommandException
                         cancel()
-
-                        //j.cancel()
-                    //} catch (e: CancellationException) {
-                      //  Logger.d(">>>>>>>>>>>>>>>>> CancellationException   !!!!!!!!!!! Cancellation!  $this")
-                    } finally {
-                        Logger.d(">>>>>>>>>>>>>>>>> finally   !!!!!!!!!n  $this")
-                        //delay(1000)
-                        //throw RuntimeException("2113242314")
-
+                    } catch (e: ClosedReceiveChannelException) {
+                        Logger.d(">>>>>>>>>>>>>>>>> catch that no more receiving $e  $this")
                     }
-                    /*catch (e: KommandException) {
-                        Logger.d("!!!!!!!!!!! KommandEx! $e")
-                    } catch (e: RuntimeException) {
-                        Logger.d(
-                            "!!!!!!!!!!! Runtime! ${e.message} ${context()}"
-                        )
-                    }*/
                 }
-            } catch (e: CancellationException) {
-                Logger.d(">>>>>>>>>>>>>>>>> outer   Caught!  $e $this")
-                //throw KommandException("12323",ErrorType.Utf8)
-                //logcat.kill()
-            }
-            /*try {
-                while (currentCoroutineContext().isActive) {
-                    yield()
-                    Logger.d("Reading line $this")
-                    val line = stdoutReader.readLine() ?: break
-                    Logger.d("Read line $this")
-                    emit(line)
-                    Logger.d("Emitted $this")
-                }
-            } catch (e: CancellationException) {
-                Logger.d("!!!!!!!!!!! Cancellation! $e $this")
             } catch (e: KommandException) {
-                Logger.d("!!!!!!!!!!! KommandEx! $e")
-            } catch (e: RuntimeException) {
-                Logger.d(
-                    "!!!!!!!!!!! Runtime! ${e.message} ${context()}"
-                )
-            }*/
+                emit("--- Exception when interacting with ADB: ${e.message}, ${e.errorType}, ${e.cause}")
+                //Logger.d(">>>>>>>>>>>>>>>>>>>>>>>>>>  KommandException" + e.message + e.cause)
 
-            Logger.d(">>>>>>>>>>>>>>>>>>>>>>>> ${context()} !!!!!!!!! Killing logcat ${currentCoroutineContext().isActive}")
+                Logger.d(">>>>>>>>>>>>>>>>> outer   Kommand!  $e $this")
+                //logcat.shutdownSafely()
+                //logcat.kill()*/
+            } catch (e: CancellationException) {
+                //might be coming from linesChannel.send(line)
+                Logger.d(">>>>>>>>>>>>>>>>> outer   Cancellation!  $e $this")
+            } finally {
+                Logger.d(">>>>>>>>>>>>>>>>> outer   finally -- shutdown logcat!  $this")
+                logcat.shutdownSafely()
+            }
+            //} finally {
+
+
+           // }
+            Logger.d(">>>>>>>>>>>>>>>>>>>>>>>> ${context()} !!!!!!!!! Exiting flow builder ${currentCoroutineContext().isActive}")
             // tried timeout, need async IO so badly
             // command would be killed when next line appears.
             // also, no leftover adb upon app exit
             //logcat.kill()
         }
-            .onCompletion {
-                Logger.d(">>>>>>>>>>>>  ${context()} !!!!!!!!! Killing logcat on Completion ${currentCoroutineContext().isActive}")
-                //logcat.kill()
+            /*.onCompletion {
+                Logger.d(">>>>>>>>>>>>  ${context()} !!!!!!!!! onCompletion ${currentCoroutineContext().isActive}")
+                //emit --- input has exited
             }
             .catch { cause ->
                 if (cause is CancellationException) {
@@ -117,9 +127,10 @@ class AdbShell(
                 } else {
                     // Handle other exceptions
                     Logger.d("||||||||||||||||||||||||||||||||||||||||||||| An error occurred: $cause")
+
+                    //emit a line with error message and suggest to restart
                 }
-            }
-            
+            }*/
     }
 
     override suspend fun userIdFor(packageName: String) = withContext(dispatcherIo) {
@@ -256,7 +267,7 @@ class AdbShell(
     //adb -s emulator-5554 emu avd name
     override suspend fun isShellAvailable(): Boolean {
         return withTimeout(1000) {
-            val s =try {
+            val s = try {
                 Command("adb")
                     .args(
                         listOf("version")

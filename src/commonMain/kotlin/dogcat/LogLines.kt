@@ -16,7 +16,7 @@ class LogLines(
     private val dispatcherIo: CoroutineDispatcher = Dispatchers.IO,
 ) {
 
-    val handler = CoroutineExceptionHandler { _, t -> Logger.d("!!!!!!11111111 CATCH! ${t.message}\r") }
+    private val handler = CoroutineExceptionHandler { _, t -> Logger.d("!!!!!!11111111 CATCH! ${t.message}\r") }
     private lateinit var scope: CoroutineScope
     private lateinit var sharedLines: Flow<String>
 
@@ -99,14 +99,27 @@ class LogLines(
             ""
         }
 
+        //Unparseable log line: '--------- beginning of kernel'
+        //>>>>>>>>>>>>>>>>> inner catch kotlinx.coroutines.JobCancellationException: ScopeCoroutine is cancelling; job=ScopeCoroutine{Cancelling}@c09b290  ScopeCoroutine{Cancelling}@c09b290
+        //>>>>>>>>>>>>  [Dispatchers.IO] !!!!!!!!! onCompletion true
+        //||||||||||||||||||||||||||||||||||||||||||||| An error occurred: com.kgit2.kommand.exception.KommandException: whoa
+        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! null
+
+        //[Dispatchers.IO] (4) COMPLETED, loglinessource.lines null
+
+        //Unparseable log line: '[Dispatchers.IO] INPUT HAS EXITED'
+        //Unparseable log line: '[Dispatchers.IO] INPUT HAS EXITED'
+
         return shell
             .lines(minLogLevel, userId)
+            //retry?
             .onCompletion { cause ->
                 Logger.d("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! $cause\n")
 
                 if (cause == null) {
-                    emit("${context()} INPUT HAS EXITED") //will suspend
                     Logger.d("${context()} (4) COMPLETED, loglinessource.lines $cause\n")
+                    emit("--- ADB has terminated, no longer waiting for input") //will suspend
+                    Logger.d("${context()} (4) COMPLETED emitted, loglinessource.lines $cause\n")
                 } else {
                     Logger.d("${context()} EXIT COMPLETE $cause\r")
                 }
@@ -121,9 +134,6 @@ class LogLines(
                 DogcatConfig.MAX_LOG_LINES,
             )
             .onSubscription { Logger.d("${context()} Subscribing to shareIn\r") }
-            .catch { cause ->
-                Logger.d("|||||||||||||||||||||||||||||||||||||||||||||||||||  Flow was cancelled, cleaning up resources...")
-            }
             .onCompletion { Logger.d("${context()} (3) COMPLETED Subscription to shareIn\r") }
     }
 }
