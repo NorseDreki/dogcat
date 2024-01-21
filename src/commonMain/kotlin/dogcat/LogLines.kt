@@ -10,12 +10,11 @@ import logger.context
 @OptIn(ExperimentalCoroutinesApi::class)
 class LogLines(
     private val lineParser: LogLineParser,
-    private val s: DefaultAppliedFiltersState,
+    private val filtersState: DefaultAppliedFiltersState,
     private val shell: Shell,
-    private val dispatcherCpu: CoroutineDispatcher = Dispatchers.Default,
-    private val dispatcherIo: CoroutineDispatcher = Dispatchers.IO,
+    private val dispatcherCpu: CoroutineDispatcher,
+    private val dispatcherIo: CoroutineDispatcher,
 ) {
-
     private val handler = CoroutineExceptionHandler { _, t -> Logger.d("!!!!!!11111111 CATCH! ${t.message}\r") }
     private lateinit var scope: CoroutineScope
     private lateinit var sharedLines: Flow<String>
@@ -28,14 +27,12 @@ class LogLines(
 
                     scope.cancel()
                 }
-                //scope.cancel()
             }
-
             scope = CoroutineScope(dispatcherIo + handler + Job())
             sharedLines = createSharedLines()
         }
 
-        return s.applied
+        return filtersState.applied
             .flatMapConcat {
                 Logger.d("${context()} Applied filters flat map concat")
                 it.values.asFlow()
@@ -81,13 +78,12 @@ class LogLines(
                 }
             )
             .withIndex()
-            //.flowOn()
             .onCompletion { Logger.d("${context()} (2) COMPLETED Full LogLines chain\r") }
             .flowOn(dispatcherCpu)
     }
 
     private fun createSharedLines(): Flow<String> {
-        val af = s.applied.value
+        val af = filtersState.applied.value
 
         val minLogLevel =
             af[LogFilter.MinLogLevel::class]?.let { "*:${(it as LogFilter.MinLogLevel).logLevel}" } ?: ""
@@ -99,41 +95,15 @@ class LogLines(
             ""
         }
 
-        //Unparseable log line: '--------- beginning of kernel'
-        //>>>>>>>>>>>>>>>>> inner catch kotlinx.coroutines.JobCancellationException: ScopeCoroutine is cancelling; job=ScopeCoroutine{Cancelling}@c09b290  ScopeCoroutine{Cancelling}@c09b290
-        //>>>>>>>>>>>>  [Dispatchers.IO] !!!!!!!!! onCompletion true
-        //||||||||||||||||||||||||||||||||||||||||||||| An error occurred: com.kgit2.kommand.exception.KommandException: whoa
-        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! null
-
-        //[Dispatchers.IO] (4) COMPLETED, loglinessource.lines null
-
-        //Unparseable log line: '[Dispatchers.IO] INPUT HAS EXITED'
-        //Unparseable log line: '[Dispatchers.IO] INPUT HAS EXITED'
-
         return shell
             .lines(minLogLevel, userId)
-            //retry?
-            .onCompletion { cause ->
-                Logger.d("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! $cause\n")
-
-                if (cause == null) {
-                    Logger.d("${context()} (4) COMPLETED, loglinessource.lines $cause\n")
-                    emit("--- ADB has terminated, no longer waiting for input") //will suspend
-                    Logger.d("${context()} (4) COMPLETED emitted, loglinessource.lines $cause\n")
-                } else {
-                    Logger.d("${context()} EXIT COMPLETE $cause\r")
-                }
-            }
-            .catch { cause ->
-                Logger.d("|||||||||||||||||||||||||||||||||||||||||||||||||||  Flow was cancelled, cleaning up resources...")
-        }
-            .onStart { Logger.d("${context()} Start subscription to logLinesSource\r") }
+            .onStart { Logger.d("${context()} Start subscription to logLinesSource") }
             .shareIn(
                 scope,
                 SharingStarted.Lazily,
                 DogcatConfig.MAX_LOG_LINES,
             )
-            .onSubscription { Logger.d("${context()} Subscribing to shareIn\r") }
-            .onCompletion { Logger.d("${context()} (3) COMPLETED Subscription to shareIn\r") }
+            .onSubscription { Logger.d("${context()} Subscribing to shareIn") }
+            .onCompletion { Logger.d("${context()} (3) COMPLETED Subscription to shareIn") }
     }
 }

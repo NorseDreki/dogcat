@@ -6,27 +6,34 @@ import com.kgit2.kommand.process.Command
 import com.kgit2.kommand.process.Stdio
 import dogcat.Shell
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.channels.produce
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onCompletion
 import logger.Logger
 import logger.context
 
 class AdbShell(
-    private val dispatcherIo: CoroutineDispatcher = Dispatchers.IO
+    private val dispatcherIo: CoroutineDispatcher
 ) : Shell {
 
     private fun Child.shutdownSafely() {
         try {
             kill()
         } catch (e: KommandException) {
-            Logger.d("")
+            Logger.d(">>>>>>>>>>>>>>>>>>>>> Shutdownsafely ${e.message} $e")
         }
     }
 
+    //make sure to shut down logcat when the app exits too
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun lines(minLogLevel: String, userId: String): Flow<String> {
         return flow {
-            Logger.d("${context()} Starting adb logcat")
+            Logger.d("${context()} Starting 'adb logcat'")
 
             val logcat = try {
                 Command("adb")
@@ -42,100 +49,76 @@ class AdbShell(
 
                 return@flow
             }
+            //now handle stderror?
 
             try {
-                /*val logcat = Command("adb")
-                    .args(
-                        listOf("logcat", "-v", "brief", userId, minLogLevel, "-d")
-                    )
-                    .stdout(Stdio.Pipe).
-                    .spawn() // throws ex*/
-
-                if (logcat.bufferedStdout() == null) {
-                    throw KommandException("Must have stdout", ErrorType.IO)
-                }
-                val stdoutReader = logcat.bufferedStdout()!!
+                val stdoutReader = logcat.bufferedStdout()
+                    ?: throw KommandException("Must have stdout", ErrorType.IO)
 
                 coroutineScope {
-                    val linesChannel = Channel<String>()
-
-                    launch(dispatcherIo) {
+                    val lines = produce(dispatcherIo) {
                         while (isActive) {
                             val line = stdoutReader.readLine()
-                            //try send test KommandException
+
                             if (line != null) {
-                                linesChannel.send(line)
+                                send(line)
                             } else {
                                 Logger.d(">>>>>>>>>>>>>>>>> stop break $isActive")
-                                linesChannel.close()
+                                close()
                                 break
                             }
-                            //throw KommandException("whoa", ErrorType.Utf8)
                         }
                         Logger.d(">>>>>>>>>>>>>>>>> stop launch")
                     }
 
                     try {
-                        while (true) {
-                            val line = linesChannel.receive()
-                            emit(line)
+                        lines.consumeEach {
+                            emit(it)
                         }
                     } catch (e: CancellationException) {
                         Logger.d(">>>>>>>>>>>>>>>>> inner catch $e  $this")
-
                         logcat.shutdownSafely()
-
-                        //logcat.kill() //should also be called on KommandException
                         cancel()
+
                     } catch (e: ClosedReceiveChannelException) {
                         Logger.d(">>>>>>>>>>>>>>>>> catch that no more receiving $e  $this")
                     }
                 }
             } catch (e: KommandException) {
                 emit("--- Exception when interacting with ADB: ${e.message}, ${e.errorType}, ${e.cause}")
-                //Logger.d(">>>>>>>>>>>>>>>>>>>>>>>>>>  KommandException" + e.message + e.cause)
-
                 Logger.d(">>>>>>>>>>>>>>>>> outer   Kommand!  $e $this")
-                //logcat.shutdownSafely()
-                //logcat.kill()*/
+
             } catch (e: CancellationException) {
                 //might be coming from linesChannel.send(line)
                 Logger.d(">>>>>>>>>>>>>>>>> outer   Cancellation!  $e $this")
+
             } finally {
                 Logger.d(">>>>>>>>>>>>>>>>> outer   finally -- shutdown logcat!  $this")
                 logcat.shutdownSafely()
             }
-            //} finally {
-
-
-           // }
             Logger.d(">>>>>>>>>>>>>>>>>>>>>>>> ${context()} !!!!!!!!! Exiting flow builder ${currentCoroutineContext().isActive}")
-            // tried timeout, need async IO so badly
-            // command would be killed when next line appears.
-            // also, no leftover adb upon app exit
-            //logcat.kill()
         }
-            /*.onCompletion {
-                Logger.d(">>>>>>>>>>>>  ${context()} !!!!!!!!! onCompletion ${currentCoroutineContext().isActive}")
-                //emit --- input has exited
-            }
-            .catch { cause ->
-                if (cause is CancellationException) {
-                    // Handle cancellation
-                    Logger.d("|||||||||||||||||||||||||||||||||||||||||||||||||||  Flow was cancelled, cleaning up resources...")
-                    // Clean up resources here
-                } else {
-                    // Handle other exceptions
-                    Logger.d("||||||||||||||||||||||||||||||||||||||||||||| An error occurred: $cause")
+            //retry?
+            .onCompletion { cause ->
+                Logger.d("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! $cause\n")
 
-                    //emit a line with error message and suggest to restart
+                if (cause == null) {
+                    Logger.d("${context()} (4) COMPLETED, loglinessource.lines $cause\n")
+                    emit("--- ADB has terminated, no longer waiting for input") //will suspend
+                    Logger.d("${context()} (4) COMPLETED emitted, loglinessource.lines $cause\n")
+                } else {
+                    Logger.d("${context()} EXIT COMPLETE $cause\r")
                 }
-            }*/
+            }
+            //Do we expect more exceptions not caught from try-catch-finally above? Which can those be?
+            //how to better handle?
+            .catch { cause ->
+                Logger.d("|||||||||||||||||||||||||||||||||||||||||||||||||||  Flow was cancelled, cleaning up resources...")
+            }
     }
 
     override suspend fun userIdFor(packageName: String) = withContext(dispatcherIo) {
         val UID_CONTEXT = """Packages:\R\s+Package\s+\[$packageName]\s+\(.*\):\R\s+(?:appId|userId)=(\d*)""".toRegex()
-        //val UID_CONTEXT1 = """Packages:\n\s+Package\s+\[$packageName]\s+\(.*\):\n\s+appId=(\d*)""".toRegex()
 
         val output = withTimeout(COMMAND_TIMEOUT_MILLIS) {
             Command("adb")

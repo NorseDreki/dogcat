@@ -8,7 +8,6 @@ interface LogLineParser {
 
 
 class LogcatBriefParser : LogLineParser {
-
     private val briefPattern = """^([A-Z])/(.+?)\( *(\d+)\): (.*?)$""".toRegex()
 
     override fun parse(line: String): LogLine {
@@ -25,7 +24,7 @@ class LogcatBriefParser : LogLineParser {
                 message
             )
         } else {
-            Logger.d("Unparseable log line: '$line'")
+            Logger.d("[LogLineParser] Unparseable log line: '$line'")
 
             Unparseable(line)
         }
