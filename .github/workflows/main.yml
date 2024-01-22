@@ -42,7 +42,7 @@ jobs:
       run: chmod +x gradlew
 
     - name: Build with Gradle
-      run: echo "1" #./gradlew assemble --debug
+      run: ./gradlew assemble --info
       continue-on-error: true 
 
     - name: Print environment information
