@@ -42,7 +42,7 @@ jobs:
       run: chmod +x gradlew
 
     - name: Build with Gradle
-      run: ./gradlew assemble
+      run: ./gradlew assemble --debug
       continue-on-error: true 
 
     - name: Print environment information
@@ -52,6 +52,7 @@ jobs:
         kotlin -version
         xcrun --show-sdk-path
         xcode-select -p
+        ls -la /Library/Developer/CommandLineTools/SDKs
       continue-on-error: true 
 
     - name: Check cinterop output
