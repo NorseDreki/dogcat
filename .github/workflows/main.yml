@@ -30,6 +30,19 @@ jobs:
 
     - name: Build with Gradle
       run: ./gradlew assemble
+      continue-on-error: true 
+
+    - name: Print environment information
+      run: |
+        uname -a
+        java -version
+        kotlin -version
+        locate ncurses.h
+        xcrun --show-sdk-path
+
+    - name: Check cinterop output
+      run: ls -la build/classes/kotlin/native/main/cinterop/dogcat-cinterop-ncurses.klib-build/
+
 
     - name: Archive production artifacts
       uses: actions/upload-artifact@v2
