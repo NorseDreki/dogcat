@@ -20,7 +20,7 @@ jobs:
         distribution: 'adopt'
 
     - name: Install Kotlin
-      uses: sdkman/sdkman-action@v2.0.3
+      uses: sdkman/sdkman-action@master
       with:
         candidate: kotlin
         version: '1.9.22'
