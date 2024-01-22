@@ -1,4 +1,5 @@
-headers = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/ncurses.h
+#headers = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/ncurses.h
+headers = /Applications/Xcode_14.2.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/ncurses.h
 #headerFilter = ncurses/ncurses.h
 #excludeFilter = ncurses_dll.h
 #headers.linux = /usr/include/ncurses.h
