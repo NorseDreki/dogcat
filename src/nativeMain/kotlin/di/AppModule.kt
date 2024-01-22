@@ -4,9 +4,11 @@ import AppStateFlow
 import FileLogger
 import InternalAppStateFlow
 import di.DogcatModule.dogcatModule
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import logger.CanLog
-import logger.Logger
 import org.kodein.di.DI
 import org.kodein.di.bindSingleton
 import org.kodein.di.instance
@@ -16,19 +18,15 @@ import ui.status.StatusPresenter
 import userInput.DefaultInput
 import userInput.Input
 
-object AppModule {
-
-    @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
-    val ui = newSingleThreadContext("UI2")
-
-    val handler = CoroutineExceptionHandler { _, t -> Logger.d("!!!!!!11111111 CATCH! ${t.message}\r") }
-
-    //val scope11 = CoroutineScope(ui + handler + Job())
-    var scope11 = CoroutineScope(ui + handler + Job())
+@OptIn(ExperimentalStdlibApi::class)
+class AppModule(
+    private val uiScope: CoroutineScope
+) {
+    private val uiDispatcher = uiScope.coroutineContext[CoroutineDispatcher]!!
 
     private val appModule = DI.Module("app") {
         bindSingleton<CanLog> { FileLogger() }
-        bindSingleton<Input> { DefaultInput(scope11, Dispatchers.IO) }
+        bindSingleton<Input> { DefaultInput(uiScope, Dispatchers.IO) }
         bindSingleton<AppStateFlow> { InternalAppStateFlow() }
         bindSingleton<AppPresenter> {
             AppPresenter(
@@ -37,11 +35,19 @@ object AppModule {
                 instance(),
                 instance(),
                 instance(),
-                scope11
+                uiScope
             )
         }
-        bindSingleton<StatusPresenter> { StatusPresenter(instance(), instance(), instance(), scope11, ui) }
-        bindSingleton<LogLinesPresenter> { LogLinesPresenter(instance(), instance(), instance(), scope11, ui) }
+        bindSingleton<StatusPresenter> { StatusPresenter(instance(), instance(), instance(), uiScope, uiDispatcher) }
+        bindSingleton<LogLinesPresenter> {
+            LogLinesPresenter(
+                instance(),
+                instance(),
+                instance(),
+                uiScope,
+                uiDispatcher
+            )
+        }
     }
 
     private val serviceLocator = DI {
@@ -54,7 +60,4 @@ object AppModule {
     val input: Input by serviceLocator.instance()
 
     val appPresenter: AppPresenter by serviceLocator.instance()
-
-    //encapsulate
-    val appStateFlow: AppStateFlow by serviceLocator.instance()
 }

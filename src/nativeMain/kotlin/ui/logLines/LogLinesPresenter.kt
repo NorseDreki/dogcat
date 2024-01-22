@@ -8,14 +8,11 @@ import dogcat.Dogcat
 import dogcat.Unparseable
 import dogcat.state.PublicState.*
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.coroutines.CloseableCoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.withContext
 import userInput.Keymap
 
 class LogLinesPresenter(
@@ -23,7 +20,7 @@ class LogLinesPresenter(
     private val appStateFlow: AppStateFlow,
     private val input: Input,
     private val scope: CoroutineScope,
-    private val ui: CloseableCoroutineDispatcher
+    private val ui: CoroutineDispatcher
 ) {
     //views can come and go, when input disappears
     private lateinit var view: LogLinesView
@@ -111,6 +108,7 @@ class LogLinesPresenter(
                         }
 
                         LineUp -> {
+                            appStateFlow.autoscroll(false)
                             view.lineUp()
                         }
 
@@ -119,10 +117,12 @@ class LogLinesPresenter(
                         }
 
                         PageDown -> {
-                            view.pageDown()
+                            val a = appStateFlow.state.value.autoscroll
+                            view.pageDown(a)
                         }
 
                         PageUp -> {
+                            appStateFlow.autoscroll(false)
                             view.pageUp()
                         }
 

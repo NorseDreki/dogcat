@@ -1,7 +1,6 @@
 package ui.logLines
 
 import dogcat.DogcatConfig.MAX_LOG_LINES
-import di.AppModule
 import kotlinx.cinterop.ExperimentalForeignApi
 import logger.Logger
 import logger.context
@@ -32,7 +31,6 @@ class LogLinesView {
     fun pageUp() {
         //firstVisibleLine -= pageSize
         //refresh()
-        AppModule.appStateFlow.autoscroll(false)
 
         val num = min(pageSize, firstVisibleLine)
 
@@ -44,13 +42,13 @@ class LogLinesView {
         Logger.d("Page Up by $pageSize, $firstVisibleLine")
     }
 
-    fun pageDown() {
+    fun pageDown(autoscroll: Boolean) {
         //firstVisibleLine += pageSize
         //refresh()
 
         //disable page down for some cases?
 
-        val num = if (AppModule.appStateFlow.state.value.autoscroll) {
+        val num = if (autoscroll) {
             min(pageSize, linesCount - lastPageSize - firstVisibleLine)
         } else {
             min(pageSize, linesCount - firstVisibleLine)
@@ -69,8 +67,6 @@ class LogLinesView {
     fun lineUp() {
         if (firstVisibleLine == 0) return
 
-        AppModule.appStateFlow.autoscroll(false)
-
         firstVisibleLine--
         refresh()
         Logger.d("Up, $firstVisibleLine")
@@ -85,14 +81,28 @@ class LogLinesView {
     }
 
     fun home() {
-        //firstVisibleLine = 0
-        //refresh()
-        if (firstVisibleLine == 0) return
+        firstVisibleLine = 0
 
-        val num = min(pageSize, firstVisibleLine)
+        wclear(pad) // Clear the pad
+        prefresh(
+            pad,
+            firstVisibleLine,
+            0,
+            position.startY,
+            position.startX,
+            position.endY,
+            position.endX
+        ) // Refresh the screen
 
-        firstVisibleLine = num
-        pageUp()
+
+        /*        //firstVisibleLine = 0
+                //refresh()
+                if (firstVisibleLine == 0) return
+
+                val num = min(pageSize, firstVisibleLine)
+
+                firstVisibleLine = num
+                pageUp()*/
     }
 
     // useful for bookmarking then quickly moving between marked lines
@@ -124,7 +134,7 @@ class LogLinesView {
 
         Logger.d("${context()} Cleared pad")
         //werase(fp)
-       // refresh()
+        // refresh()
 
         curs_set(1)
     }
@@ -149,10 +159,11 @@ class LogLinesView {
         linesCount += count
         //Logger.d("${context()} record $count, $linesCount")
 
+        //!!!
         //if (snapY) {
-        if (AppModule.appStateFlow.state.value.autoscroll) {
-            //handle a case when current lines take less than a screen
-            end()
-        }
+        //if (AppModule.appStateFlow.state.value.autoscroll) {
+        //handle a case when current lines take less than a screen
+        //    end()
+        //}
     }
 }

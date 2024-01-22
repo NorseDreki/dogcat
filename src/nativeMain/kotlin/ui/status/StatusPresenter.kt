@@ -18,7 +18,7 @@ class StatusPresenter(
     private val appStateFlow: AppStateFlow,
     private val input: Input,
     private val scope: CoroutineScope,
-    private val ui: CloseableCoroutineDispatcher
+    private val ui: CoroutineDispatcher
 ) {
     //views can come and go, when input disappears
     private lateinit var view: StatusView
