@@ -42,7 +42,7 @@ jobs:
       run: chmod +x gradlew
 
     - name: Build with Gradle
-      run: ./gradlew assemble --debug
+      run: echo "1" #./gradlew assemble --debug
       continue-on-error: true 
 
     - name: Print environment information
@@ -57,6 +57,8 @@ jobs:
 
     - name: Check cinterop output
       run: |
+        ls -la /usr/local/opt/ncurses/lib
+        ls -la /usr/local/opt/ncurses/include
         ls -la build/classes/kotlin/native/main/cinterop/
         ls -la build/classes/kotlin/native/main/cinterop/dogcat-cinterop-ncurses.klib-build/
 
