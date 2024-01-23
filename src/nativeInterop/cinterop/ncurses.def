@@ -9,8 +9,8 @@ linkerOpts.osx = -L/usr/local/opt/ncurses/lib -lncurses
 compilerOpts.linux = -I/usr/include -I/usr/include/ncurses -I/usr/include/x86_64-linux-gnu
 #linkerOpts.linux = -L/usr/local/lib/ -L/usr/lib64 -L/usr/lib/x86_64-linux-gnu -lncurses
 libraryPaths = /usr/local/lib/ /usr/lib64 /usr/lib/x86_64-linux-gnu
-staticLibraries = libncurses.a libtinfo.a
-#libform.a libmenu.a libpanel.a
+staticLibraries = libform.a libmenu.a libpanel.a libutil.a libtinfo.a libncurses.a
+#
 
 #headers = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/ncurses.h
 #headers = /usr/local/opt/ncurses/include/ncurses.h
