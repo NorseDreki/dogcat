@@ -26,6 +26,7 @@ kotlin {
         binaries {
             executable {
                 entryPoint = "main"
+                freeCompilerArgs += "-XuseInteropStubs=true"
             }
         }
         compilations["main"].cinterops {
