@@ -8,10 +8,9 @@ on:
 
 jobs:
   build:
-    strategy:
-      matrix:
-        os: [ ubuntu-latest ]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:21.04
 
     steps:
     - uses: actions/checkout@v2
@@ -28,7 +27,7 @@ jobs:
           brew install ncurses
         else
           sudo apt-get install libncurses-dev libc6-dev
-          sudo find / -name libc-header-start.h
+          ldd --version
         fi
 
     - name: Install Kotlin
