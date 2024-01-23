@@ -21,6 +21,7 @@ jobs:
 
     - name: Install ncurses
       run: |
+        find /usr -name libncurses.a
         getconf GNU_LIBC_VERSION
 
     - name: Install Kotlin
