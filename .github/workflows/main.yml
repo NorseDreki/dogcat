@@ -27,7 +27,7 @@ jobs:
         if [ "$(uname)" == "Darwin" ]; then
           brew install ncurses
         else
-          sudo apt-get install libncurses-dev
+          sudo apt-get install libncurses-dev libc6-dev
         fi
 
     - name: Install Kotlin
