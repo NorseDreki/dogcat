@@ -27,7 +27,7 @@ jobs:
           brew install ncurses
         else
           sudo apt-get install libncurses-dev libc6-dev
-          ldd --version
+          getconf GNU_LIBC_VERSION
         fi
 
     - name: Install Kotlin
