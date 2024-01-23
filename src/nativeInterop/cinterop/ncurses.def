@@ -1,8 +1,13 @@
 headers = ncurses.h
 headerFilter = ncurses.h
 compilerOpts = -I/usr/local/opt/ncurses/include
-linkerOpts = -L/usr/local/opt/ncurses/lib -lncurses
+#linkerOpts = -L/usr/local/opt/ncurses/lib -lncurses
 #libraryPaths = /usr/local/lib
+#linkerOpts = -L/usr/local/opt/ncurses/lib
+#-l:libncurses.a
+#-lncurses
+libraryPaths = /usr/local/opt/ncurses/lib/
+staticLibraries = libncurses.a
 
 #headers = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/ncurses.h
 #headers = /usr/local/opt/ncurses/include/ncurses.h
