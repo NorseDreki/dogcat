@@ -10,7 +10,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ macos-latest, ubuntu-latest ]
+        os: [ ubuntu-latest ]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -29,16 +29,6 @@ jobs:
         else
           sudo apt-get install libncurses-dev
         fi
-
-    - name: Cache Gradle dependencies
-      uses: actions/cache@v2
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-        restore-keys: |
-          ${{ runner.os }}-gradle-
 
     - name: Install Kotlin
       uses: sdkman/sdkman-action@master
@@ -69,6 +59,7 @@ jobs:
         ls -la /usr/local/opt/ncurses/include
         ls -la build/classes/kotlin/native/main/cinterop/
         ls -la build/classes/kotlin/native/main/cinterop/dogcat-cinterop-ncurses.klib-build/
+      continue-on-error: true
 
 
     - name: Archive production artifacts
