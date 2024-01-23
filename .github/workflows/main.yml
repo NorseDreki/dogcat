@@ -23,12 +23,7 @@ jobs:
 
     - name: Install ncurses
       run: |
-        if [ "$(uname)" == "Darwin" ]; then
-          brew install ncurses
-        else
-          sudo apt-get install libncurses-dev libc6-dev
-          getconf GNU_LIBC_VERSION
-        fi
+        getconf GNU_LIBC_VERSION
 
     - name: Install Kotlin
       uses: sdkman/sdkman-action@master
