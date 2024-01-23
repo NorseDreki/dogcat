@@ -1,11 +1,17 @@
+headers = ncurses.h
+headerFilter = ncurses.h
+compilerOpts = -I/usr/local/opt/ncurses/include
+linkerOpts = -L/usr/local/opt/ncurses/lib -lncurses
+#libraryPaths = /usr/local/lib
+
 #headers = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/ncurses.h
-headers = /usr/local/opt/ncurses/include/ncurses.h
+#headers = /usr/local/opt/ncurses/include/ncurses.h
 #headerFilter = ncurses/ncurses.h
 #excludeFilter = ncurses_dll.h
 #headers.linux = /usr/include/ncurses.h
 #headers.linux = curses.h
 #headers.osx = /System/Volumes/Data/usr/local/Cellar/ncurses/6.4/include/ncursesw/ncurses.h
-linkerOpts = -L/usr/local/opt/ncurses/lib -lncurses
+#linkerOpts = -L/usr/local/opt/ncurses/lib -lncurses
 #linkerOpts.osx = -lncursesw
 #compilerOpts = -I/usr/include -I/usr/include/ncurses
 #linkerOpts.linux = -L/usr/lib64 -L/usr/lib/x86_64-linux-gnu -lncurses --allow-shlib-undefined
