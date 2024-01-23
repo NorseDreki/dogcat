@@ -21,6 +21,7 @@ jobs:
 
     - name: Install ncurses
       run: |
+        pkg-config --static --libs ncurses
         getconf GNU_LIBC_VERSION
 
     - name: Install Kotlin
