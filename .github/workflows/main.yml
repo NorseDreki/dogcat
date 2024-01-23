@@ -22,10 +22,10 @@ jobs:
     - name: Install ncurses
       run: |
         pkg-config --static --libs ncurses
+        sudo apt-get remove libncurses* -y
+        sudo apt-get update
         sudo apt-get install libncurses5-dev
         dpkg-query -L libncurses5-dev
-        sudo find /usr -name ncurses.h
-        sudo find /usr -name libncurses.a
         getconf GNU_LIBC_VERSION
 
     - name: Install Kotlin
