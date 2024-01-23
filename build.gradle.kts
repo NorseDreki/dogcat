@@ -26,7 +26,7 @@ kotlin {
         binaries {
             executable {
                 entryPoint = "main"
-                freeCompilerArgs += "-XuseInteropStubs=true"
+                freeCompilerArgs += "-Xverbose-phases=Linker"
             }
         }
         compilations["main"].cinterops {
