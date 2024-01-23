@@ -21,7 +21,7 @@ jobs:
 
     - name: Install ncurses
       run: |
-        ldd /usr/lib/x86_64-linux-gnu/libncurses.so
+        objdump -p /usr/lib/x86_64-linux-gnu/libncurses.so | grep NEEDED
         getconf GNU_LIBC_VERSION
 
     - name: Install Kotlin
