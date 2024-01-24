@@ -2,17 +2,17 @@ package logger
 
 object Logger : CanLog {
 
-    private var logger: CanLog? = null
+    private lateinit var logger: CanLog
 
     fun set(l: CanLog) {
         logger = l
     }
 
     override fun d(line: String) {
-        logger?.d(line)
+        logger.d(line)
     }
 
     override fun close() {
-        logger?.close()
+        logger.close()
     }
 }

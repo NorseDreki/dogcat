@@ -1,14 +1,15 @@
 package di
 
 import AppStateFlow
+import BuildConfig
 import FileLogger
 import InternalAppStateFlow
 import di.DogcatModule.dogcatModule
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import logger.CanLog
+import logger.NoOpLogger
 import org.kodein.di.DI
 import org.kodein.di.bindSingleton
 import org.kodein.di.instance
@@ -20,13 +21,17 @@ import userInput.Input
 
 @OptIn(ExperimentalStdlibApi::class)
 class AppModule(
-    private val uiScope: CoroutineScope
+    private val uiDispatcher: CoroutineDispatcher
 ) {
-    private val uiDispatcher = uiScope.coroutineContext[CoroutineDispatcher]!!
-
     private val appModule = DI.Module("app") {
-        bindSingleton<CanLog> { FileLogger() }
-        bindSingleton<Input> { DefaultInput(uiScope, Dispatchers.IO) }
+        bindSingleton<CanLog> {
+            if (BuildConfig.DEBUG) {
+                FileLogger()
+            } else {
+                NoOpLogger()
+            }
+        }
+        bindSingleton<Input> { DefaultInput(Dispatchers.IO) }
         bindSingleton<AppStateFlow> { InternalAppStateFlow() }
         bindSingleton<AppPresenter> {
             AppPresenter(
@@ -35,16 +40,14 @@ class AppModule(
                 instance(),
                 instance(),
                 instance(),
-                uiScope
             )
         }
-        bindSingleton<StatusPresenter> { StatusPresenter(instance(), instance(), instance(), uiScope, uiDispatcher) }
+        bindSingleton<StatusPresenter> { StatusPresenter(instance(), instance(), instance(), uiDispatcher) }
         bindSingleton<LogLinesPresenter> {
             LogLinesPresenter(
                 instance(),
                 instance(),
                 instance(),
-                uiScope,
                 uiDispatcher
             )
         }

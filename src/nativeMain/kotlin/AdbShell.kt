@@ -80,6 +80,10 @@ class AdbShell(
                         logcat.shutdownSafely()
                         cancel()
 
+                        //? However, it's important to note that CancellationException should not be caught and handled in your code. It's meant to be handled by the coroutine library. If you want to perform some action when a coroutine is cancelled, you should do it in a finally block inside the coroutine, not by catching CancellationException.
+
+                        //? "Cancellation is implemented by throwing CancellationException, which is a RuntimeException. This design has a number of implications that are explained in this section. The most important rule of structured concurrency is that coroutine should not propagate CancellationException and should not handle it (via try/catch), unless it is doing some cleanup."
+
                     } catch (e: ClosedReceiveChannelException) {
                         Logger.d(">>>>>>>>>>>>>>>>> catch that no more receiving $e  $this")
                     }
