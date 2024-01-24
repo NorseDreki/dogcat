@@ -55,25 +55,39 @@ class LogLines(
             .map {
                 lineParser.parse(it)
             }
-            .filterIsInstance<Brief>()
+            //.filterIsInstance<Brief>()
             .bufferedTransform(
                 { buffer, item ->
-                    when {
-                        buffer.isNotEmpty() -> {
-                            val previous = buffer[0]
+                    when (item) {
+                        is Brief -> {
                             when {
-                                item.tag.contains(previous.tag) -> false
-                                else -> true
+                                buffer.isNotEmpty() -> {
+                                    val previous = buffer[0]
+                                    when {
+                                        //previous == null -> false
+                                        (previous as? Brief)?.tag?.contains(item.tag) ?: false -> false
+                                        //item.tag.contains((previous as? Brief).tag) -> false
+                                        else -> true
+                                    }
+                                }
+                                else -> false
                             }
                         }
+                        is Unparseable -> false // Pass through Unparseable items
                         else -> false
                     }
                 },
                 { buffer, item ->
-                    if (buffer.isEmpty()) {
-                        item
-                    } else {
-                        Brief(item.level, "", item.owner, item.message)
+                    when (item) {
+                        is Brief -> {
+                            if (buffer.isEmpty()) {
+                                item
+                            } else {
+                                Brief(item.level, "", item.owner, item.message)
+                            }
+                        }
+                        is Unparseable -> item // Pass through Unparseable items
+                        else -> item
                     }
                 }
             )
