@@ -26,7 +26,6 @@ kotlin {
         binaries {
             executable {
                 entryPoint = "main"
-                freeCompilerArgs += listOf("-Xverbose-phases=Linker")
             }
         }
         compilations["main"].cinterops {
@@ -34,29 +33,6 @@ kotlin {
             }
         }
     }
-
-    /*macosX64("native11") {
-        binaries {
-            executable() {
-                entryPoint = "main"
-                debuggable = true
-                //freeCompilerArgs += "-Xdefine=DEBUG=true"
-                ext.set("debug", true)
-                //project.setProperty("debug", true)
-                //freeCompilerArgs += "-Pdebug" //-Pdebug=true
-            }
-            *//*executable("release") {
-                entryPoint = "main"
-                debuggable = false
-                //freeCompilerArgs += "-Xdefine=RELEASE"
-            }*//*
-        }
-
-        compilations["main"].cinterops {
-            val ncurses by creating {
-            }
-        }
-    }*/
 
     val generateBuildConfig by tasks.registering {
         doLast {
@@ -64,47 +40,27 @@ kotlin {
 
             file.writeText(
                 """
+                // This file is generated. Refer to build.gradle.kts to see how.
                 object BuildConfig {
-                    val DEBUG = ${project.hasProperty("debug")}
+                    const val DEBUG = ${System.getenv("DEBUG")}
                 }
                 """.trimIndent()
             )
         }
     }
 
-    /*tasks {
-        "compileKotlinNative" {
+    tasks {
+        val nativeTargetName = nativeTarget.name.replaceFirstChar { it.uppercaseChar() }
+
+        "compileKotlin$nativeTargetName" {
             dependsOn("generateBuildConfig")
         }
-    }*/
-
-    /*val hostOs = System.getProperty("os.name")
-    val isArm64 = System.getProperty("os.arch") == "aarch64"
-    val isMingwX64 = hostOs.startsWith("Windows")
-    val nativeTarget = when {
-        hostOs == "Mac OS X" && isArm64 -> macosArm64("native")
-        hostOs == "Mac OS X" && !isArm64 -> macosX64("native")
-        hostOs == "Linux" && isArm64 -> linuxArm64("native")
-        hostOs == "Linux" && !isArm64 -> linuxX64("native")
-        isMingwX64 -> mingwX64("native")
-        else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
-    }*/
-
-    /*nativeTarget.apply {
-        binaries {
-            executable {
-                entryPoint = "main"
-            }
-        }
-        compilations["main"].cinterops {
-            val ncurses by creating {
-            }
-        }
-    }*/
+    }
 
     sourceSets {
         val commonMain by getting {
             dependencies {
+                //extract version numbers to TOML
                 api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
                 api("org.kodein.di:kodein-di:7.20.2")
             }

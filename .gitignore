@@ -1,18 +1,14 @@
 .gradle
 build/
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
 
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
+.idea/*
+!.idea/runConfigurations/
+!.idea/codeStyles/
 *.iws
 *.iml
 *.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
 
 .DS_Store
+
+# to figure out a better placement for this guy
+/src/commonMain/kotlin/BuildConfig.kt
