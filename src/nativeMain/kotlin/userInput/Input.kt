@@ -9,51 +9,44 @@ import logger.context
 import ncurses.ERR
 import ncurses.stdscr
 import ncurses.wgetch
+import kotlin.coroutines.coroutineContext
 
 interface Input : HasHifecycle {
     val keypresses: Flow<Int>
 }
 
 interface HasHifecycle {
+    suspend fun start()
 
-    fun start()
-
-    fun stop()
+    suspend fun stop()
 }
 
 class DefaultInput(
-    private val scope: CoroutineScope,
-    private val inputDispatcher: CoroutineDispatcher
+    private val ioDispatcher: CoroutineDispatcher
 ) : Input {
 
     private val keypressesSubject = MutableSharedFlow<Int>()
+    override val keypresses = keypressesSubject//.debounceRepetitiveKeys(150.milliseconds)
 
-    @OptIn(FlowPreview::class)
-    // debounce somewhere else?
-    override val keypresses = keypressesSubject//.debounce(300)
+    @OptIn(ExperimentalForeignApi::class)
+    override suspend fun start() {
+        CoroutineScope(coroutineContext)
+            .launch(ioDispatcher) {
+                while (isActive) {
+                    val key = wgetch(stdscr)
 
-    val s = CoroutineScope(inputDispatcher)
+                    if (key == ERR) {
+                        delay(30)
+                        continue
+                    }
+                    Logger.d("${context()} Process key $key")
 
-    @OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
-    override fun start() {
-        s.launch {
-            while (true) {
-                val key = wgetch(stdscr)
-
-                if (key == ERR) { //!= EOF
-                    delay(30)
-                    continue
+                    keypressesSubject.emit(key)
                 }
-
-                Logger.d("${context()} Process key $key")
-
-                //debounce key presses
-                keypressesSubject.emit(key)
             }
-        }
     }
 
-    override fun stop() {
-        s.cancel()
+    override suspend fun stop() {
+        //not expected to be called
     }
 }

@@ -12,22 +12,23 @@ import kotlinx.coroutines.flow.*
 import logger.Logger
 import logger.context
 import userInput.Keymap
+import kotlin.coroutines.coroutineContext
 
 class StatusPresenter(
     private val dogcat: Dogcat,
     private val appStateFlow: AppStateFlow,
     private val input: Input,
-    private val scope: CoroutineScope,
     private val ui: CoroutineDispatcher
 ) {
     //views can come and go, when input disappears
     private lateinit var view: StatusView
 
     @OptIn(ExperimentalCoroutinesApi::class)
-     fun start() {
-         view = StatusView()
+    suspend fun start() {
+        view = StatusView()
+        view.start()
 
-        //what is tail-call as in launchIn?
+        val scope = CoroutineScope(coroutineContext)
 
         dogcat
             .state
@@ -61,7 +62,7 @@ class StatusPresenter(
                 Keymap.bindings[it] == InputFilterBySubstring
             }
             .onEach {
-                val filterString = withContext(ui) { view.inputFilter()}
+                val filterString = view.inputFilter()
 
                 dogcat(Command.FilterBy(LogFilter.Substring(filterString)))
             }

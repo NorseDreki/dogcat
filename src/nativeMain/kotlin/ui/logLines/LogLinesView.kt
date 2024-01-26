@@ -22,11 +22,36 @@ class LogLinesView {
 
     init {
         scrollok(pad, true)
+
+        //does it even work?
+        //leaveok(pad, true);
+
+        //WINDOW * win1 = newwin(10, 40, 0, 0)
+        //WINDOW * win2 = newwin(10, 40, 0, 40)
+
+
+// Get the current position of the cursor in win1
+        //var y: Int
+        //var x: Int
+        //getyx(win1, y, x)
+
+
+// Write a string to win2
+        //waddstr(win2, "Hello, world!")
+
+
+// Move the cursor back to its previous position in win1
+        //wmove(win1, y, x)
+
         //keypad(fp, true)
     }
 
     private var firstVisibleLine = 0
     private var linesCount = 0
+
+    fun stop() {
+        delwin(pad)
+    }
 
     fun pageUp() {
         //firstVisibleLine -= pageSize
@@ -149,10 +174,6 @@ class LogLinesView {
         }
 
         prefresh(pad, firstVisibleLine, 0, position.startY, position.startX, position.endY, position.endX)
-    }
-
-    fun stop() {
-        delwin(pad)
     }
 
     suspend fun recordLine(count: Int = 1) {

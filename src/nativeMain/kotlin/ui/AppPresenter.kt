@@ -1,10 +1,6 @@
 package ui
 
 import AppStateFlow
-import userInput.Input
-import userInput.Keymap.Actions.*
-import logger.Logger
-import dogcat.Command
 import dogcat.Command.*
 import dogcat.Dogcat
 import dogcat.LogFilter.*
@@ -13,18 +9,18 @@ import dogcat.state.PublicState
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import logger.Logger
 import logger.context
-import ncurses.endwin
-import platform.posix.exit
 import ui.logLines.LogLinesPresenter
 import ui.status.StatusPresenter
 import userInput.Arguments
+import userInput.HasHifecycle
+import userInput.Input
 import userInput.Keymap
+import userInput.Keymap.Actions.*
+import kotlin.coroutines.coroutineContext
 
 @OptIn(ExperimentalForeignApi::class)
 class AppPresenter(
@@ -33,12 +29,41 @@ class AppPresenter(
     private val input: Input,
     private val logLinesPresenter: LogLinesPresenter,
     private val statusPresenter: StatusPresenter,
-    private val scope: CoroutineScope
-) {
+) : HasHifecycle {
     private val view = AppView()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    suspend fun start() {
+    override suspend fun start() {
+        view.start()
+
+        val s = CoroutineScope(coroutineContext)
+
+        s.launch {
+            collectDogcatEvents()
+        }
+        s.launch {
+            collectKeypresses()
+        }
+
+        when {
+            Arguments.packageName != null -> dogcat(Start.PickApp(Arguments.packageName!!))
+            Arguments.current == true -> dogcat(Start.PickForegroundApp)
+            else -> dogcat(Start.All)
+        }
+
+        statusPresenter.start()
+        logLinesPresenter.start()
+    }
+
+    override suspend fun stop() {
+        logLinesPresenter.stop()
+        statusPresenter.stop()
+
+        view.stop()
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private suspend fun collectDogcatEvents() {
         dogcat
             .state
             .flatMapLatest {
@@ -48,9 +73,11 @@ class AppPresenter(
 
                         emptyFlow()
                     }
+
                     is PublicState.CapturingInput -> {
                         it.lines
                     }
+
                     PublicState.InputCleared -> {
                         Logger.d("Cleared Logcat and re-started\r")
                         /*
@@ -60,37 +87,41 @@ class AppPresenter(
                         */
                         emptyFlow()
                     }
+
                     PublicState.Stopped -> {
                         // or maybe SDK tools are not installed at all
-                        println("Either ADB is not found in your PATH or it's found but no emulator is running " +
-                                "(it may be disconnected or stopped). Quitting.\n")
+                        println(
+                            "Either ADB is not found in your PATH or it's found but no emulator is running " +
+                                    "(it may be disconnected or stopped). Quitting.\n"
+                        )
 
                         emptyFlow()
                     }
                 }
             }
-            .onEach {
-            }
-            .launchIn(scope)
+            .collect {}
+    }
 
-
+    private suspend fun collectKeypresses() {
         input
             .keypresses
-            //.debounce(200)
             .onEach {
                 when (Keymap.bindings[it]) {
-
                     Autoscroll -> {
                         appStateFlow.autoscroll(!appStateFlow.state.value.autoscroll)
                     }
-
                     Quit -> { // catch control-c
-                        dogcat(Command.Stop)
+                        //dogcat(Command.Stop)
+                        //coroutineContext.cancelChildren()
+                        //currentCoroutineContext().cancelChildren()
+                        //scope.coroutineContext.cancelChildren() -- only this works
+                        Logger.d("{${context()} ++++++ cancelled ${coroutineContext}'s job")
+                        //endwin()
+
                         //pad.terminate()
                         //pad2.terminate()
-                        endwin()
                         //resetty()
-                        exit(0)
+                        //exit(0)
                     }
 
                     ClearLogs -> {
@@ -142,17 +173,9 @@ class AppPresenter(
                     else -> {}
                 }
             }
-            .launchIn(scope)
-
-        when {
-            Arguments.packageName != null -> dogcat(Start.PickApp(Arguments.packageName!!))
-            Arguments.current == true -> dogcat(Start.PickForegroundApp)
-            else -> dogcat(Start.All)
-        }
-
-        view.start()
-
-        statusPresenter.start()
-        logLinesPresenter.start()
+            .onCompletion {
+                Logger.d("${context()} ++++++ no longer listening to key prese")
+            }
+            .collect()
     }
 }

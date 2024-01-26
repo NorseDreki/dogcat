@@ -75,6 +75,7 @@ private fun LogLinesView.wrapLine(
 ): Pair<String, Int> {
     val width = position.endX
     val header = AppConfig.DEFAULT_TAG_WIDTH + 1 + 3 + 1// space, level, space
+    //val line = message.replace(Regex("[\t\n\r\b\f\v\a\e]"), " ") // Replace control characters and escape sequences with spaces
     val line = message.replace("\t", "    ") //prevent escape characters leaking
     val wrapArea = width - header
     var buf = ""
