@@ -6,8 +6,8 @@ linkerOpts.osx = -L/usr/local/opt/ncurses/lib -lncurses
 #libraryPaths = /usr/local/opt/ncurses/lib/
 #staticLibraries = libncurses.a
 
-compilerOpts.linux = -I/usr/include -I/usr/include/ncurses -I/usr/include/x86_64-linux-gnu
-linkerOpts.linux = -L/usr/local/lib/ -L/usr/lib64 -L/usr/lib/x86_64-linux-gnu -lncurses --allow-shlib-undefined
+compilerOpts.linux = -I/usr/include -I/usr/include/x86_64-linux-gnu
+linkerOpts.linux = -L/usr/local/lib/ -L/usr/lib/x86_64-linux-gnu -lncurses
 #libraryPaths = /usr/local/lib/ /usr/lib64 /usr/lib/x86_64-linux-gnu
 #staticLibraries = libform.a libmenu.a libpanel.a libutil.a libtinfo.a libdl.a libncurses.a
 #
