@@ -26,6 +26,7 @@ kotlin {
         binaries {
             executable {
                 entryPoint = "main"
+                freeCompilerArgs += listOf("-linker-option", "--allow-shlib-undefined")
             }
         }
         compilations["main"].cinterops {
