@@ -15,86 +15,96 @@ data class ViewState(
     val autoscroll: Boolean
 )
 
-
 @OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
 class StatusView {
 
-    val sx = getmaxx(stdscr)
-    val sy = getmaxy(stdscr)
+    private lateinit var window: CPointer<WINDOW>
 
-    val position = ViewPosition(0, sy - 2, sx, sy - 1)
+    suspend fun start() {
+        val sx = getmaxx(stdscr)
+        val sy = getmaxy(stdscr)
 
-    val fp = newwin(0, 0, position.startY, 0)
+        //val position = ViewPosition(0, sy - 2, sx, sy - 1)
+
+        window = newwin(0, 0, sy - 2, 0)!!
+    }
 
     suspend fun stop() {
-        delwin(fp)
+        delwin(window)
     }
 
     suspend fun inputFilter(): String = memScoped {
+        val sx = getmaxx(stdscr)
 
         val bytePtr = allocArray<ByteVar>(200)
         echo()
-        mvwprintw(fp, 1, 0, "Enter filter: ")
+        mvwprintw(window, 1, 0, "Enter filter: ")
         //yield()
 
-        //withContext(Dispatchers.IO) {
-        wgetnstr(fp, bytePtr, 200)
-        //}
+        withContext(Dispatchers.IO) {
+            //wgetch(window)
+            wgetnstr(window, bytePtr, 200)
+            //readLine() ?: "zzzz"
+        }
+
+        Logger.d("????????????????????? ${bytePtr.toKString()}")
 
         noecho()
-        wmove(fp, 1, 0)
-        waddstr(fp, " ".repeat(sx))
+        wmove(window, 1, 0)
+        waddstr(window, " ".repeat(sx))
         //clrtoeol()
-        wrefresh(fp)
+        wrefresh(window)
 
         return bytePtr.toKString()
     }
 
     fun updateAutoscroll(autoscroll: Boolean) {
-        wattron(fp, COLOR_PAIR(12))
-        mvwprintw(fp, 0, 50, "Autoscroll ${autoscroll}")
-        wattroff(fp, COLOR_PAIR(12))
-        wrefresh(fp)
+        wattron(window, COLOR_PAIR(12))
+        mvwprintw(window, 0, 50, "Autoscroll ${autoscroll}")
+        wattroff(window, COLOR_PAIR(12))
+        wrefresh(window)
     }
 
     fun updateDevice(device: String?, running: Boolean) {
         val cp = if (running) 2 else 1
-        wattron(fp, COLOR_PAIR(cp))
-        mvwprintw(fp, 1, 70, device)
-        wattroff(fp, COLOR_PAIR(cp))
-        wrefresh(fp)
+        wattron(window, COLOR_PAIR(cp))
+        mvwprintw(window, 1, 70, device)
+        wattroff(window, COLOR_PAIR(cp))
+        wrefresh(window)
     }
 
     fun updatePackageName(packageName: String) {
-        mvwprintw(fp, 0, 80, "${packageName}")
-        wrefresh(fp)
+        mvwprintw(window, 0, 80, "${packageName}")
+        wrefresh(window)
     }
 
     suspend fun updateFilters(filters: AppliedFilters) {
-        Logger.d("${context()} Preparing to draw applied filters: $filters")
-        wmove(fp, 0, 0)
-        wattron(fp, COLOR_PAIR(12))
+        val sx = getmaxx(stdscr)
 
-        waddstr(fp, " ".repeat(sx))
+        Logger.d("${context()} Preparing to draw applied filters: $filters")
+        wmove(window, 0, 0)
+        wattron(window, COLOR_PAIR(12))
+
+        waddstr(window, " ".repeat(sx))
         //wclrtoeol(fp)
 
         filters.forEach {
             when (it.key) {
                 Substring::class -> {
-                    mvwprintw(fp, 0, 0, "Filter by: ${(it.value as Substring).substring}")
+                    mvwprintw(window, 0, 0, "Filter by: ${(it.value as Substring).substring}")
                 }
 
                 MinLogLevel::class -> {
-                    mvwprintw(fp, 0, 30, "${(it.value as MinLogLevel).logLevel} and up")
+                    mvwprintw(window, 0, 30, "${(it.value as MinLogLevel).logLevel} and up")
                 }
 
                 ByPackage::class -> {
-                    mvwprintw(fp, 0, 80, "${(it.value as ByPackage).packageName}")
+                    mvwprintw(window, 0, 80, "${(it.value as ByPackage).packageName}")
                 }
             }
         }
-        wattroff(fp, COLOR_PAIR(12))
-        wrefresh(fp)
+        wattroff(window, COLOR_PAIR(12))
+        wrefresh(window)
 
         yield()
     }
