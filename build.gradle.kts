@@ -37,12 +37,13 @@ kotlin {
     val generateBuildConfig by tasks.registering {
         doLast {
             val file = file("src/commonMain/kotlin/BuildConfig.kt")
+            val isDebug = System.getenv("DEBUG")?.toBoolean() ?: false
 
             file.writeText(
                 """
                 // This file is generated. Refer to build.gradle.kts to see how.
                 object BuildConfig {
-                    const val DEBUG = ${System.getenv("DEBUG")}
+                    const val DEBUG = $isDebug
                 }
                 """.trimIndent()
             )

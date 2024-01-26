@@ -19,7 +19,6 @@ import ui.status.StatusPresenter
 import userInput.DefaultInput
 import userInput.Input
 
-@OptIn(ExperimentalStdlibApi::class)
 class AppModule(
     private val uiDispatcher: CoroutineDispatcher
 ) {
