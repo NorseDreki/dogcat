@@ -30,8 +30,10 @@ class LogLines(
             }
             scope = CoroutineScope(dispatcherIo + handler + Job())
             sharedLines = createSharedLines()
+            Logger.d("${context()} created shared lines in capture $sharedLines")
         }
 
+        var i = 0
         return filtersState.applied
             .flatMapConcat {
                 Logger.d("${context()} Applied filters flat map concat")
@@ -92,8 +94,18 @@ class LogLines(
                 }
             )
             .withIndex()
+            .onEach {
+                if (i < 75) {
+                    Logger.d("${context()} csl ${it.index}")
+                    i++
+                }
+            }
             .onCompletion { Logger.d("${context()} (2) COMPLETED Full LogLines chain\r") }
             .flowOn(dispatcherCpu)
+    }
+
+    suspend fun stop() {
+        scope.cancel()
     }
 
     private fun createSharedLines(): Flow<String> {
@@ -109,6 +121,8 @@ class LogLines(
             ""
         }
 
+        var i = 0
+
         return shell
             .lines(minLogLevel, userId)
             .onStart { Logger.d("${context()} Start subscription to logLinesSource") }
@@ -118,6 +132,7 @@ class LogLines(
                 DogcatConfig.MAX_LOG_LINES,
             )
             .onSubscription { Logger.d("${context()} Subscribing to shareIn") }
+
             .onCompletion { Logger.d("${context()} (3) COMPLETED Subscription to shareIn") }
     }
 }

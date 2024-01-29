@@ -47,7 +47,21 @@ suspend fun LogLinesView.processLogLine(
         }
     }
 
-    refresh()
+
+    //refresh()
+
+    if (autoscroll) {
+        //handle a case when current lines take less than a screen
+        //end()
+        if (linesCount < pageSize) {
+            refresh()
+        } else {
+            lineDown(wrappedLine.second) //batch calls in order not to draw each line
+        }
+    } else {
+        refresh()
+    }
+
     yield()
 }
 

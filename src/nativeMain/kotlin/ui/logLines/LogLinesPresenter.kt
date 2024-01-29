@@ -9,12 +9,15 @@ import dogcat.Unparseable
 import dogcat.state.PublicState.*
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.*
 import logger.context
+import ncurses.curs_set
+import ncurses.wmove
 import userInput.HasHifecycle
 import userInput.Keymap
+import windowed
 import kotlin.coroutines.coroutineContext
+import kotlin.time.Duration.Companion.milliseconds
 
 class LogLinesPresenter(
     private val dogcat: Dogcat,
@@ -44,15 +47,17 @@ class LogLinesPresenter(
         view.stop()
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class, ExperimentalForeignApi::class)
     private suspend fun collectLogLines() {
+
+        var i = 0
         dogcat
             .state
             .flatMapLatest {
                 when (it) {
                     is WaitingInput -> {
                         Logger.d("${context()} Waiting for log lines...\r")
-                        val waiting = "--------- log lines are empty, let's wait"
+                        val waiting = "--------- log lines are empty, let's wait -- waiting"
 
                         withContext(uiDispatcher) {
                             view.processLogLine(IndexedValue(0, Unparseable(waiting)))
@@ -61,19 +66,29 @@ class LogLinesPresenter(
                     }
 
                     is CapturingInput -> {
-                        Logger.d("${context()} Capturing input...\r")
+                        Logger.d("${context()} Capturing input...")
+                        i = 0
                         //make sure no capturing happens after clearing
                         withContext(uiDispatcher) {
+                            //view.autoscroll = false
                             view.clear()
                         }
 
-                        val waiting = "--------- log lines are empty, let's wait"
+                        val waiting = "--------- log lines are empty, let's wait -- capturing"
 
                         withContext(uiDispatcher) {
-                            view.processLogLine(IndexedValue(0, Unparseable(waiting)))
+                        //    view.processLogLine(IndexedValue(0, Unparseable(waiting)))
                         }
 
-                        it.lines
+                        Logger.d("${context()} capturing input in pres ${it.lines}")
+
+                        /*it.lines.take(50).collect {
+                            Logger.d("${it.index} ${it.value}")
+                        }*/
+
+
+
+                        it.lines//.windowed(500.milliseconds)//.dropWhile { (it.value as LogLine).message == "" }
                     }
 
                     InputCleared -> {
@@ -83,7 +98,7 @@ class LogLinesPresenter(
                                                     view.clear()
                                                 }
                         */
-                        val waiting = "--------- log lines are empty, let's wait"
+                        val waiting = "--------- log lines are empty, let's wait -- input cleared"
 
                         withContext(uiDispatcher) {
                             view.processLogLine(IndexedValue(0, Unparseable(waiting)))
@@ -98,9 +113,18 @@ class LogLinesPresenter(
                     }
                 }
             }
+            .buffer(0) //omg!
             .collect {
                 withContext(uiDispatcher) {
-                    view.processLogLine(it)
+                    //it.forEach {
+                        if (i < 70) {
+                            Logger.d("${it.index} ll")
+
+                            i++
+                        }
+
+                        view.processLogLine(it)
+                    //}
                 }
             }
     }
@@ -112,18 +136,23 @@ class LogLinesPresenter(
                 when (Keymap.bindings[it]) {
                     Home -> {
                         appStateFlow.autoscroll(false)
+                        view.autoscroll = false
                         view.home()
                     }
                     End -> {
                         appStateFlow.autoscroll(true)
+                        view.autoscroll = true
                         view.end()
                     }
                     LineUp -> {
                         appStateFlow.autoscroll(false)
+                        view.autoscroll = false
                         view.lineUp()
                     }
                     LineDown -> {
-                        view.lineDown()
+                        appStateFlow.autoscroll(false)
+                        view.autoscroll = false //?
+                        view.lineDown(1)
                     }
                     PageDown -> {
                         val a = appStateFlow.state.value.autoscroll
@@ -131,6 +160,7 @@ class LogLinesPresenter(
                     }
                     PageUp -> {
                         appStateFlow.autoscroll(false)
+                        view.autoscroll = false
                         view.pageUp()
                     }
                     else -> {}
