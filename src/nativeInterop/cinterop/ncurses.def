@@ -6,50 +6,7 @@ linkerOpts.osx = -L/usr/local/opt/ncurses/lib -lncurses
 #libraryPaths = /usr/local/opt/ncurses/lib/
 #staticLibraries = libncurses.a
 
-compilerOpts.linux = -I/usr/include -I/usr/include/x86_64-linux-gnu
-#linkerOpts.linux = -L/usr/local/lib/ -L/usr/lib/x86_64-linux-gnu -lncurses --allow-shlib-undefined
-linkerOpts.linux = --allow-shlib-undefined
-libraryPaths = /usr/local/lib/ /usr/lib64 /usr/lib/x86_64-linux-gnu
-staticLibraries = libform.a libmenu.a libpanel.a libutil.a libtinfo.a libdl.a libncurses.a
-#
-
-#headers = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/ncurses.h
-#headers = /usr/local/opt/ncurses/include/ncurses.h
-#headerFilter = ncurses/ncurses.h
-#excludeFilter = ncurses_dll.h
-#headers.linux = /usr/include/ncurses.h
-#headers.linux = curses.h
-#headers.osx = /System/Volumes/Data/usr/local/Cellar/ncurses/6.4/include/ncursesw/ncurses.h
-#linkerOpts = -L/usr/local/opt/ncurses/lib -lncurses
-#linkerOpts.osx = -lncursesw
-#compilerOpts = -I/usr/include -I/usr/include/ncurses
-#linkerOpts.linux = -L/usr/lib64 -L/usr/lib/x86_64-linux-gnu -lncurses --allow-shlib-undefined
-
-
-
-#headers.osx = /usr/local/Cellar/ncurses/6.1/include/ncurses.h
-#linkerOpts.osx = -lncurses
-#headers.linux = /usr/include/ncurses.h
-#linkerOpts.linux = -L/usr/lib/x86_64-linux-gnu -L/lib/x86_64-linux-gnu/ -lncurses
-
-#headers = ncurses.h
-#compilerOpts.linux = -I/usr/include
-#compilerOpts.osx = -I/opt/local/include
-#linkerOpts = -lncurses
-
-#headers = curses.h
-#headerFilter = curses.h
-#compilerOpts = -I/usr/include -I/usr/include/ncurses
-#linkerOpts.linux = -L/usr/lib64 -L/usr/lib/x86_64-linux-gnu -lncurses --allow-shlib-undefined
-
-#headers = /usr/include/ncurses.h
-#linkerOpts = -lncurses
-
-#package = ncurses
-#headers = ncursesw/ncurses.h
-#compilerOpts= -I/usr/local/include/
-#linkerOpts = -L/usr/local/lib/ -lncurses
-#libraryPaths = /usr/local/lib
-#staticLibraries = libncursesw.a
-
-#compilerOpts = -I/usr/include -I/usr/include/ncurses -I/opt/local/include
+compilerOpts.linux = -I/usr/include -I/usr/include/ncurses -I/usr/include/x86_64-linux-gnu
+linkerOpts.linux = -L/usr/local/lib/ -L/usr/lib64 -L/usr/lib/x86_64-linux-gnu -lncurses --allow-shlib-undefined
+#libraryPaths = /usr/local/lib/ /usr/lib64 /usr/lib/x86_64-linux-gnu
+#staticLibraries = libform.a libmenu.a libpanel.a libutil.a libtinfo.a libdl.a libncurses.a
