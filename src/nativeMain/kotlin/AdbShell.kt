@@ -4,6 +4,7 @@ import com.kgit2.kommand.exception.KommandException
 import com.kgit2.kommand.process.Child
 import com.kgit2.kommand.process.Command
 import com.kgit2.kommand.process.Stdio
+import dogcat.DogcatConfig
 import dogcat.Shell
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
@@ -57,17 +58,21 @@ class AdbShell(
 
                 coroutineScope {
                     val lines = produce(dispatcherIo) {
-                        while (isActive) {
+                        var numLines = 0
+
+                        while (isActive /*&& numLines < DogcatConfig.MAX_LOG_LINES*/) {
                             val line = stdoutReader.readLine()
 
                             if (line != null) {
                                 send(line)
+                                numLines++
                             } else {
                                 Logger.d(">>>>>>>>>>>>>>>>> stop break $isActive")
-                                close()
+                                //close()
                                 break
                             }
                         }
+                        close()
                         Logger.d(">>>>>>>>>>>>>>>>> stop launch")
                     }
 

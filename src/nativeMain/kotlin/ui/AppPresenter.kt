@@ -51,8 +51,8 @@ class AppPresenter(
             else -> dogcat(Start.All)
         }
 
-        statusPresenter.start()
         logLinesPresenter.start()
+        //statusPresenter.start()
     }
 
     override suspend fun stop() {
@@ -66,40 +66,12 @@ class AppPresenter(
     private suspend fun collectDogcatEvents() {
         dogcat
             .state
-            .flatMapLatest {
-                when (it) {
-                    is PublicState.WaitingInput -> {
-                        Logger.d("Waiting for log lines...\r")
+            .filterIsInstance<PublicState.Stopped>()
+            .collect {
+                println(
+                    "Either ADB is not found in your PATH or it's found but no emulator is running ")
 
-                        emptyFlow()
-                    }
-
-                    is PublicState.CapturingInput -> {
-                        it.lines
-                    }
-
-                    PublicState.InputCleared -> {
-                        Logger.d("Cleared Logcat and re-started\r")
-                        /*
-                                                withContext(ui) {
-                                                    view.clear()
-                                                }
-                        */
-                        emptyFlow()
-                    }
-
-                    PublicState.Stopped -> {
-                        // or maybe SDK tools are not installed at all
-                        println(
-                            "Either ADB is not found in your PATH or it's found but no emulator is running " +
-                                    "(it may be disconnected or stopped). Quitting.\n"
-                        )
-
-                        emptyFlow()
-                    }
-                }
             }
-            .collect {}
     }
 
     private suspend fun collectKeypresses() {
