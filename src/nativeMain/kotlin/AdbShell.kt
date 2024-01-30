@@ -4,7 +4,8 @@ import com.kgit2.kommand.exception.KommandException
 import com.kgit2.kommand.process.Child
 import com.kgit2.kommand.process.Command
 import com.kgit2.kommand.process.Stdio
-import dogcat.DogcatConfig
+import com.kgit2.kommand.process.Stdio.Pipe
+import dogcat.DogcatException
 import dogcat.Shell
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
@@ -41,7 +42,7 @@ class AdbShell(
                     .args(
                         listOf("logcat", "-v", "brief", userId, minLogLevel)
                     )
-                    .stdout(Stdio.Pipe)
+                    .stdout(Pipe)
                     .spawn()
 
             } catch (e: KommandException) {
@@ -126,28 +127,44 @@ class AdbShell(
             }
     }
 
-    override suspend fun userIdFor(packageName: String) = withContext(dispatcherIo) {
-        val UID_CONTEXT = """Packages:\R\s+Package\s+\[$packageName]\s+\(.*\):\R\s+(?:appId|userId)=(\d*)""".toRegex()
 
-        val output = withTimeout(COMMAND_TIMEOUT_MILLIS) {
-            Command("adb")
-                .args(
-                    listOf("shell", "dumpsys", "package")
-                )
-                .arg(packageName)
-                .stdout(Stdio.Pipe)
-                .output()
-        }
+    override suspend fun appIdFor(packageName: String): String {
+        val appIdContext =
+            """Packages:\R\s+Package\s+\[$packageName]\s+\(.*\):\R\s+(?:appId|userId)=(\d*)""".toRegex()
 
-        val userId = output.stdout?.let {
-            val match = UID_CONTEXT.find(it)
-            match?.let {
-                val (userId) = it.destructured
-                userId
+        val appId = try {
+            withContext(dispatcherIo) {
+                val commandOutput = withTimeout(COMMAND_TIMEOUT_MILLIS) {
+                    // Looks like despite its claims, Kommand still doesn't support timeouts
+                    Command("adb")
+                        .args(
+                            listOf("shell", "dumpsys", "package")
+                        )
+                        .arg(packageName)
+                        .stdout(Pipe)
+                        .output()
+                }
+
+                val appId = commandOutput.stdout?.let {
+                    val match = appIdContext.find(it)
+
+                    match?.let {
+                        val (id) = it.destructured
+                        id
+                    }
+                }
+
+                appId
             }
+        } catch (e: KommandException) {
+            throw DogcatException("Couldn't launch ADB command", e)
+
+        } catch (e: TimeoutCancellationException) {
+            throw DogcatException("Running ADB timed out", e)
         }
 
-        userId ?: throw RuntimeException("UserId not found!")
+        return appId
+            ?: throw DogcatException("App ID is not found for the package '$packageName'. Package is not installed on device.")
     }
 
     override suspend fun currentEmulatorName() = withContext(Dispatchers.IO) {
@@ -155,7 +172,7 @@ class AdbShell(
             .args(
                 listOf("emu", "avd", "name")
             )
-            .stdout(Stdio.Pipe)
+            .stdout(Pipe)
             .output()
             .stdout
             ?.lines()
@@ -172,7 +189,7 @@ class AdbShell(
             .args(
                 listOf("shell", "dumpsys", "activity", "activities")
             )
-            .stdout(Stdio.Pipe)
+            .stdout(Pipe)
             .spawn()
 
         val stdoutReader = out.bufferedStdout()!!// getChildStdout()!!
@@ -197,13 +214,26 @@ class AdbShell(
     }
 
     override suspend fun clearSource(): Boolean {
-        val childStatus = withContext(dispatcherIo) {
-            Command("adb")
-                .args(
-                    listOf("logcat", "-c")
-                )
-                .status()
+        val childStatus = try {
+            withContext(dispatcherIo) {
+                withTimeout(3000) {
+                    Command("adb")
+                        .args(
+                            listOf("logcat", "-c")
+                        )
+                        .status()
+                }
+            }
+        } catch (e: KommandException) {
+            //log
+
+            return false
+        } catch (e: TimeoutCancellationException) {
+
+            //or throw?
+            return false
         }
+
 
         Logger.d("${context()} Exit code for 'adb logcat -c': ${childStatus}")
 
@@ -240,7 +270,7 @@ class AdbShell(
                 .args(
                     listOf("emu", "avd", "status")
                 )
-                .stdout(Stdio.Pipe)
+                .stdout(Pipe)
                 .output()
                 .stdout
                 ?.lines()
@@ -264,7 +294,7 @@ class AdbShell(
                     .args(
                         listOf("version")
                     )
-                    .stdout(Stdio.Pipe)
+                    .stdout(Pipe)
                     .status()
             } catch (e: KommandException) {
                 //whoa exception and not code if command not found

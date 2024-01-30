@@ -11,20 +11,16 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import logger.context
-import ncurses.curs_set
-import ncurses.wmove
-import userInput.HasHifecycle
+import ui.HasLifecycle
 import userInput.Keymap
-import windowed
 import kotlin.coroutines.coroutineContext
-import kotlin.time.Duration.Companion.milliseconds
 
 class LogLinesPresenter(
     private val dogcat: Dogcat,
     private val appStateFlow: AppStateFlow,
     private val input: Input,
     private val uiDispatcher: CoroutineDispatcher
-) : HasHifecycle {
+) : HasLifecycle {
     //views can come and go, when input disappears
     private lateinit var view: LogLinesView
 
@@ -55,17 +51,7 @@ class LogLinesPresenter(
             .state
             .flatMapLatest {
                 when (it) {
-                    is WaitingInput -> {
-                        Logger.d("${context()} Waiting for log lines...\r")
-                        val waiting = "--------- log lines are empty, let's wait -- waiting"
-
-                        withContext(uiDispatcher) {
-                            view.processLogLine(IndexedValue(0, Unparseable(waiting)))
-                        }
-                        emptyFlow()
-                    }
-
-                    is CapturingInput -> {
+                    is Active -> {
                         Logger.d("${context()} Capturing input...")
                         i = 0
                         //make sure no capturing happens after clearing
@@ -91,7 +77,7 @@ class LogLinesPresenter(
                         it.lines//.windowed(500.milliseconds)//.dropWhile { (it.value as LogLine).message == "" }
                     }
 
-                    InputCleared -> {
+                    Inactive -> {
                         Logger.d("${context()} Cleared Logcat and re-started\r")
                         /*
                                                 withContext(ui) {
@@ -107,7 +93,7 @@ class LogLinesPresenter(
                         emptyFlow()
                     }
 
-                    Stopped -> {
+                    Terminated -> {
                         Logger.d("${context()} No more reading lines, terminated\r")
                         emptyFlow()
                     }

@@ -9,68 +9,68 @@ import dogcat.state.PublicState
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import logger.Logger
 import logger.context
 import ui.logLines.LogLinesPresenter
 import ui.status.StatusPresenter
 import userInput.Arguments
-import userInput.HasHifecycle
 import userInput.Input
 import userInput.Keymap
 import userInput.Keymap.Actions.*
 import kotlin.coroutines.coroutineContext
 
-@OptIn(ExperimentalForeignApi::class)
 class AppPresenter(
     private val dogcat: Dogcat,
     private val appStateFlow: AppStateFlow,
     private val input: Input,
     private val logLinesPresenter: LogLinesPresenter,
     private val statusPresenter: StatusPresenter,
-) : HasHifecycle {
+) : HasLifecycle {
     private val view = AppView()
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun start() {
+        when {
+            Arguments.packageName != null -> dogcat(Start.PickAppPackage(Arguments.packageName!!))
+            Arguments.current == true -> dogcat(Start.PickForegroundApp)
+            else -> dogcat(Start.PickAllApps)
+        }
+
         view.start()
 
-        val s = CoroutineScope(coroutineContext)
-
-        s.launch {
+        val scope = CoroutineScope(coroutineContext)
+        scope.launch {
             collectDogcatEvents()
         }
-        s.launch {
+        scope.launch {
             collectKeypresses()
         }
 
-        when {
-            Arguments.packageName != null -> dogcat(Start.PickApp(Arguments.packageName!!))
-            Arguments.current == true -> dogcat(Start.PickForegroundApp)
-            else -> dogcat(Start.All)
-        }
-
         logLinesPresenter.start()
-        //statusPresenter.start()
+        statusPresenter.start()
     }
 
     override suspend fun stop() {
+        dogcat(Stop)
+
         logLinesPresenter.stop()
         statusPresenter.stop()
 
         view.stop()
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun collectDogcatEvents() {
         dogcat
             .state
-            .filterIsInstance<PublicState.Stopped>()
+            .filterIsInstance<PublicState.Terminated>()
             .collect {
                 println(
-                    "Either ADB is not found in your PATH or it's found but no emulator is running ")
-
+                    "Either ADB is not found in your PATH or it's found but no emulator is running "
+                )
             }
     }
 
@@ -81,19 +81,6 @@ class AppPresenter(
                 when (Keymap.bindings[it]) {
                     Autoscroll -> {
                         appStateFlow.autoscroll(!appStateFlow.state.value.autoscroll)
-                    }
-                    Quit -> { // catch control-c
-                        //dogcat(Command.Stop)
-                        //coroutineContext.cancelChildren()
-                        //currentCoroutineContext().cancelChildren()
-                        //scope.coroutineContext.cancelChildren() -- only this works
-                        Logger.d("{${context()} ++++++ cancelled ${coroutineContext}'s job")
-                        //endwin()
-
-                        //pad.terminate()
-                        //pad2.terminate()
-                        //resetty()
-                        //exit(0)
                     }
 
                     ClearLogs -> {
@@ -109,7 +96,7 @@ class AppPresenter(
                             dogcat(ResetFilter(ByPackage::class))
                         } else {
                             Logger.d("${context()} !SelectAppByPackage")
-                            dogcat(Start.PickApp(f.first!!.packageName))
+                            dogcat(Start.PickAppPackage(f.first!!.packageName))
                             appStateFlow.filterByPackage(f.first, true)
                         }
                     }

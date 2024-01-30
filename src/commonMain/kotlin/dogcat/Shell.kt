@@ -6,7 +6,7 @@ interface Shell {
 
     fun lines(minLogLevel: String, userId: String) : Flow<String>
 
-    suspend fun userIdFor(packageName: String): String
+    suspend fun appIdFor(packageName: String): String
 
     suspend fun currentEmulatorName(): String?
 
@@ -20,3 +20,4 @@ interface Shell {
 
     suspend fun isShellAvailable(): Boolean
 }
+
