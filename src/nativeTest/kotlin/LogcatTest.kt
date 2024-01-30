@@ -1,4 +1,4 @@
-import dogcat.state.PublicState.CapturingInput
+import dogcat.state.PublicState.Active
 import dogcat.state.PublicState.WaitingInput
 import app.cash.turbine.test
 import app.cash.turbine.turbineScope
@@ -48,13 +48,13 @@ class LogcatTest {
     }
 
     @Test fun `begin capturing when input appears`() = runTest(dispatcher) {
-        dogcat(Start.All)
+        dogcat(Start.PickAllApps)
         advanceUntilIdle()
 
         dogcat.state.test {
             // if input fails upon 3 attempts, re-throw that exception into shared flow
             //assert a call to lines() has occured?
-            awaitItem().shouldBeInstanceOf<CapturingInput>()
+            awaitItem().shouldBeInstanceOf<Active>()
         }
     }
 
@@ -62,19 +62,19 @@ class LogcatTest {
         launch {
             val expectCapturingInput = dogcat.state.drop(1).first()
 
-            expectCapturingInput.shouldBeInstanceOf<CapturingInput>()
+            expectCapturingInput.shouldBeInstanceOf<Active>()
         }
         advanceUntilIdle()
 
-        dogcat(Start.All)
+        dogcat(Start.PickAllApps)
     }
 
     @Test fun `capture all input lines without loss`() = runTest(dispatcher) {
-        dogcat(Start.All)
+        dogcat(Start.PickAllApps)
         advanceUntilIdle()
 
         dogcat.state.test {
-            val input = awaitItem() as CapturingInput
+            val input = awaitItem() as Active
 
             input.lines.test {
                 DummyLogSource.lines.forEach {
@@ -97,11 +97,11 @@ class LogcatTest {
     }
 
     @Test fun `complete previous 'lines' upon emission of new ones`() = runTest(dispatcher) {
-        dogcat(Start.All)
+        dogcat(Start.PickAllApps)
         advanceUntilIdle()
 
         dogcat.state.test {
-            val input = awaitItem() as CapturingInput
+            val input = awaitItem() as Active
 
             //launch {
                 input.lines.test {
@@ -117,7 +117,7 @@ class LogcatTest {
                 }
             //}
             awaitItem()
-            val input1 = awaitItem() as CapturingInput
+            val input1 = awaitItem() as Active
 
             input1.lines.test {
                 DummyLogSource.lines.forEach {
@@ -134,17 +134,17 @@ class LogcatTest {
         launch {
             dogcat.state.test {
                 awaitItem() shouldBe WaitingInput
-                awaitItem().shouldBeInstanceOf<CapturingInput>()
+                awaitItem().shouldBeInstanceOf<Active>()
                 ensureAllEventsConsumed()
             }
         }
         advanceUntilIdle() //maybe not needed
 
-        dogcat(Start.All)
+        dogcat(Start.PickAllApps)
         advanceUntilIdle()
 
         dogcat.state.test {
-            awaitItem().shouldBeInstanceOf<CapturingInput>()
+            awaitItem().shouldBeInstanceOf<Active>()
             ensureAllEventsConsumed()
         }
     }
@@ -161,11 +161,11 @@ class LogcatTest {
         val ls = Fake2LogSource()
         //val dogcat1 = Dogcat(ls, InternalAppliedFiltersState(), dispatcher, dispatcher)
 
-        dogcat(Start.All)
+        dogcat(Start.PickAllApps)
         advanceUntilIdle()
 
         dogcat.state.test {
-            val items = awaitItem() as CapturingInput
+            val items = awaitItem() as Active
 
             val j = launch {
                 items.lines
@@ -191,11 +191,11 @@ class LogcatTest {
     }
 
     @Test fun `stop input consumption upon unsubscribing`() = runTest(dispatcher) {
-        dogcat(Start.All)
+        dogcat(Start.PickAllApps)
         advanceUntilIdle()
 
         dogcat.state.test {
-            val items = awaitItem() as CapturingInput
+            val items = awaitItem() as Active
 
             launch(UnconfinedTestDispatcher(testScheduler)) {
                 items.lines.collect {
@@ -207,21 +207,21 @@ class LogcatTest {
             dogcat(Command.Stop)
             advanceUntilIdle()
 
-            awaitItem() shouldBe PublicState.Stopped
+            awaitItem() shouldBe PublicState.Terminated
         }
     }
 
     @Test fun `auto re-start log consumption after clearing log input`() = runTest(dispatcher) {
-        dogcat(Start.All)
+        dogcat(Start.PickAllApps)
         advanceUntilIdle()
 
         dogcat.state.test {
-            awaitItem().shouldBeInstanceOf<CapturingInput>()
+            awaitItem().shouldBeInstanceOf<Active>()
 
             dogcat(Command.ClearLogSource)
 
-            awaitItem() shouldBe PublicState.InputCleared
-            val input = awaitItem() as CapturingInput
+            awaitItem() shouldBe PublicState.Inactive
+            val input = awaitItem() as Active
 
             input.lines.test {
                 DummyLogSource.lines.forEach {
@@ -265,12 +265,12 @@ class LogcatTest {
     }
 
     @Test fun `exclude log levels upon filtering`() =  runTest(dispatcher) {
-        dogcat(Start.All)
+        dogcat(Start.PickAllApps)
         //dogcat(Filter.ToggleLogLevel("D"))
         advanceUntilIdle()
 
         dogcat.state.test {
-            val lines = (awaitItem() as CapturingInput).lines
+            val lines = (awaitItem() as Active).lines
 
             lines
                 .take(3)
@@ -292,8 +292,8 @@ class LogcatTest {
             val t = dogcat.state.testIn(backgroundScope)
             t.awaitItem() shouldBe WaitingInput
 
-            dogcat(Start.All)
-            val c = t.awaitItem() as CapturingInput
+            dogcat(Start.PickAllApps)
+            val c = t.awaitItem() as Active
 
             c.lines.test {
                 /*awaitItem() shouldBe Original("1")

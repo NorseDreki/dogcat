@@ -6,7 +6,7 @@ import userInput.Keymap.Actions.*
 import dogcat.Command
 import dogcat.Dogcat
 import dogcat.LogFilter
-import dogcat.state.PublicState.CapturingInput
+import dogcat.state.PublicState.Active
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import logger.Logger
@@ -32,7 +32,7 @@ class StatusPresenter(
 
         dogcat
             .state
-            .filterIsInstance<CapturingInput>()
+            .filterIsInstance<Active>()
             .flatMapLatest { it.applied }
             .onEach {
                 view.updateFilters(it)
@@ -46,7 +46,7 @@ class StatusPresenter(
 
         dogcat
             .state
-            .filterIsInstance<CapturingInput>()
+            .filterIsInstance<Active>()
             .mapLatest { it }
             .onEach {
                 view.updateAutoscroll(appStateFlow.state.value.autoscroll)

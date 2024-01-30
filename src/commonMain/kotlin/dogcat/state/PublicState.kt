@@ -4,21 +4,15 @@ import dogcat.LogLine
 import kotlinx.coroutines.flow.Flow
 
 sealed interface PublicState {
-    data object WaitingInput : PublicState
 
-    data object InputCleared : PublicState
-
-    data class CapturingInput(
+    data class Active(
         val lines: Flow<IndexedValue<LogLine>>,
-
         override val applied: Flow<AppliedFilters>,
-
         val deviceName: String?,
-
         val heartbeat: Flow<Boolean>
-
-
     ) : PublicState, AppliedFiltersState
 
-    data object Stopped : PublicState
+    data object Inactive : PublicState
+
+    data object Terminated : PublicState
 }

@@ -20,7 +20,7 @@ class Dogcat(
     private val shell: Shell
 )  {
 
-    private val stateSubject = MutableStateFlow<PublicState>(WaitingInput)
+    private val stateSubject = MutableStateFlow<PublicState>(Inactive)
     val state = stateSubject.asStateFlow().onCompletion { Logger.d("${context()} (5) COMPLETION, state") }
 
     suspend operator fun invoke(command: Command) {
@@ -30,19 +30,18 @@ class Dogcat(
             is Start -> start(command)
 
             ClearLogSource -> {
+                stateSubject.emit(Inactive)
+
                 // keyboard input hangs upon clearing? when no emulators
                 shell.clearSource()
-                stateSubject.emit(InputCleared)
-
                 captureLogLines()
             }
 
             is FilterBy -> {
-                stateSubject.emit(InputCleared)
+                stateSubject.emit(Inactive)
 
                 // Do not re-capture log lines if filter hasn't changed
                 filters.apply(command.filter)
-
 
                 if (command.filter is Substring) {
                     captureLogLines(restartSource = false)
@@ -52,9 +51,9 @@ class Dogcat(
             }
 
             is ResetFilter -> {
-                filters.reset(command.filterClass)
+                stateSubject.emit(Inactive)
 
-                stateSubject.emit(InputCleared)
+                filters.reset(command.filterClass)
 
                 if (command.filterClass == Substring::class) {
                     captureLogLines(restartSource = false)
@@ -64,7 +63,8 @@ class Dogcat(
             }
 
             Stop -> { // clear pad?
-                stateSubject.emit(Stopped)
+                logLines.stop()
+                stateSubject.emit(Terminated)
             }
         }
     }
@@ -75,7 +75,7 @@ class Dogcat(
         val running = shell.heartbeat().first()
 
         if (!shellAvailable || !running) {
-            val ci = Stopped
+            val ci = Terminated
             stateSubject.emit(ci)
             return
         }
@@ -83,23 +83,23 @@ class Dogcat(
         when (subcommand) {
             is PickForegroundApp -> {
                 val packageName = shell.foregroundPackageName()
-                val userId = shell.userIdFor(packageName)
+                val userId = shell.appIdFor(packageName)
 
                 filters.apply(ByPackage(packageName, userId))
                 Logger.d("Startup with foreground app, resolved to package '$packageName' and user ID '$userId'")
             }
 
-            is PickApp -> {
-                stateSubject.emit(InputCleared)
+            is PickAppPackage -> {
+                stateSubject.emit(Inactive)
 
                 val packageName = subcommand.packageName
-                val userId = shell.userIdFor(packageName)
+                val userId = shell.appIdFor(packageName)
 
                 filters.apply(ByPackage(packageName, userId))
                 Logger.d("Startup package name '$packageName', resolved user ID to '$userId'")
             }
 
-            is All -> {
+            is PickAllApps -> {
                 Logger.d("Startup with no package filters")
             }
         }
@@ -109,10 +109,11 @@ class Dogcat(
 
     private suspend fun captureLogLines(restartSource: Boolean = true) {
         val filterLines = logLines.capture(restartSource)
+        Logger.d("${context()} created shared lines in dogcat $filterLines")
 
         val deviceName = shell.currentEmulatorName()
 
-        val ci = CapturingInput(
+        val ci = Active(
             filterLines
                 .onCompletion { Logger.d("${context()} (1) COMPLETED: Capturing input filterLines $it") },
 
@@ -126,4 +127,3 @@ class Dogcat(
         stateSubject.emit(ci)
     }
 }
-

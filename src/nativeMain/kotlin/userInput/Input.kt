@@ -1,5 +1,6 @@
 package userInput
 
+import AppConfig.INPUT_KEY_DELAY_MILLIS
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
@@ -9,16 +10,11 @@ import logger.context
 import ncurses.ERR
 import ncurses.stdscr
 import ncurses.wgetch
+import ui.HasLifecycle
 import kotlin.coroutines.coroutineContext
 
-interface Input : HasHifecycle {
+interface Input : HasLifecycle {
     val keypresses: Flow<Int>
-}
-
-interface HasHifecycle {
-    suspend fun start()
-
-    suspend fun stop()
 }
 
 class DefaultInput(
@@ -36,7 +32,8 @@ class DefaultInput(
                     val key = wgetch(stdscr)
 
                     if (key == ERR) {
-                        delay(30)
+                        delay(INPUT_KEY_DELAY_MILLIS)
+
                         continue
                     }
                     Logger.d("${context()} Process key $key")
@@ -47,6 +44,6 @@ class DefaultInput(
     }
 
     override suspend fun stop() {
-        //not expected to be called
+        //will be stopped by CancellationException
     }
 }

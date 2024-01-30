@@ -1,5 +1,7 @@
 object AppConfig {
 
+    const val INPUT_KEY_DELAY_MILLIS = 30L
+
     const val DEFAULT_TAG_WIDTH = 23
 
     const val APP_LOG_FILENAME = "log.txt"
