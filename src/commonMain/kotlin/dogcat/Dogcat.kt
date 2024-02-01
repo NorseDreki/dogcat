@@ -70,11 +70,11 @@ class Dogcat(
     }
 
     private suspend fun start(subcommand: Start) {
-        val shellAvailable = shell.isShellAvailable()
+        shell.validateShellOrThrow()
 
         val running = shell.heartbeat().first()
 
-        if (!shellAvailable || !running) {
+        if (!running) {
             val ci = Terminated
             stateSubject.emit(ci)
             return

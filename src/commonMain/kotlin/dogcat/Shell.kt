@@ -6,18 +6,17 @@ interface Shell {
 
     fun lines(minLogLevel: String, userId: String) : Flow<String>
 
+    fun heartbeat(): Flow<Boolean>
+
     suspend fun appIdFor(packageName: String): String
 
-    suspend fun currentEmulatorName(): String?
+    suspend fun currentEmulatorName(): String
 
     suspend fun foregroundPackageName(): String
 
-    suspend fun clearSource(): Boolean
+    suspend fun clearSource()
 
-    suspend fun devices(): List<String>
+    suspend fun devices(): String
 
-    fun heartbeat(): Flow<Boolean>
-
-    suspend fun isShellAvailable(): Boolean
+    suspend fun validateShellOrThrow()
 }
-
