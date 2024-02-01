@@ -33,13 +33,20 @@ class StatusView {
         delwin(window)
     }
 
+    private var filterLength = "Filter: ".length
+
     suspend fun inputFilter(): String = memScoped {
         val sx = getmaxx(stdscr)
 
         val bytePtr = allocArray<ByteVar>(200)
         echo()
-        mvwprintw(window, 1, 0, "Enter filter: ")
-        //yield()
+        //mvwprintw(window, 1, filterLength, "")
+        // Print the prompt
+
+
+        val prompt = "Filter: zzz"
+        mvwprintw(window, 1, 0, prompt)
+        wmove(window, 1, prompt.length)
 
         withContext(Dispatchers.IO) {
             //wgetch(window)
@@ -60,21 +67,25 @@ class StatusView {
 
     fun updateAutoscroll(autoscroll: Boolean) {
         wattron(window, COLOR_PAIR(12))
-        mvwprintw(window, 0, 50, "Autoscroll ${autoscroll}")
+        mvwprintw(window, 0, 10, "Autoscroll ${autoscroll}")
         wattroff(window, COLOR_PAIR(12))
         wrefresh(window)
     }
 
     fun updateDevice(device: String?, running: Boolean) {
-        val cp = if (running) 2 else 1
-        wattron(window, COLOR_PAIR(cp))
-        mvwprintw(window, 1, 70, device)
-        wattroff(window, COLOR_PAIR(cp))
-        wrefresh(window)
+        device?.let {
+            val cp = if (running) 2 else 1
+            wattron(window, COLOR_PAIR(cp))
+            mvwprintw(window, 1, getmaxx(window) - device.length, device)
+            wattroff(window, COLOR_PAIR(cp))
+            wrefresh(window)
+        }
     }
 
     fun updatePackageName(packageName: String) {
-        mvwprintw(window, 0, 80, "${packageName}")
+        wattron(window, COLOR_PAIR(12))
+        mvwprintw(window, 0, getmaxx(window) - packageName.length, packageName)
+        wattroff(window, COLOR_PAIR(12))
         wrefresh(window)
     }
 
@@ -91,15 +102,22 @@ class StatusView {
         filters.forEach {
             when (it.key) {
                 Substring::class -> {
-                    mvwprintw(window, 0, 0, "Filter by: ${(it.value as Substring).substring}")
+                    val fs = "Filter: ${(it.value as Substring).substring}"
+                    filterLength = fs.length
+
+                    wattroff(window, COLOR_PAIR(12))
+                    mvwprintw(window, 1, 0, fs)
+                    wattron(window, COLOR_PAIR(12))
                 }
 
                 MinLogLevel::class -> {
-                    mvwprintw(window, 0, 30, "${(it.value as MinLogLevel).logLevel} and up")
+                    mvwprintw(window, 0, 0, "${(it.value as MinLogLevel).logLevel} and up")
                 }
 
                 ByPackage::class -> {
-                    mvwprintw(window, 0, 80, "${(it.value as ByPackage).packageName}")
+                    val packageName = (it.value as ByPackage).packageName
+
+                    mvwprintw(window, 0, getmaxx(window) - packageName.length, packageName)
                 }
             }
         }
