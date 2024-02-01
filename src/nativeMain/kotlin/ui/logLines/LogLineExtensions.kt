@@ -8,6 +8,7 @@ import dogcat.LogLine
 import dogcat.Unparseable
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.yield
+import logger.Logger
 import ncurses.*
 import kotlin.math.min
 
@@ -19,6 +20,7 @@ suspend fun LogLinesView.processLogLine(
         printTag("")
         //use System.line ending
         waddstr(pad, " ".repeat(1 + 3 + 1))
+        //account for end of line in the same way as in wrapline
         waddstr(pad, (it.value as Unparseable).line + "\n")
         recordLine(1)
 
@@ -87,10 +89,13 @@ private fun LogLinesView.printLevelAndMessage(
 private fun LogLinesView.wrapLine(
     message: String
 ): Pair<String, Int> {
+
+    val r = """[\t\n\r\\b\f\v\a\e]""".toRegex()
+
     val width = position.endX
     val header = AppConfig.DEFAULT_TAG_WIDTH + 1 + 3 + 1// space, level, space
-    //val line = message.replace(Regex("[\t\n\r\b\f\v\a\e]"), " ") // Replace control characters and escape sequences with spaces
-    val line = message.replace("\t", "    ") //prevent escape characters leaking
+    val line = message.replace(r, " ") // Replace control characters and escape sequences with spaces
+    //val line = message.replace("\t", "    ") //prevent escape characters leaking
     val wrapArea = width - header
     var buf = ""
     var current = 0
@@ -107,5 +112,15 @@ private fun LogLinesView.wrapLine(
         }
         current = next
     }
-    return buf + "\n" to count //+ "\n\r"
+
+    val sx = getmaxx(pad)
+
+    val s = if ((buf.length + header) % sx == 0) {
+        //Logger.d("${buf.length} $message")
+        buf
+    } else {
+        buf + "\n"
+    }
+
+    return s to count //+ "\n\r"
 }
