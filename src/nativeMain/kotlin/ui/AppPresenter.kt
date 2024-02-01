@@ -6,13 +6,11 @@ import dogcat.Dogcat
 import dogcat.LogFilter.*
 import dogcat.LogLevel.*
 import dogcat.state.PublicState
+import dogcat.state.PublicState.Active
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import logger.Logger
 import logger.context
@@ -74,67 +72,90 @@ class AppPresenter(
             }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun collectKeypresses() {
-        input
+        dogcat
+            .state
+            .filterIsInstance<Active>()
+            .flatMapLatest { it.heartbeat }
+            .filter { it }
+            .distinctUntilChanged()
+            .flatMapLatest {
+                input.keypresses
+            }
+            //catch?
+            .collect {
+                handleKeypress(it)
+            }
+        /*input
             .keypresses
             .onEach {
-                when (Keymap.bindings[it]) {
-                    Autoscroll -> {
-                        appStateFlow.autoscroll(!appStateFlow.state.value.autoscroll)
-                    }
+            }
+            .catch {
+                //we need to catch dogcat exception here
 
-                    ClearLogs -> {
-                        dogcat(ClearLogSource)
-                    }
-
-                    ToggleFilterByPackage -> {
-                        val f = appStateFlow.state.value.packageFilter
-
-                        if (f.second) {
-                            Logger.d("${context()} !DeselectSelectAppByPackage")
-                            appStateFlow.filterByPackage(f.first, false)
-                            dogcat(ResetFilter(ByPackage::class))
-                        } else {
-                            Logger.d("${context()} !SelectAppByPackage")
-                            dogcat(Start.PickAppPackage(f.first!!.packageName))
-                            appStateFlow.filterByPackage(f.first, true)
-                        }
-                    }
-
-                    ResetFilterBySubstring -> {
-                        dogcat(ResetFilter(Substring::class))
-                    }
-
-                    ResetFilterByMinLogLevel -> {
-                        dogcat(ResetFilter(MinLogLevel::class))
-                    }
-
-                    MinLogLevelV -> {
-                        dogcat(FilterBy(MinLogLevel(V)))
-                    }
-
-                    MinLogLevelD -> {
-                        dogcat(FilterBy(MinLogLevel(D)))
-                    }
-
-                    MinLogLevelI -> {
-                        dogcat(FilterBy(MinLogLevel(I)))
-                    }
-
-                    MinLogLevelW -> {
-                        dogcat(FilterBy(MinLogLevel(W)))
-                    }
-
-                    MinLogLevelE -> {
-                        dogcat(FilterBy(MinLogLevel(E)))
-                    }
-
-                    else -> {}
-                }
+                Logger.d("${context()} [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[ catch on input chain $it")
             }
             .onCompletion {
                 Logger.d("${context()} ++++++ no longer listening to key prese")
             }
-            .collect()
+            .collect()*/
+    }
+
+    private suspend fun handleKeypress(keyCode: Int) {
+        when (Keymap.bindings[keyCode]) {
+
+            Autoscroll -> {
+                appStateFlow.autoscroll(!appStateFlow.state.value.autoscroll)
+            }
+
+            ClearLogs -> {
+                dogcat(ClearLogSource)
+            }
+
+            ToggleFilterByPackage -> {
+                val f = appStateFlow.state.value.packageFilter
+
+                if (f.second) {
+                    Logger.d("${context()} !DeselectSelectAppByPackage")
+                    appStateFlow.filterByPackage(f.first, false)
+                    dogcat(ResetFilter(ByPackage::class))
+                } else {
+                    Logger.d("${context()} !SelectAppByPackage")
+                    dogcat(Start.PickAppPackage(f.first!!.packageName))
+                    appStateFlow.filterByPackage(f.first, true)
+                }
+            }
+
+            ResetFilterBySubstring -> {
+                dogcat(ResetFilter(Substring::class))
+            }
+
+            ResetFilterByMinLogLevel -> {
+                dogcat(ResetFilter(MinLogLevel::class))
+            }
+
+            MinLogLevelV -> {
+                dogcat(FilterBy(MinLogLevel(V)))
+            }
+
+            MinLogLevelD -> {
+                dogcat(FilterBy(MinLogLevel(D)))
+            }
+
+            MinLogLevelI -> {
+                dogcat(FilterBy(MinLogLevel(I)))
+            }
+
+            MinLogLevelW -> {
+                dogcat(FilterBy(MinLogLevel(W)))
+            }
+
+            MinLogLevelE -> {
+                dogcat(FilterBy(MinLogLevel(E)))
+            }
+
+            else -> {}
+        }
     }
 }

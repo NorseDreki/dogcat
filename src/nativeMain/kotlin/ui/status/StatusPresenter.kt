@@ -4,8 +4,10 @@ import AppStateFlow
 import userInput.Input
 import userInput.Keymap.Actions.*
 import dogcat.Command
+import dogcat.Command.FilterBy
 import dogcat.Dogcat
 import dogcat.LogFilter
+import dogcat.LogFilter.Substring
 import dogcat.state.PublicState.Active
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -56,15 +58,24 @@ class StatusPresenter(
             }
             .launchIn(scope)
 
-        input
-            .keypresses
+
+        //or just allow for filtering since lines are already cached in sharedLines?
+        dogcat
+            .state
+            .filterIsInstance<Active>()
+            .flatMapLatest { it.heartbeat }
+            .filter { it }
+            .distinctUntilChanged()
+            .flatMapLatest {
+                input.keypresses
+            }
             .filter {
                 Keymap.bindings[it] == InputFilterBySubstring
             }
             .onEach {
                 val filterString = view.inputFilter()
 
-                dogcat(Command.FilterBy(LogFilter.Substring(filterString)))
+                dogcat(FilterBy(Substring(filterString)))
             }
             .launchIn(scope)
 
