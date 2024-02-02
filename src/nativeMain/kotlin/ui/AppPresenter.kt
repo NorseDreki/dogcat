@@ -120,7 +120,7 @@ class AppPresenter(
                     Logger.d("${context()} !DeselectSelectAppByPackage")
                     appStateFlow.filterByPackage(f.first, false)
                     dogcat(ResetFilter(ByPackage::class))
-                } else {
+                } else if (f.first != null) {
                     Logger.d("${context()} !SelectAppByPackage")
                     dogcat(Start.PickAppPackage(f.first!!.packageName))
                     appStateFlow.filterByPackage(f.first, true)
