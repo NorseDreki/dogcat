@@ -18,7 +18,6 @@ suspend fun LogLinesView.processLogLine(
 ) {
     if (it.value is Unparseable) {
         printTag("")
-        //use System.line ending
         waddstr(pad, " ".repeat(1 + 3 + 1))
         //account for end of line in the same way as in wrapline
         waddstr(pad, (it.value as Unparseable).line + "\n")
@@ -48,9 +47,6 @@ suspend fun LogLinesView.processLogLine(
             printLevelAndMessage(logLine.level.name, 12, wrapped, 0)
         }
     }
-
-
-    //refresh()
 
     if (autoscroll) {
         //handle a case when current lines take less than a screen
@@ -94,8 +90,7 @@ private fun LogLinesView.wrapLine(
 
     val width = position.endX
     val header = AppConfig.DEFAULT_TAG_WIDTH + 1 + 3 + 1// space, level, space
-    val line = message.replace(r, " ") // Replace control characters and escape sequences with spaces
-    //val line = message.replace("\t", "    ") //prevent escape characters leaking
+    val line = message.replace(r, " ")
     val wrapArea = width - header
     var buf = ""
     var current = 0
@@ -106,7 +101,6 @@ private fun LogLinesView.wrapLine(
         val next = min(current + wrapArea, line.length)
         buf += line.substring(current, next)
         if (next < line.length) {
-            //buf += "\n"
             count += 1
             buf += " ".repeat(header) //
         }
@@ -116,11 +110,10 @@ private fun LogLinesView.wrapLine(
     val sx = getmaxx(pad)
 
     val s = if ((buf.length + header) % sx == 0) {
-        //Logger.d("${buf.length} $message")
         buf
     } else {
         buf + "\n"
     }
 
-    return s to count //+ "\n\r"
+    return s to count
 }

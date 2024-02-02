@@ -6,7 +6,6 @@ interface LogLineParser {
     fun parse(line: String) : LogLine
 }
 
-
 class LogcatBriefParser : LogLineParser {
     private val briefPattern = """^([A-Z])/(.+?)\( *(\d+)\): (.*?)$""".toRegex()
 

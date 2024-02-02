@@ -19,9 +19,8 @@ import ui.status.StatusPresenter
 import userInput.DefaultInput
 import userInput.Input
 
-class AppModule(
-    private val uiDispatcher: CoroutineDispatcher
-) {
+class AppModule {
+
     private val appModule = DI.Module("app") {
         bindSingleton<CanLog> {
             if (BuildConfig.DEBUG) {
@@ -38,16 +37,15 @@ class AppModule(
                 instance(),
                 instance(),
                 instance(),
-                instance(),
+                instance()
             )
         }
-        bindSingleton<StatusPresenter> { StatusPresenter(instance(), instance(), instance(), uiDispatcher) }
+        bindSingleton<StatusPresenter> { StatusPresenter(instance(), instance(), instance()) }
         bindSingleton<LogLinesPresenter> {
             LogLinesPresenter(
                 instance(),
                 instance(),
-                instance(),
-                uiDispatcher
+                instance()
             )
         }
     }

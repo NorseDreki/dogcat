@@ -25,7 +25,7 @@ fun main(args: Array<String>) {
         //he key takeaway is that if you call launch on a custom CoroutineScope, any CoroutineExceptionHandler provided
         // directly to the CoroutineScope constructor or to launch will be executed when an exception is thrown within the launched coroutine.
         val appJob = CoroutineScope(ui).launch(handler) {
-            val appModule = AppModule(ui)
+            val appModule = AppModule()
 
             with(appModule) {
                 Logger.set(fileLogger)

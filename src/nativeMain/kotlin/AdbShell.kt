@@ -10,9 +10,8 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.channels.produce
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onCompletion
 import logger.Logger
 import logger.context
@@ -119,6 +118,7 @@ class AdbShell(
             .catch { cause ->
                 Logger.d("|||||||||||||||||||||||||||||||||||||||||||||||||||  Flow was cancelled, cleaning up resources...")
             }
+            .flowOn(dispatcherIo)
     }
 
     override fun heartbeat(): Flow<Boolean> = flow {
@@ -134,14 +134,12 @@ class AdbShell(
                 ?.first()
 
             val running = name?.contains("running") ?: false
-
-            //Logger.d("${context()} !Emulator $name")
-
             emit(running)
 
             delay(1000L)
         }
     }
+        .flowOn(dispatcherIo)
 
     override suspend fun appIdFor(packageName: String): String {
         val appIdContext =

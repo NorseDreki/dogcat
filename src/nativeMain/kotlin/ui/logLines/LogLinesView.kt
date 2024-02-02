@@ -5,22 +5,19 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import logger.Logger
 import logger.context
 import ncurses.*
-import platform.posix.wprintf
 import ui.ViewPosition
 import kotlin.math.min
 
-@OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
+@OptIn(ExperimentalForeignApi::class)
 class LogLinesView {
     private val sx = getmaxx(stdscr)
     private val sy = getmaxy(stdscr)
 
-    internal val position = ViewPosition(0, 0, sx, sy - 4) //- 5)
-
+    internal val position = ViewPosition(0, 0, sx, sy - 4)
 
     internal val pad = newpad((MAX_LOG_LINES * 1.3).toInt(), position.endX) //fix guesstimation
     internal val pageSize = position.endY - position.startY + 1
-    private val lastPageSize = pageSize - 1 // * 9 / 10
-
+    private val lastPageSize = pageSize - 1
 
     internal var autoscroll = false
 
@@ -77,7 +74,7 @@ class LogLinesView {
         Logger.d("Page Up by $pageSize, $firstVisibleLine")
     }
 
-    fun pageDown(autoscroll: Boolean) {
+    fun pageDown() {
         //firstVisibleLine += pageSize
         //refresh()
 
@@ -117,8 +114,6 @@ class LogLinesView {
     }
 
     fun lineDown(second: Int) {
-
-
         if (firstVisibleLine == linesCount) return
 
         curs_set(0)
@@ -135,14 +130,14 @@ class LogLinesView {
         clearok(pad, false)*/
 
 
-                //firstVisibleLine = 0
-                //refresh()
-                if (firstVisibleLine == 0) return
+        //firstVisibleLine = 0
+        //refresh()
+        if (firstVisibleLine == 0) return
 
-                val num = min(pageSize, firstVisibleLine)
+        val num = min(pageSize, firstVisibleLine)
 
-                firstVisibleLine = num
-                pageUp()
+        firstVisibleLine = num
+        pageUp()
     }
 
     // useful for bookmarking then quickly moving between marked lines
@@ -191,11 +186,11 @@ class LogLinesView {
         val notSeeingLastLine = firstVisibleLine <= linesCount - pageSize
         if (notSeeingLastLine) {
             curs_set(0)
-            Logger.d("Cursor is hidden")
+            //Logger.d("Cursor is hidden")
         } else {
             //wmove(pad, firstVisibleLine, 0)
             curs_set(1)
-            Logger.d("Cursor is visible")
+            //Logger.d("Cursor is visible")
         }
     }
 

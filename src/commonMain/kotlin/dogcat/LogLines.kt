@@ -1,6 +1,7 @@
 package dogcat
 
 import bufferedTransform
+import dogcat.LogFilter.Substring
 import dogcat.state.DefaultAppliedFiltersState
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -13,7 +14,6 @@ class LogLines(
     private val filtersState: DefaultAppliedFiltersState,
     private val shell: Shell,
     private val dispatcherCpu: CoroutineDispatcher,
-    private val dispatcherIo: CoroutineDispatcher,
 ) {
     private val handler = CoroutineExceptionHandler { _, t -> Logger.d("!!!!!!11111111 CATCH! ${t.message}\r") }
     private lateinit var scope: CoroutineScope
@@ -23,12 +23,10 @@ class LogLines(
         if (restartSource) {
             if (this::scope.isInitialized) {
                 Logger.d("${context()} !!!!! cancelling scope ${scope.coroutineContext[Job]}")
-                withContext(dispatcherCpu) {
 
-                    scope.cancel()
-                }
+                scope.cancel()
             }
-            scope = CoroutineScope(dispatcherIo + handler + Job())
+            scope = CoroutineScope(dispatcherCpu + handler + Job())
             sharedLines = createSharedLines()
             Logger.d("${context()} created shared lines in capture $sharedLines")
         }
@@ -39,25 +37,21 @@ class LogLines(
                 Logger.d("${context()} Applied filters flat map concat")
                 it.values.asFlow()
             }
-            .filterIsInstance<LogFilter.Substring>()
+            .filterIsInstance<Substring>()
             //never called, always restarted
             .distinctUntilChanged { old, new ->
                 Logger.d("] Distinct? $old $new")
                 old.substring == new.substring
             }
             .flatMapLatest { filter ->
+                Logger.d("${context()} flat map shared lines")
                 val f = sharedLines
                     .filter { it.contains(filter.substring, ignoreCase = true) }
-                    .onEach {
-                        //logger.Logger.d("${context()} !!!!!!!!!!!!  '${filter.substring}' $restartSource Shared lines flat map latest")
-                    }
-
                 f
             }
             .map {
                 lineParser.parse(it)
             }
-            //.filterIsInstance<Brief>()
             .bufferedTransform(
                 { buffer, item ->
                     when (item) {
@@ -72,11 +66,12 @@ class LogLines(
                                         else -> true
                                     }
                                 }
+
                                 else -> false
                             }
                         }
+
                         is Unparseable -> false // Pass through Unparseable items
-                        else -> false
                     }
                 },
                 { buffer, item ->
@@ -88,14 +83,14 @@ class LogLines(
                                 Brief(item.level, "", item.owner, item.message)
                             }
                         }
+
                         is Unparseable -> item // Pass through Unparseable items
-                        else -> item
                     }
                 }
             )
             .withIndex()
             .onEach {
-                if (i < 75) {
+                if (i < 15) {
                     Logger.d("${context()} csl ${it.index}")
                     i++
                 }
@@ -132,7 +127,6 @@ class LogLines(
                 DogcatConfig.MAX_LOG_LINES,
             )
             .onSubscription { Logger.d("${context()} Subscribing to shareIn") }
-
             .onCompletion { Logger.d("${context()} (3) COMPLETED Subscription to shareIn") }
     }
 }

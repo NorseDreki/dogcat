@@ -16,7 +16,7 @@ object DogcatModule {
     internal val dogcatModule = DI.Module("dogcat") {
         bindSingleton<DefaultAppliedFiltersState> { DefaultAppliedFiltersState() }
         bindSingleton<LogLineParser> { LogcatBriefParser() }
-        bindSingleton<LogLines> { LogLines(instance(), instance(), instance(), Dispatchers.Default, Dispatchers.IO) }
+        bindSingleton<LogLines> { LogLines(instance(), instance(), instance(), Dispatchers.Default) }
         bindSingleton<Dogcat> { Dogcat(instance(), instance(), instance()) }
         bindSingleton<Shell> { AdbShell(Dispatchers.IO) }
     }

@@ -19,8 +19,7 @@ import kotlin.coroutines.coroutineContext
 class StatusPresenter(
     private val dogcat: Dogcat,
     private val appStateFlow: AppStateFlow,
-    private val input: Input,
-    private val ui: CoroutineDispatcher
+    private val input: Input
 ) {
     //views can come and go, when input disappears
     private lateinit var view: StatusView
@@ -39,6 +38,7 @@ class StatusPresenter(
             .onEach {
                 view.updateFilters(it)
 
+                Logger.d("${context()} Update filters in pres")
                 it[LogFilter.ByPackage::class]?.let {
                     appStateFlow.filterByPackage(it as LogFilter.ByPackage, true)
                 }
@@ -53,7 +53,7 @@ class StatusPresenter(
             .onEach {
                 view.updateAutoscroll(appStateFlow.state.value.autoscroll)
 
-                Logger.d("${context()} !Emulator ${it.deviceName}")
+                Logger.d("${context()} !Emulator in pres ${it.deviceName}")
                 view.updateDevice(it.deviceName, true)
             }
             .launchIn(scope)
@@ -82,7 +82,7 @@ class StatusPresenter(
         appStateFlow
             .state
             .onEach {
-                withContext(ui) {
+                Logger.d("${context()} autoscroll in pres ${it.autoscroll}")
                     view.updateAutoscroll(it.autoscroll)
 
                     val p = if (it.packageFilter.second) {
@@ -91,7 +91,6 @@ class StatusPresenter(
                         ""
                     }
                     view.updatePackageName(p)
-                }
             }
             .launchIn(scope)
 

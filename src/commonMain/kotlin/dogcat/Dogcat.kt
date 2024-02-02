@@ -86,7 +86,7 @@ class Dogcat(
                 val userId = shell.appIdFor(packageName)
 
                 filters.apply(ByPackage(packageName, userId))
-                Logger.d("Startup with foreground app, resolved to package '$packageName' and user ID '$userId'")
+                Logger.d("${context()} Startup with foreground app, resolved to package '$packageName' and user ID '$userId'")
             }
 
             is PickAppPackage -> {
@@ -100,7 +100,7 @@ class Dogcat(
             }
 
             is PickAllApps -> {
-                Logger.d("Startup with no package filters")
+                Logger.d("${context()} Startup with no package filters")
             }
         }
 
@@ -119,6 +119,7 @@ class Dogcat(
 
             filters.applied,
 
+            //merge with heartbeat
             deviceName,
 
             shell.heartbeat()
