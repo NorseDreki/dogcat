@@ -8,6 +8,7 @@ import logger.Logger
 import logger.context
 import ncurses.*
 import ui.ViewPosition
+import kotlin.coroutines.coroutineContext
 
 data class ViewState(
     val filters: AppliedFilters,
@@ -40,6 +41,9 @@ class StatusView {
 
         val bytePtr = allocArray<ByteVar>(200)
         echo()
+
+        leaveok(window, true);
+
         //mvwprintw(window, 1, filterLength, "")
         // Print the prompt
 
@@ -48,11 +52,27 @@ class StatusView {
         mvwprintw(window, 1, 0, prompt)
         wmove(window, 1, prompt.length)
 
+        val x = getcurx(stdscr)
+        val y = getcury(stdscr)
+
+        Logger.d("($x, ${getbegy(window)}}")
+
+        val j = CoroutineScope(coroutineContext).launch {
+            while (isActive) {
+                delay(10)
+                wmove(stdscr, 49 , 0)
+                wrefresh(stdscr)
+                //Logger.d("moved (${getcurx(window)}, ${getcury(window)})")
+            }
+        }
+
         withContext(Dispatchers.IO) {
             //wgetch(window)
             wgetnstr(window, bytePtr, 200)
             //readLine() ?: "zzzz"
         }
+
+        j.cancel()
 
         Logger.d("????????????????????? ${bytePtr.toKString()}")
 

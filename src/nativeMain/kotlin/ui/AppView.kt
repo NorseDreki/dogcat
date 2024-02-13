@@ -33,6 +33,8 @@ class AppView {
             exit(1)
         }
 
+        //idlok¶
+
         use_default_colors()
         start_color()
         init_pair(1, COLOR_RED.toShort(), -1)

@@ -25,7 +25,8 @@ class LogLinesView {
         scrollok(pad, true)
 
         //does it even work?
-        //leaveok(pad, true);
+//        leaveok(pad, true);
+
 
         //WINDOW * win1 = newwin(10, 40, 0, 0)
         //WINDOW * win2 = newwin(10, 40, 0, 40)
