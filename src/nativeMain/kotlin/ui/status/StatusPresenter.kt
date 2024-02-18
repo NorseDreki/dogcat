@@ -67,17 +67,17 @@ class StatusPresenter(
             .filter { it }
             .distinctUntilChanged()
             .flatMapLatest {
-                input.keypresses
-            }
-            .filter {
-                Keymap.bindings[it] == InputFilterBySubstring
+                input.strings
             }
             .onEach {
-                val filterString = view.inputFilter()
+                view.inputFilter1()
 
-                dogcat(FilterBy(Substring(filterString)))
+                dogcat(FilterBy(Substring(it)))
             }
             .launchIn(scope)
+
+
+
 
         appStateFlow
             .state

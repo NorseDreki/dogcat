@@ -10,3 +10,6 @@ compilerOpts.linux = -I/usr/include -I/usr/include/ncurses -I/usr/include/x86_64
 linkerOpts.linux = -L/usr/local/lib/ -L/usr/lib64 -L/usr/lib/x86_64-linux-gnu -lncurses --allow-shlib-undefined
 #libraryPaths = /usr/local/lib/ /usr/lib64 /usr/lib/x86_64-linux-gnu
 #staticLibraries = libform.a libmenu.a libpanel.a libutil.a libtinfo.a libdl.a libncurses.a
+
+
+#./dogcat.kexe: /lib64/libncurses.so.6: version `NCURSES6_5.0.19991023' not found (required by ./dogcat.kexe)

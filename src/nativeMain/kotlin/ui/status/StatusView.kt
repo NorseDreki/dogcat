@@ -36,6 +36,12 @@ class StatusView {
 
     private var filterLength = "Filter: ".length
 
+    fun inputFilter1() {
+        val prompt = ""//""Filter: "
+        mvwprintw(window, 1, 0, prompt)
+        wmove(window, 1, prompt.length)
+    }
+
     suspend fun inputFilter(): String = memScoped {
         val sx = getmaxx(stdscr)
 
@@ -60,7 +66,7 @@ class StatusView {
         val j = CoroutineScope(coroutineContext).launch {
             while (isActive) {
                 delay(10)
-                wmove(stdscr, 49 , 0)
+                wmove(stdscr, 49 , 2)
                 wrefresh(stdscr)
                 //Logger.d("moved (${getcurx(window)}, ${getcury(window)})")
             }
@@ -68,7 +74,11 @@ class StatusView {
 
         withContext(Dispatchers.IO) {
             //wgetch(window)
+            //keypad(window, false)
+
             wgetnstr(window, bytePtr, 200)
+
+            //keypad(window, true)
             //readLine() ?: "zzzz"
         }
 
@@ -122,7 +132,7 @@ class StatusView {
         filters.forEach {
             when (it.key) {
                 Substring::class -> {
-                    val fs = "Filter: ${(it.value as Substring).substring}"
+                    val fs = "${(it.value as Substring).substring}"
                     filterLength = fs.length
 
                     wattroff(window, COLOR_PAIR(12))

@@ -25,6 +25,11 @@ class AppView {
         //melpomene
 
         nodelay(stdscr, true) //The nodelay option causes getch to be a non-blocking call. If no input is ready, getch returns ERR. If disabled (bf is  FALSE),  getch waits until a key is pressed
+
+        //cbreak or raw, to make wgetch read unbuffered data, i.e., not waiting for '\n'.
+        //nodelay or timeout, to control the amount of time wgetch spends waiting for input.
+
+        //??? enable
         //cbreak() //making getch() work without a buffer I.E. raw characters
 
         if (!has_colors()) {

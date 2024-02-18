@@ -2,7 +2,6 @@ import di.AppModule
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import logger.Logger
 import logger.context
@@ -25,7 +24,7 @@ fun main(args: Array<String>) {
         //he key takeaway is that if you call launch on a custom CoroutineScope, any CoroutineExceptionHandler provided
         // directly to the CoroutineScope constructor or to launch will be executed when an exception is thrown within the launched coroutine.
         val appJob = CoroutineScope(ui).launch(handler) {
-            val appModule = AppModule()
+            val appModule = AppModule(ui)
 
             with(appModule) {
                 Logger.set(fileLogger)
@@ -53,10 +52,4 @@ fun main(args: Array<String>) {
 
     Logger.d("Exit!")
     Logger.close()
-
-    /*signal(SIGINT, staticCFunction<Int, Unit> { signal ->
-        // This code will be executed when Ctrl+C is pressed
-        println("SIGINT received")
-        exitProcess(0)
-    })*/
 }
