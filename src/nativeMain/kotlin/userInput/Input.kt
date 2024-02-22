@@ -38,7 +38,7 @@ class DefaultInput(
     @OptIn(ExperimentalForeignApi::class)
     override suspend fun start() {
         CoroutineScope(coroutineContext)
-            .launch(ioDispatcher) {
+            .launch {//(ioDispatcher) {
                 while (isActive) {
                     val key = wgetch(stdscr)
 
@@ -51,7 +51,6 @@ class DefaultInput(
                         }
 
                         delay(INPUT_KEY_DELAY_MILLIS)
-
 
                         continue
                     }
@@ -89,7 +88,6 @@ class DefaultInput(
                                 stringsSubject.emit(input)
                             }
 
-                            //filter out control characters
                             else -> {
                                 val char = key.toChar()
                                 if (char in ' '..'~') {
