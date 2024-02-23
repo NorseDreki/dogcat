@@ -1,31 +1,34 @@
 package ui.status
 
-import dogcat.state.AppliedFilters
 import dogcat.LogFilter.*
-import kotlinx.cinterop.*
-import kotlinx.coroutines.*
-import logger.Logger
-import logger.context
+import dogcat.state.AppliedFilters
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
-import ui.ViewPosition
-import kotlin.coroutines.coroutineContext
+import kotlin.properties.Delegates
 
-data class ViewState(
-    val filters: AppliedFilters,
-    val emulator: String,
-    val autoscroll: Boolean
-)
-
-@OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
+@OptIn(ExperimentalForeignApi::class)
 class StatusView {
+
+    data class State(
+        val filters: AppliedFilters = mapOf(),
+        val packageName: String = "",
+        val emulator: String? = null,
+        val running: Boolean = false,
+        val autoscroll: Boolean = false
+    )
+
+    var state: State by Delegates.observable(State()) { p, o, n ->
+        updateView(n)
+    }
 
     private lateinit var window: CPointer<WINDOW>
 
-    suspend fun start() {
-        val sx = getmaxx(stdscr)
-        val sy = getmaxy(stdscr)
+    private var filterLength = "Filter: ".length
 
-        //val position = ViewPosition(0, sy - 2, sx, sy - 1)
+
+    suspend fun start() {
+        val sy = getmaxy(stdscr)
 
         window = newwin(0, 0, sy - 2, 0)!!
     }
@@ -34,83 +37,64 @@ class StatusView {
         delwin(window)
     }
 
-    private var filterLength = "Filter: ".length
-
-    fun inputFilter1() {
-        val prompt = ""//""Filter: "
-        mvwprintw(window, 1, 0, prompt)
-        wmove(window, 1, prompt.length)
-    }
-
-    suspend fun inputFilter(): String = memScoped {
+    private fun updateView(n: State) {
         val sx = getmaxx(stdscr)
+        wmove(window, 0, 0)
+        wattron(window, COLOR_PAIR(12))
+        waddstr(window, " ".repeat(sx))
+        wattroff(window, COLOR_PAIR(12))
 
-        val bytePtr = allocArray<ByteVar>(200)
-        echo()
+        updatePackageName(n.packageName)
 
-        leaveok(window, true);
+        n.filters.forEach {
+            when (it.key) {
+                Substring::class -> {
+                    val fs = " Filter: ${(it.value as Substring).substring}"
+                    filterLength = fs.length
 
-        //mvwprintw(window, 1, filterLength, "")
-        // Print the prompt
+                    wattroff(window, COLOR_PAIR(12))
+                    mvwprintw(window, 1, 0, fs)
+                    wattron(window, COLOR_PAIR(12))
+                }
 
+                MinLogLevel::class -> {
+                    wattron(window, COLOR_PAIR(12))
+                    mvwprintw(window, 0, 0, " Log: ${(it.value as MinLogLevel).logLevel.readable.uppercase()}")
+                    wattroff(window, COLOR_PAIR(12))
+                }
 
-        val prompt = "Filter: zzz"
-        mvwprintw(window, 1, 0, prompt)
-        wmove(window, 1, prompt.length)
-
-        val x = getcurx(stdscr)
-        val y = getcury(stdscr)
-
-        Logger.d("($x, ${getbegy(window)}}")
-
-        val j = CoroutineScope(coroutineContext).launch {
-            while (isActive) {
-                delay(10)
-                wmove(stdscr, 49 , 2)
-                wrefresh(stdscr)
-                //Logger.d("moved (${getcurx(window)}, ${getcury(window)})")
+                ByPackage::class -> {
+                    val packageName = (it.value as ByPackage).packageName
+                    updatePackageName(packageName)
+                }
             }
         }
 
-        withContext(Dispatchers.IO) {
-            //wgetch(window)
-            //keypad(window, false)
+        updateAutoscroll(n.autoscroll)
 
-            wgetnstr(window, bytePtr, 200)
-
-            //keypad(window, true)
-            //readLine() ?: "zzzz"
-        }
-
-        j.cancel()
-
-        Logger.d("????????????????????? ${bytePtr.toKString()}")
-
-        noecho()
-        wmove(window, 1, 0)
-        waddstr(window, " ".repeat(sx))
-        //clrtoeol()
-        wrefresh(window)
-
-        return bytePtr.toKString()
+        updateDevice(n.emulator, n.running)
     }
 
+
     //return cursor on input mode!
-    fun updateAutoscroll(autoscroll: Boolean) {
+    private fun updateAutoscroll(autoscroll: Boolean) {
         wattron(window, COLOR_PAIR(12))
-        mvwprintw(window, 0, 10, "Autoscroll ${autoscroll}")
+
+        val a = if (autoscroll) "|  Autoscroll" else "|  No autoscroll"
+        mvwprintw(window, 0, 15, a)
+
         wattroff(window, COLOR_PAIR(12))
         wrefresh(window)
     }
 
     //return cursor on input mode!
-    fun updateDevice(device: String?, running: Boolean) {
+    private fun updateDevice(device: String?, running: Boolean) {
         device?.let {
             curs_set(0)
 
             val cp = if (running) 2 else 1
             wattron(window, COLOR_PAIR(cp))
-            mvwprintw(window, 1, getmaxx(window) - device.length, device)
+            mvwprintw(window, 1, getmaxx(window) - device.length -1, device)
             wattroff(window, COLOR_PAIR(cp))
             //wnoutrefresh(window)
             wrefresh(window)
@@ -118,14 +102,14 @@ class StatusView {
     }
 
     //return cursor on input mode!
-    fun updatePackageName(packageName: String) {
+    private fun updatePackageName(packageName: String) {
         wattron(window, COLOR_PAIR(12))
-        mvwprintw(window, 0, getmaxx(window) - packageName.length, packageName)
+        mvwprintw(window, 0, getmaxx(window) - packageName.length - 1, packageName)
         wattroff(window, COLOR_PAIR(12))
         wrefresh(window)
     }
 
-    suspend fun updateFilters(filters: AppliedFilters) {
+    /*suspend fun updateFilters(filters: AppliedFilters) {
         val sx = getmaxx(stdscr)
 
         Logger.d("${context()} Preparing to draw applied filters: $filters")
@@ -153,7 +137,8 @@ class StatusView {
                 ByPackage::class -> {
                     val packageName = (it.value as ByPackage).packageName
 
-                    mvwprintw(window, 0, getmaxx(window) - packageName.length, packageName)
+                    updatePackageName(packageName)
+                    //mvwprintw(window, 0, getmaxx(window) - packageName.length, packageName)
                 }
             }
         }
@@ -161,5 +146,5 @@ class StatusView {
         wrefresh(window)
 
         yield()
-    }
+    }*/
 }

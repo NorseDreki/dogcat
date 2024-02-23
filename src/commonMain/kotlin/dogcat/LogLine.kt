@@ -11,6 +11,11 @@ data class Brief(
 
 data class Unparseable(val line: String) : LogLine
 
-enum class LogLevel {
-    V, D, I, W, E, F
+enum class LogLevel(val readable: String) {
+    V("Verbose"),
+    D("Debug"),
+    I("Info"),
+    W("Warning"),
+    E("Error"),
+    F("Fatal")
 }

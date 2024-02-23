@@ -28,7 +28,6 @@ class AppModule(ui: CloseableCoroutineDispatcher) {
             }
         }
 
-        //bindSingleton<Input> { DefaultInput(Dispatchers.IO) }
         bindSingleton<AppState> { InternalAppState() }
         bindSingleton<Input> { DefaultInput(instance()) }
         bindSingleton<AppPresenter> {
@@ -60,6 +59,4 @@ class AppModule(ui: CloseableCoroutineDispatcher) {
     val input: Input by serviceLocator.instance()
 
     val appPresenter: AppPresenter by serviceLocator.instance()
-
-
 }

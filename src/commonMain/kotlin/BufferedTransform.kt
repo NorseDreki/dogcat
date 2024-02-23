@@ -42,6 +42,7 @@ fun <T> Flow<T>.debounceRepetitiveKeys(debounceTime: Duration): Flow<T> {
 fun <T> Flow<T>.windowed(time: Duration): Flow<List<T>> = flow {
     val window = mutableListOf<T>()
     val startTime = TimeSource.Monotonic.markNow()
+
     collect { value ->
         window.add(value)
         if (TimeSource.Monotonic.markNow() - startTime >= time) {
@@ -49,6 +50,7 @@ fun <T> Flow<T>.windowed(time: Duration): Flow<List<T>> = flow {
             window.clear()
         }
     }
+
     if (window.isNotEmpty()) {
         emit(window.toList())
     }
