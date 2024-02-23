@@ -95,6 +95,7 @@ class StatusView {
         return bytePtr.toKString()
     }
 
+    //return cursor on input mode!
     fun updateAutoscroll(autoscroll: Boolean) {
         wattron(window, COLOR_PAIR(12))
         mvwprintw(window, 0, 10, "Autoscroll ${autoscroll}")
@@ -102,6 +103,7 @@ class StatusView {
         wrefresh(window)
     }
 
+    //return cursor on input mode!
     fun updateDevice(device: String?, running: Boolean) {
         device?.let {
             curs_set(0)
@@ -115,6 +117,7 @@ class StatusView {
         }
     }
 
+    //return cursor on input mode!
     fun updatePackageName(packageName: String) {
         wattron(window, COLOR_PAIR(12))
         mvwprintw(window, 0, getmaxx(window) - packageName.length, packageName)

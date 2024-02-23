@@ -1,9 +1,7 @@
 package ui.status
 
-import AppStateFlow
+import AppState
 import userInput.Input
-import userInput.Keymap.Actions.*
-import dogcat.Command
 import dogcat.Command.FilterBy
 import dogcat.Dogcat
 import dogcat.LogFilter
@@ -13,12 +11,11 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import logger.Logger
 import logger.context
-import userInput.Keymap
 import kotlin.coroutines.coroutineContext
 
 class StatusPresenter(
     private val dogcat: Dogcat,
-    private val appStateFlow: AppStateFlow,
+    private val appState: AppState,
     private val input: Input
 ) {
     //views can come and go, when input disappears
@@ -40,7 +37,7 @@ class StatusPresenter(
 
                 Logger.d("${context()} Update filters in pres")
                 it[LogFilter.ByPackage::class]?.let {
-                    appStateFlow.filterByPackage(it as LogFilter.ByPackage, true)
+                    appState.filterByPackage(it as LogFilter.ByPackage, true)
                 }
             }
             .launchIn(scope)
@@ -51,7 +48,7 @@ class StatusPresenter(
             .filterIsInstance<Active>()
             .mapLatest { it }
             .onEach {
-                view.updateAutoscroll(appStateFlow.state.value.autoscroll)
+                view.updateAutoscroll(appState.state.value.autoscroll)
 
                 Logger.d("${context()} !Emulator in pres ${it.deviceName}")
                 view.updateDevice(it.deviceName, true)
@@ -79,7 +76,7 @@ class StatusPresenter(
 
 
 
-        appStateFlow
+        appState
             .state
             .onEach {
                 Logger.d("${context()} autoscroll in pres ${it.autoscroll}")

@@ -1,6 +1,6 @@
 package ui.logLines
 
-import AppStateFlow
+import AppState
 import dogcat.Dogcat
 import dogcat.Unparseable
 import dogcat.state.PublicState.*
@@ -9,6 +9,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import logger.Logger
 import logger.context
@@ -20,7 +21,7 @@ import kotlin.coroutines.coroutineContext
 
 class LogLinesPresenter(
     private val dogcat: Dogcat,
-    private val appStateFlow: AppStateFlow,
+    private val appState: AppState,
     private val input: Input,
 ) : HasLifecycle {
     //views can come and go, when input disappears
@@ -37,6 +38,14 @@ class LogLinesPresenter(
         }
         scope.launch {
             collectKeypresses()
+        }
+
+        scope.launch {
+            appState.state
+                .map { it.isCursorHeld }
+                .collect {
+                    view.isCursorHeld = it
+                }
         }
     }
 
@@ -99,36 +108,36 @@ class LogLinesPresenter(
                 Logger.d("${context()} Log lines key")
                 when (Keymap.bindings[it]) {
                     Home -> {
-                        appStateFlow.autoscroll(false)
+                        appState.autoscroll(false)
                         view.autoscroll = false
                         view.home()
                     }
 
                     End -> {
-                        appStateFlow.autoscroll(true)
+                        appState.autoscroll(true)
                         view.autoscroll = true
                         view.end()
                     }
 
                     LineUp -> {
-                        appStateFlow.autoscroll(false)
+                        appState.autoscroll(false)
                         view.autoscroll = false
                         view.lineUp()
                     }
 
                     LineDown -> {
-                        appStateFlow.autoscroll(false)
+                        appState.autoscroll(false)
                         view.autoscroll = false //?
                         view.lineDown(1)
                     }
 
                     PageDown -> {
-                        val a = appStateFlow.state.value.autoscroll
+                        val a = appState.state.value.autoscroll
                         view.pageDown()
                     }
 
                     PageUp -> {
-                        appStateFlow.autoscroll(false)
+                        appState.autoscroll(false)
                         view.autoscroll = false
                         view.pageUp()
                     }

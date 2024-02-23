@@ -10,6 +10,8 @@ import kotlin.math.min
 
 @OptIn(ExperimentalForeignApi::class)
 class LogLinesView {
+    var isCursorHeld: Boolean = false
+
     private val sx = getmaxx(stdscr)
     private val sy = getmaxy(stdscr)
 
@@ -182,18 +184,53 @@ class LogLinesView {
 
     fun refresh() {
         //logger.Logger.d("FVL $firstVisibleLine")
-        curs_set(0)
-        prefresh(pad, firstVisibleLine, 0, position.startY, position.startX, position.endY, position.endX)
-
         val notSeeingLastLine = firstVisibleLine <= linesCount - pageSize
-        if (notSeeingLastLine) {
-            //curs_set(0)
-            //Logger.d("Cursor is hidden")
-        } else {
-            //wmove(pad, firstVisibleLine, 0)
-            //curs_set(1)
-            //Logger.d("Cursor is visible")
+
+        /**/
+
+/*        when {
+            isCursorHeld -> {
+                Logger.d("cursor is held")
+                //curs_set(0)
+            }
+            notSeeingLastLine -> {
+                curs_set(0)
+            }
+            else -> {
+                curs_set(1)
+            }
+        }*/
+
+        prefresh(pad, firstVisibleLine, 0, position.startY, position.startX, position.endY, position.endX)
+        //call doupdate with pnoutrefresh
+
+        when {
+            isCursorHeld -> {
+                wmove(stdscr, 49, "Filter: ".length)
+                curs_set(1)
+                wrefresh(stdscr)
+            }
+
+            !notSeeingLastLine -> {
+                curs_set(1)
+            }
+
+            else -> {
+                curs_set(0)
+            }
         }
+
+        /*if (!isCursorHeld && !notSeeingLastLine) {
+            curs_set(1)
+        } else {
+            curs_set(0)
+        }
+
+        if (isCursorHeld) {
+            wmove(stdscr, 49, "Filter: ".length)
+            curs_set(1)
+            wrefresh(stdscr)
+        }*/
     }
 
     suspend fun recordLine(count: Int = 1) {

@@ -1,13 +1,12 @@
 package ui
 
-import AppStateFlow
+import AppState
 import dogcat.Command.*
 import dogcat.Dogcat
 import dogcat.LogFilter.*
 import dogcat.LogLevel.*
 import dogcat.state.PublicState
 import dogcat.state.PublicState.Active
-import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
@@ -24,7 +23,7 @@ import kotlin.coroutines.coroutineContext
 
 class AppPresenter(
     private val dogcat: Dogcat,
-    private val appStateFlow: AppStateFlow,
+    private val appState: AppState,
     private val input: Input,
     private val logLinesPresenter: LogLinesPresenter,
     private val statusPresenter: StatusPresenter,
@@ -38,7 +37,7 @@ class AppPresenter(
             else -> dogcat(Start.PickAllApps)
         }
 
-        appStateFlow.setInputFilterLocation("Filter: ".length, 49)
+        appState.setInputFilterLocation("Filter: ".length, 49)
 
         view.start()
 
@@ -108,7 +107,7 @@ class AppPresenter(
         when (Keymap.bindings[keyCode]) {
 
             Autoscroll -> {
-                appStateFlow.autoscroll(!appStateFlow.state.value.autoscroll)
+                appState.autoscroll(!appState.state.value.autoscroll)
             }
 
             ClearLogs -> {
@@ -116,16 +115,16 @@ class AppPresenter(
             }
 
             ToggleFilterByPackage -> {
-                val f = appStateFlow.state.value.packageFilter
+                val f = appState.state.value.packageFilter
 
                 if (f.second) {
                     Logger.d("${context()} !DeselectSelectAppByPackage")
-                    appStateFlow.filterByPackage(f.first, false)
+                    appState.filterByPackage(f.first, false)
                     dogcat(ResetFilter(ByPackage::class))
                 } else if (f.first != null) {
                     Logger.d("${context()} !SelectAppByPackage")
                     dogcat(Start.PickAppPackage(f.first!!.packageName))
-                    appStateFlow.filterByPackage(f.first, true)
+                    appState.filterByPackage(f.first, true)
                 }
             }
 

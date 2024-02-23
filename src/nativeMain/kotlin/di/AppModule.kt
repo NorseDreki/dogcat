@@ -1,13 +1,11 @@
 package di
 
-import AppStateFlow
+import AppState
 import BuildConfig
 import FileLogger
-import InternalAppStateFlow
+import InternalAppState
 import di.DogcatModule.dogcatModule
 import kotlinx.coroutines.CloseableCoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import logger.CanLog
 import logger.NoOpLogger
 import org.kodein.di.DI
@@ -31,7 +29,7 @@ class AppModule(ui: CloseableCoroutineDispatcher) {
         }
 
         //bindSingleton<Input> { DefaultInput(Dispatchers.IO) }
-        bindSingleton<AppStateFlow> { InternalAppStateFlow() }
+        bindSingleton<AppState> { InternalAppState() }
         bindSingleton<Input> { DefaultInput(instance()) }
         bindSingleton<AppPresenter> {
             AppPresenter(

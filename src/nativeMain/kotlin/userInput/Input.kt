@@ -1,7 +1,7 @@
 package userInput
 
 import AppConfig.INPUT_KEY_DELAY_MILLIS
-import AppStateFlow
+import AppState
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
@@ -19,7 +19,7 @@ interface Input : HasLifecycle {
 }
 
 class DefaultInput(
-    private val appStateFlow: AppStateFlow
+    private val appState: AppState
 ) : Input {
 
     private val keypressesSubject = MutableSharedFlow<Int>()
@@ -33,8 +33,8 @@ class DefaultInput(
 
     @OptIn(ExperimentalForeignApi::class)
     override suspend fun start() {
-        val x = appStateFlow.state.value.inputFilterLocation.first
-        val y = appStateFlow.state.value.inputFilterLocation.second
+        val x = appState.state.value.inputFilterLocation.first
+        val y = appState.state.value.inputFilterLocation.second
 
         CoroutineScope(coroutineContext)
             .launch {
@@ -44,11 +44,12 @@ class DefaultInput(
                     val key = wgetch(stdscr)
 
                     if (key == ERR) {
-                        if (inputMode) {
-                            curs_set(1)
+                        /*if (inputMode) {
                             wmove(stdscr, y , cursorPosition)
+                            curs_set(1)
+
                             wrefresh(stdscr)
-                        }
+                        }*/
 
                         delay(INPUT_KEY_DELAY_MILLIS)
 
@@ -56,9 +57,17 @@ class DefaultInput(
                     }
 
                     if (Keymap.bindings[key] == Keymap.Actions.InputFilterBySubstring && !inputMode) {
+                        appState.holdCursor(true)
                         inputMode = true
 
                         mvwaddstr(stdscr, y, 0, "Filter: ")
+                        wclrtoeol(stdscr)
+
+                        //move not needed?
+                        wmove(stdscr, y , cursorPosition)
+                        curs_set(1)
+
+                        wrefresh(stdscr)
 
                         continue
                     }
@@ -84,8 +93,11 @@ class DefaultInput(
                                 val input = inputBuffer.toString()
                                 inputBuffer.clear()
                                 cursorPosition = x
+                                //do not just disable, maybe log lines want it back
                                 curs_set(0)
+
                                 inputMode = false
+                                appState.holdCursor(false)
 
                                 stringsSubject.emit(input)
                             }
