@@ -94,14 +94,15 @@ class StatusPresenter(
             }
             .launchIn(scope)
 
-        /*dogcat
+
+        dogcat
             .state
-            .filterIsInstance<CapturingInput>()
+            .filterIsInstance<Active>()
             .flatMapLatest { it.heartbeat }
             .onEach {
-                view.updateDevice("Device", it)
+                //view.updateDevice("Device", it)
             }
-            .launchIn(scope)*/
+            .launchIn(scope)
     }
 
     suspend fun stop() {

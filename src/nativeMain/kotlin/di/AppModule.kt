@@ -5,7 +5,7 @@ import BuildConfig
 import FileLogger
 import InternalAppStateFlow
 import di.DogcatModule.dogcatModule
-import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CloseableCoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import logger.CanLog
@@ -19,7 +19,7 @@ import ui.status.StatusPresenter
 import userInput.DefaultInput
 import userInput.Input
 
-class AppModule {
+class AppModule(ui: CloseableCoroutineDispatcher) {
 
     private val appModule = DI.Module("app") {
         bindSingleton<CanLog> {
@@ -29,8 +29,10 @@ class AppModule {
                 NoOpLogger()
             }
         }
-        bindSingleton<Input> { DefaultInput(Dispatchers.IO) }
+
+        //bindSingleton<Input> { DefaultInput(Dispatchers.IO) }
         bindSingleton<AppStateFlow> { InternalAppStateFlow() }
+        bindSingleton<Input> { DefaultInput(instance()) }
         bindSingleton<AppPresenter> {
             AppPresenter(
                 instance(),
@@ -60,4 +62,6 @@ class AppModule {
     val input: Input by serviceLocator.instance()
 
     val appPresenter: AppPresenter by serviceLocator.instance()
+
+
 }

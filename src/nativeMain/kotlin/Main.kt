@@ -29,8 +29,8 @@ fun main(args: Array<String>) {
             with(appModule) {
                 Logger.set(fileLogger)
 
-                input.start()
                 appPresenter.start()
+                input.start()
 
                 input
                     .keypresses

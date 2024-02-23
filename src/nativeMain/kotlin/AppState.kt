@@ -6,7 +6,9 @@ data class AppState(
 
     val autoscroll: Boolean,
 
-    val packageFilter: Pair<ByPackage?, Boolean>
+    val packageFilter: Pair<ByPackage?, Boolean>,
+
+    val inputFilterLocation: Pair<Int, Int>
 
     //val linesCount: Int,
 )
@@ -18,11 +20,13 @@ interface AppStateFlow {
     fun autoscroll(on: Boolean)
 
     fun filterByPackage(f: ByPackage?, enable: Boolean)
+
+    fun setInputFilterLocation(x: Int, y: Int)
 }
 
 class InternalAppStateFlow : AppStateFlow {
 
-    override val state = MutableStateFlow(AppState(false, null to false))
+    override val state = MutableStateFlow(AppState(false, null to false, 0 to 0))
 
     override fun autoscroll(on: Boolean) {
         state.value = state.value.copy(autoscroll = on)
@@ -35,5 +39,9 @@ class InternalAppStateFlow : AppStateFlow {
             //state.value = state.value.copy(packageFilter = state.value.packageFilter.first to enable)
             state.value = state.value.copy(packageFilter = f to enable)
         //}
+    }
+
+    override fun setInputFilterLocation(x: Int, y: Int) {
+        state.value = state.value.copy(inputFilterLocation = x to y)
     }
 }

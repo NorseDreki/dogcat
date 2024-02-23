@@ -20,6 +20,8 @@ class AppView {
 
         //intrflush(stdscr, false)
 
+        //nonl()
+
         //nl()
         //Use the ncurses functions for output. My guess is that initscr changes terminal settings such that \n only performs a line feed, not a carriage return. –
         //melpomene

@@ -13,7 +13,7 @@ class FileLogger : CanLog {
             ?: throw RuntimeException("Was not able to open log file for writing.")
 
     override fun d(line: String) {
-        fprintf(file, "$line$\n")
+        fprintf(file, "$line\n")
         fflush(file)
     }
 

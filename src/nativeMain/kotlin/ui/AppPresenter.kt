@@ -38,6 +38,8 @@ class AppPresenter(
             else -> dogcat(Start.PickAllApps)
         }
 
+        appStateFlow.setInputFilterLocation("Filter: ".length, 49)
+
         view.start()
 
         val scope = CoroutineScope(coroutineContext)

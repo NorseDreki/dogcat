@@ -182,15 +182,16 @@ class LogLinesView {
 
     fun refresh() {
         //logger.Logger.d("FVL $firstVisibleLine")
+        curs_set(0)
         prefresh(pad, firstVisibleLine, 0, position.startY, position.startX, position.endY, position.endX)
 
         val notSeeingLastLine = firstVisibleLine <= linesCount - pageSize
         if (notSeeingLastLine) {
-            curs_set(0)
+            //curs_set(0)
             //Logger.d("Cursor is hidden")
         } else {
             //wmove(pad, firstVisibleLine, 0)
-            curs_set(1)
+            //curs_set(1)
             //Logger.d("Cursor is visible")
         }
     }
