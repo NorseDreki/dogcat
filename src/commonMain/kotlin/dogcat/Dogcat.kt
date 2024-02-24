@@ -4,6 +4,7 @@ import dogcat.Command.*
 import dogcat.Command.Start.*
 import dogcat.LogFilter.ByPackage
 import dogcat.LogFilter.Substring
+import dogcat.state.AppliedFiltersState
 import dogcat.state.PublicState.*
 import dogcat.state.DefaultAppliedFiltersState
 import dogcat.state.PublicState
@@ -15,7 +16,7 @@ import logger.Logger
 import logger.context
 
 class Dogcat(
-    private val filters: DefaultAppliedFiltersState = DefaultAppliedFiltersState(),
+    private val filters: AppliedFiltersState,
     private val logLines: LogLines,
     private val shell: Shell
 )  {

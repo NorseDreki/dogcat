@@ -28,6 +28,7 @@ class AppPresenter(
     private val logLinesPresenter: LogLinesPresenter,
     private val statusPresenter: StatusPresenter,
 ) : HasLifecycle {
+
     private val view = AppView()
 
     override suspend fun start() {
@@ -88,19 +89,6 @@ class AppPresenter(
             .collect {
                 handleKeypress(it)
             }
-        /*input
-            .keypresses
-            .onEach {
-            }
-            .catch {
-                //we need to catch dogcat exception here
-
-                Logger.d("${context()} [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[ catch on input chain $it")
-            }
-            .onCompletion {
-                Logger.d("${context()} ++++++ no longer listening to key prese")
-            }
-            .collect()*/
     }
 
     private suspend fun handleKeypress(keyCode: Int) {

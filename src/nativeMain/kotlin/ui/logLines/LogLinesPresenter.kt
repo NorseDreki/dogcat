@@ -132,7 +132,6 @@ class LogLinesPresenter(
                     }
 
                     PageDown -> {
-                        val a = appState.state.value.autoscroll
                         view.pageDown()
                     }
 

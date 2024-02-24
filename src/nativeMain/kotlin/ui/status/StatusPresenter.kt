@@ -82,7 +82,7 @@ class StatusPresenter(
             .state
             .onEach {
                 Logger.d("${context()} autoscroll in pres ${it.autoscroll}")
-                view.state = view.state.copy(autoscroll = it.autoscroll)
+                //view.state = view.state.copy(autoscroll = it.autoscroll)
                 //view.updateAutoscroll(it.autoscroll)
 
                 val p = if (it.packageFilter.second) {
@@ -92,7 +92,11 @@ class StatusPresenter(
                 }
                 //view.updatePackageName(p)
 
-                view.state = view.state.copy(packageName = p)
+                view.state = view.state.copy(
+                    packageName = p,
+                    autoscroll = it.autoscroll,
+                    isCursorHeld = it.isCursorHeld
+                )
 
             }
             .launchIn(scope)
@@ -105,7 +109,7 @@ class StatusPresenter(
             .onEach {
                 //view.updateDevice("Device", it)
 
-                view.state = view.state.copy(emulator = "DEVICE", running = it)
+                //view.state = view.state.copy(emulator = "DEVICE", running = it)
             }
             .launchIn(scope)
     }

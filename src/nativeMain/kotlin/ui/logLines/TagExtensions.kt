@@ -1,6 +1,5 @@
 @file:OptIn(
     ExperimentalForeignApi::class,
-    ExperimentalForeignApi::class, ExperimentalForeignApi::class
 )
 
 package ui.logLines

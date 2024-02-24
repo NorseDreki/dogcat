@@ -4,6 +4,7 @@ import dogcat.LogFilter.*
 import dogcat.state.AppliedFilters
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
+import logger.Logger
 import ncurses.*
 import kotlin.properties.Delegates
 
@@ -15,7 +16,8 @@ class StatusView {
         val packageName: String = "",
         val emulator: String? = null,
         val running: Boolean = false,
-        val autoscroll: Boolean = false
+        val autoscroll: Boolean = false,
+        val isCursorHeld: Boolean = false
     )
 
     var state: State by Delegates.observable(State()) { p, o, n ->
@@ -38,6 +40,9 @@ class StatusView {
     }
 
     private fun updateView(n: State) {
+        Logger.d("UPDATE VIEW: $n")
+
+
         val sx = getmaxx(stdscr)
         wmove(window, 0, 0)
         wattron(window, COLOR_PAIR(12))
@@ -49,12 +54,17 @@ class StatusView {
         n.filters.forEach {
             when (it.key) {
                 Substring::class -> {
-                    val fs = " Filter: ${(it.value as Substring).substring}"
-                    filterLength = fs.length
+                    val fs = "Filter: ${(it.value as Substring).substring}"
+                    //filterLength = fs.length
 
-                    wattroff(window, COLOR_PAIR(12))
-                    mvwprintw(window, 1, 0, fs)
-                    wattron(window, COLOR_PAIR(12))
+                    if (!state.isCursorHeld) {
+                        wattroff(window, COLOR_PAIR(12))
+                        //wmove(window, 1, 20)
+                        //waddstr(window, fs)
+                        mvwprintw(window, 1, 0, fs)
+                        wclrtoeol(window)
+                        wattron(window, COLOR_PAIR(12))
+                    }
                 }
 
                 MinLogLevel::class -> {
@@ -69,12 +79,17 @@ class StatusView {
                 }
             }
         }
-
         updateAutoscroll(n.autoscroll)
-
         updateDevice(n.emulator, n.running)
-    }
 
+        wrefresh(window)
+
+        if (state.isCursorHeld) {
+            wmove(stdscr, 49, "Filter: ".length)
+            curs_set(1)
+            wrefresh(stdscr)
+        }
+    }
 
     //return cursor on input mode!
     private fun updateAutoscroll(autoscroll: Boolean) {
@@ -84,7 +99,7 @@ class StatusView {
         mvwprintw(window, 0, 15, a)
 
         wattroff(window, COLOR_PAIR(12))
-        wrefresh(window)
+        //wrefresh(window)
     }
 
     //return cursor on input mode!
@@ -97,7 +112,7 @@ class StatusView {
             mvwprintw(window, 1, getmaxx(window) - device.length -1, device)
             wattroff(window, COLOR_PAIR(cp))
             //wnoutrefresh(window)
-            wrefresh(window)
+            //wrefresh(window)
         }
     }
 
@@ -106,7 +121,7 @@ class StatusView {
         wattron(window, COLOR_PAIR(12))
         mvwprintw(window, 0, getmaxx(window) - packageName.length - 1, packageName)
         wattroff(window, COLOR_PAIR(12))
-        wrefresh(window)
+        //wrefresh(window)
     }
 
     /*suspend fun updateFilters(filters: AppliedFilters) {

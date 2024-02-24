@@ -25,29 +25,6 @@ class LogLinesView {
 
     init {
         scrollok(pad, true)
-
-        //does it even work?
-//        leaveok(pad, true);
-
-
-        //WINDOW * win1 = newwin(10, 40, 0, 0)
-        //WINDOW * win2 = newwin(10, 40, 0, 40)
-
-
-// Get the current position of the cursor in win1
-        //var y: Int
-        //var x: Int
-        //getyx(win1, y, x)
-
-
-// Write a string to win2
-        //waddstr(win2, "Hello, world!")
-
-
-// Move the cursor back to its previous position in win1
-        //wmove(win1, y, x)
-
-        //keypad(fp, true)
     }
 
     private var firstVisibleLine = 0
@@ -143,12 +120,6 @@ class LogLinesView {
         pageUp()
     }
 
-    // useful for bookmarking then quickly moving between marked lines
-    fun toLine(line: Int) {
-        firstVisibleLine = line
-        refresh()
-    }
-
     fun end() {
         //to few lines for page down, we are at beggining of log
         if (linesCount <= pageSize) {
@@ -183,23 +154,7 @@ class LogLinesView {
     }
 
     fun refresh() {
-        //logger.Logger.d("FVL $firstVisibleLine")
         val notSeeingLastLine = firstVisibleLine <= linesCount - pageSize
-
-        /**/
-
-/*        when {
-            isCursorHeld -> {
-                Logger.d("cursor is held")
-                //curs_set(0)
-            }
-            notSeeingLastLine -> {
-                curs_set(0)
-            }
-            else -> {
-                curs_set(1)
-            }
-        }*/
 
         prefresh(pad, firstVisibleLine, 0, position.startY, position.startX, position.endY, position.endX)
         //call doupdate with pnoutrefresh
@@ -219,18 +174,6 @@ class LogLinesView {
                 curs_set(0)
             }
         }
-
-        /*if (!isCursorHeld && !notSeeingLastLine) {
-            curs_set(1)
-        } else {
-            curs_set(0)
-        }
-
-        if (isCursorHeld) {
-            wmove(stdscr, 49, "Filter: ".length)
-            curs_set(1)
-            wrefresh(stdscr)
-        }*/
     }
 
     suspend fun recordLine(count: Int = 1) {

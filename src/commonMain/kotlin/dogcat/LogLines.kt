@@ -2,7 +2,7 @@ package dogcat
 
 import bufferedTransform
 import dogcat.LogFilter.Substring
-import dogcat.state.DefaultAppliedFiltersState
+import dogcat.state.AppliedFiltersState
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import logger.Logger
@@ -11,7 +11,7 @@ import logger.context
 @OptIn(ExperimentalCoroutinesApi::class)
 class LogLines(
     private val lineParser: LogLineParser,
-    private val filtersState: DefaultAppliedFiltersState,
+    private val filtersState: AppliedFiltersState,
     private val shell: Shell,
     private val dispatcherCpu: CoroutineDispatcher,
 ) {

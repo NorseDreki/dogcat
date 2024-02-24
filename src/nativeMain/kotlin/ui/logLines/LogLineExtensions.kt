@@ -33,18 +33,19 @@ suspend fun LogLinesView.processLogLine(
     val wrapped = wrappedLine.first
     recordLine(wrappedLine.second)
 
-    when (logLine.level) {
+    val level = logLine.level
+    when (level) {
         W -> {
-            printLevelAndMessage(logLine.level.name, 6, wrapped, COLOR_PAIR(3))
+            printLevelAndMessage(level.name, 6, wrapped, COLOR_PAIR(3))
         }
         E, F -> {
-            printLevelAndMessage(logLine.level.name, 11, wrapped, COLOR_PAIR(1))
+            printLevelAndMessage(level.name, 11, wrapped, COLOR_PAIR(1))
         }
         I -> {
-            printLevelAndMessage(logLine.level.name, 12, wrapped, A_BOLD.toInt())
+            printLevelAndMessage(level.name, 12, wrapped, A_BOLD.toInt())
         }
         else -> {
-            printLevelAndMessage(logLine.level.name, 12, wrapped, 0)
+            printLevelAndMessage(level.name, 12, wrapped, 0)
         }
     }
 
