@@ -17,7 +17,7 @@ class LogLinesView {
         val isCursorHeld: Boolean = false,
         val cursorReturnLocation: Pair<Int, Int>? = null,
 
-        val holdRequest: ((x: Int, y: Int) -> Unit)? = null
+        //val holdRequest: ((x: Int, y: Int) -> Unit)? = null
     )
 
     var state: State by Delegates.observable(State()) { p, o, n ->
@@ -183,10 +183,10 @@ class LogLinesView {
             }
 
             !notSeeingLastLine -> {
-                val x = getcurx(pad)
+                /*val x = getcurx(pad)
                 val y = getpary(pad)
                 Logger.d("Hold location $x $y")
-                state.holdRequest!!.invoke(x, y)
+                state.holdRequest!!.invoke(x, y)*/
                 curs_set(1)
             }
 

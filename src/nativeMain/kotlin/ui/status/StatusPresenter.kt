@@ -1,17 +1,17 @@
 package ui.status
 
 import AppState
-import userInput.Input
 import dogcat.Command.FilterBy
 import dogcat.Dogcat
-import dogcat.LogFilter
 import dogcat.LogFilter.ByPackage
 import dogcat.LogFilter.Substring
 import dogcat.state.PublicState.Active
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import logger.Logger
 import logger.context
+import userInput.Input
 import kotlin.coroutines.coroutineContext
 
 class StatusPresenter(
@@ -29,35 +29,25 @@ class StatusPresenter(
 
         val scope = CoroutineScope(coroutineContext)
 
+        //scope.launch?
         dogcat
             .state
             .filterIsInstance<Active>()
-            .flatMapLatest { it.applied }
-            .onEach {
-                //view.updateFilters(it)
-                view.state = view.state.copy(filters = it)
-
-                Logger.d("${context()} Update filters in pres")
-                it[ByPackage::class]?.let {
-                    appState.filterByPackage(it as ByPackage, true)
-                }
-            }
-            .launchIn(scope)
-
-
-        dogcat
-            .state
-            .filterIsInstance<Active>()
+            //.take(1)
             .mapLatest { it }
             .onEach {
-                view.state = view.state.copy(autoscroll = appState.state.value.autoscroll)
+                val filters = it.applied.first()
 
-                //view.updateAutoscroll(appState.state.value.autoscroll)
+                filters[ByPackage::class]?.let {
+                    appState.filterByPackage(it as ByPackage, true)
+                }
 
-                Logger.d("${context()} !Emulator in pres ${it.deviceName}")
-                //view.updateDevice(it.deviceName, true)
-
-                view.state = view.state.copy(emulator = it.deviceName, running = true)
+                view.state = view.state.copy(
+                    filters = filters,
+                    autoscroll = appState.state.value.autoscroll,
+                    emulator = it.deviceName,
+                    running = true
+                )
             }
             .launchIn(scope)
 
@@ -69,9 +59,7 @@ class StatusPresenter(
             .flatMapLatest { it.heartbeat }
             .filter { it }
             .distinctUntilChanged()
-            .flatMapLatest {
-                input.strings
-            }
+            .flatMapLatest { input.strings }
             .onEach {
                 dogcat(FilterBy(Substring(it)))
             }
@@ -82,15 +70,12 @@ class StatusPresenter(
             .state
             .onEach {
                 Logger.d("${context()} autoscroll in pres ${it.autoscroll}")
-                //view.state = view.state.copy(autoscroll = it.autoscroll)
-                //view.updateAutoscroll(it.autoscroll)
 
                 val p = if (it.packageFilter.second) {
                     it.packageFilter.first!!.packageName
                 } else {
                     ""
                 }
-                //view.updatePackageName(p)
 
                 view.state = view.state.copy(
                     packageName = p,
@@ -109,14 +94,12 @@ class StatusPresenter(
             .flatMapLatest { it.heartbeat }
             //.distinctUntilChanged()
             .onEach {
-                //view.updateDevice("Device", it)
-
                 view.state = view.state.copy(emulator = "DEVICE", running = it)
             }
             .launchIn(scope)
     }
 
-    suspend fun stop() {
+    fun stop() {
         view.stop()
     }
 }

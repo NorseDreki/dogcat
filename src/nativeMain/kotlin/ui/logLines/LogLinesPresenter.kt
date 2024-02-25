@@ -45,12 +45,7 @@ class LogLinesPresenter(
                 .map { it.isCursorHeld }
                 .collect {
                     view.state = view.state.copy(
-                        isCursorHeld = it,
-                        holdRequest = { x, y ->
-                            Logger.d("Hold request")
-                            appState.setCursorHoldLocation(x, y)
-                            //appState.holdCursor(true)
-                        }
+                        isCursorHeld = it
                     )
                 }
         }
@@ -62,7 +57,6 @@ class LogLinesPresenter(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun collectLogLines() {
-
         var i = 0
         dogcat
             .state
@@ -70,15 +64,9 @@ class LogLinesPresenter(
                 when (it) {
                     is Active -> {
                         Logger.d("${context()} Capturing input...")
-
                         view.clear()
 
-                        val waiting = "--------- log lines are empty, let's wait -- capturing"
-                        //    view.processLogLine(IndexedValue(0, Unparseable(waiting)))
-
-                        Logger.d("${context()} capturing input in pres ${it.lines}")
-
-                        it.lines//.windowed(500.milliseconds)//.dropWhile { (it.value as LogLine).message == "" }
+                        it.lines
                     }
 
                     Inactive -> {
@@ -91,7 +79,7 @@ class LogLinesPresenter(
                     }
 
                     Terminated -> {
-                        Logger.d("${context()} No more reading lines, terminated\r")
+                        Logger.d("${context()} No more reading lines, terminated")
                         emptyFlow()
                     }
                 }

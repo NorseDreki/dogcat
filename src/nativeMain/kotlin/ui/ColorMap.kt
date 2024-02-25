@@ -42,7 +42,7 @@ object ColorMap {
         "DEBUG" to COLOR_YELLOW,
     )
 
-    val ccpp = (LAST_USED + KNOWN_TAGS.values)
+    val COLOR_MAP = (LAST_USED + KNOWN_TAGS.values)
         .associateWith {
             init_pair((100 + it).toShort(), it.toShort(), -1)
             (100 + it)
