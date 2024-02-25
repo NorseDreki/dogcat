@@ -8,6 +8,8 @@ object AppConfig {
 
     const val COMMAND_TIMEOUT_MILLIS = 3000L
 
+    const val INPUT_FILTER_PREFIX = " Filter: "
+
     // Make sure pattern matching works on MinGW using '\n'
     // There is no 'line.separator' or 'Environment.NewLine'
     //"\r?\n|\r".toRegex()

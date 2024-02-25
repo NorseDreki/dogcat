@@ -10,7 +10,9 @@ data class AppStateHolder(
 
     val inputFilterLocation: Pair<Int, Int>,
 
-    val isCursorHeld: Boolean
+    val isCursorHeld: Boolean,
+
+    val cursorHoldLocation: Pair<Int, Int>,
 )
 
 interface AppState {
@@ -24,6 +26,8 @@ interface AppState {
     fun setInputFilterLocation(x: Int, y: Int)
 
     fun holdCursor(hold: Boolean)
+
+    fun setCursorHoldLocation(x: Int, y: Int)
 }
 
 class InternalAppState : AppState {
@@ -33,7 +37,8 @@ class InternalAppState : AppState {
             false,
             null to false,
             0 to 0,
-            false
+            false,
+            0 to 0
         )
     )
 
@@ -51,5 +56,9 @@ class InternalAppState : AppState {
 
     override fun holdCursor(hold: Boolean) {
         state.value = state.value.copy(isCursorHeld = hold)
+    }
+
+    override fun setCursorHoldLocation(x: Int, y: Int) {
+        state.value = state.value.copy(cursorHoldLocation = x to y)
     }
 }

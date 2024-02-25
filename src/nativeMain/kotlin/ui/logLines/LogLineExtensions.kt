@@ -49,7 +49,7 @@ suspend fun LogLinesView.processLogLine(
         }
     }
 
-    if (autoscroll) {
+    if (state.autoscroll) {
         //handle a case when current lines take less than a screen
         //end()
         if (linesCount < pageSize) {

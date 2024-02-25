@@ -95,7 +95,8 @@ class StatusPresenter(
                 view.state = view.state.copy(
                     packageName = p,
                     autoscroll = it.autoscroll,
-                    isCursorHeld = it.isCursorHeld
+                    isCursorHeld = it.isCursorHeld,
+                    cursorReturnLocation = it.inputFilterLocation
                 )
 
             }
@@ -106,10 +107,11 @@ class StatusPresenter(
             .state
             .filterIsInstance<Active>()
             .flatMapLatest { it.heartbeat }
+            //.distinctUntilChanged()
             .onEach {
                 //view.updateDevice("Device", it)
 
-                //view.state = view.state.copy(emulator = "DEVICE", running = it)
+                view.state = view.state.copy(emulator = "DEVICE", running = it)
             }
             .launchIn(scope)
     }

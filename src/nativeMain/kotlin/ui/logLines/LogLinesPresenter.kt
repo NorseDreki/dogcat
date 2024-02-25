@@ -44,7 +44,14 @@ class LogLinesPresenter(
             appState.state
                 .map { it.isCursorHeld }
                 .collect {
-                    view.isCursorHeld = it
+                    view.state = view.state.copy(
+                        isCursorHeld = it,
+                        holdRequest = { x, y ->
+                            Logger.d("Hold request")
+                            appState.setCursorHoldLocation(x, y)
+                            //appState.holdCursor(true)
+                        }
+                    )
                 }
         }
     }
@@ -109,25 +116,25 @@ class LogLinesPresenter(
                 when (Keymap.bindings[it]) {
                     Home -> {
                         appState.autoscroll(false)
-                        view.autoscroll = false
+                        view.state = view.state.copy(autoscroll = false)
                         view.home()
                     }
 
                     End -> {
                         appState.autoscroll(true)
-                        view.autoscroll = true
+                        view.state = view.state.copy(autoscroll = true)
                         view.end()
                     }
 
                     LineUp -> {
                         appState.autoscroll(false)
-                        view.autoscroll = false
+                        view.state = view.state.copy(autoscroll = false)
                         view.lineUp()
                     }
 
                     LineDown -> {
                         appState.autoscroll(false)
-                        view.autoscroll = false //?
+                        view.state = view.state.copy(autoscroll = false)
                         view.lineDown(1)
                     }
 
@@ -137,7 +144,7 @@ class LogLinesPresenter(
 
                     PageUp -> {
                         appState.autoscroll(false)
-                        view.autoscroll = false
+                        view.state = view.state.copy(autoscroll = false)
                         view.pageUp()
                     }
 

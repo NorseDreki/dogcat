@@ -7,10 +7,23 @@ import logger.context
 import ncurses.*
 import ui.ViewPosition
 import kotlin.math.min
+import kotlin.properties.Delegates
 
 @OptIn(ExperimentalForeignApi::class)
 class LogLinesView {
-    var isCursorHeld: Boolean = false
+
+    data class State(
+        val autoscroll: Boolean = false,
+        val isCursorHeld: Boolean = false,
+        val cursorReturnLocation: Pair<Int, Int>? = null,
+
+        val holdRequest: ((x: Int, y: Int) -> Unit)? = null
+    )
+
+    var state: State by Delegates.observable(State()) { p, o, n ->
+    }
+
+    //var isCursorHeld: Boolean = false
 
     private val sx = getmaxx(stdscr)
     private val sy = getmaxy(stdscr)
@@ -21,7 +34,7 @@ class LogLinesView {
     internal val pageSize = position.endY - position.startY + 1
     private val lastPageSize = pageSize - 1
 
-    internal var autoscroll = false
+    //internal var autoscroll = false
 
     init {
         scrollok(pad, true)
@@ -153,20 +166,27 @@ class LogLinesView {
         refresh()
     }
 
-    fun refresh() {
+
+    //draw fake cursor
+    internal fun refresh() {
         val notSeeingLastLine = firstVisibleLine <= linesCount - pageSize
 
         prefresh(pad, firstVisibleLine, 0, position.startY, position.startX, position.endY, position.endX)
         //call doupdate with pnoutrefresh
 
         when {
-            isCursorHeld -> {
-                wmove(stdscr, 49, "Filter: ".length)
+            state.isCursorHeld -> {
+                Logger.d("Cursor held")
+               // wmove(stdscr, state.cursorReturnLocation!!.second, state.cursorReturnLocation!!.first)
                 curs_set(1)
                 wrefresh(stdscr)
             }
 
             !notSeeingLastLine -> {
+                val x = getcurx(pad)
+                val y = getpary(pad)
+                Logger.d("Hold location $x $y")
+                state.holdRequest!!.invoke(x, y)
                 curs_set(1)
             }
 
@@ -176,7 +196,7 @@ class LogLinesView {
         }
     }
 
-    suspend fun recordLine(count: Int = 1) {
+    suspend internal fun recordLine(count: Int = 1) {
         linesCount += count
         //Logger.d("${context()} record $count, $linesCount")
     }

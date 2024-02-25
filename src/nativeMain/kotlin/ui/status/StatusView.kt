@@ -1,5 +1,6 @@
 package ui.status
 
+import AppConfig
 import dogcat.LogFilter.*
 import dogcat.state.AppliedFilters
 import kotlinx.cinterop.CPointer
@@ -17,7 +18,8 @@ class StatusView {
         val emulator: String? = null,
         val running: Boolean = false,
         val autoscroll: Boolean = false,
-        val isCursorHeld: Boolean = false
+        val isCursorHeld: Boolean = false,
+        val cursorReturnLocation: Pair<Int, Int>? = null
     )
 
     var state: State by Delegates.observable(State()) { p, o, n ->
@@ -25,9 +27,6 @@ class StatusView {
     }
 
     private lateinit var window: CPointer<WINDOW>
-
-    private var filterLength = "Filter: ".length
-
 
     suspend fun start() {
         val sy = getmaxy(stdscr)
@@ -42,26 +41,27 @@ class StatusView {
     private fun updateView(n: State) {
         Logger.d("UPDATE VIEW: $n")
 
-
         val sx = getmaxx(stdscr)
         wmove(window, 0, 0)
         wattron(window, COLOR_PAIR(12))
         waddstr(window, " ".repeat(sx))
         wattroff(window, COLOR_PAIR(12))
 
+        mvwprintw(window, 1, 0, AppConfig.INPUT_FILTER_PREFIX)
+
         updatePackageName(n.packageName)
 
         n.filters.forEach {
             when (it.key) {
                 Substring::class -> {
-                    val fs = "Filter: ${(it.value as Substring).substring}"
+                    val fs = "${(it.value as Substring).substring}"
                     //filterLength = fs.length
 
                     if (!state.isCursorHeld) {
                         wattroff(window, COLOR_PAIR(12))
                         //wmove(window, 1, 20)
                         //waddstr(window, fs)
-                        mvwprintw(window, 1, 0, fs)
+                        mvwprintw(window, 1, AppConfig.INPUT_FILTER_PREFIX.length, fs)
                         wclrtoeol(window)
                         wattron(window, COLOR_PAIR(12))
                     }
@@ -85,7 +85,7 @@ class StatusView {
         wrefresh(window)
 
         if (state.isCursorHeld) {
-            wmove(stdscr, 49, "Filter: ".length)
+            wmove(stdscr, state.cursorReturnLocation!!.second, state.cursorReturnLocation!!.first)
             curs_set(1)
             wrefresh(stdscr)
         }

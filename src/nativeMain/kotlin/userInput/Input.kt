@@ -60,8 +60,10 @@ class DefaultInput(
                         appState.holdCursor(true)
                         inputMode = true
 
-                        mvwaddstr(stdscr, y, 0, "Filter: ")
-                        wclrtoeol(stdscr)
+                        //mvwaddstr(stdscr, y, 0, "Filter: ")
+                        wmove(stdscr, y , cursorPosition)
+                        waddstr(stdscr, " ".repeat(100))
+                        //wclrtoeol(stdscr)
 
                         //move not needed?
                         wmove(stdscr, y , cursorPosition)
