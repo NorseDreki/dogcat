@@ -16,14 +16,9 @@ class LogLinesView {
         val autoscroll: Boolean = false,
         val isCursorHeld: Boolean = false,
         val cursorReturnLocation: Pair<Int, Int>? = null,
-
-        //val holdRequest: ((x: Int, y: Int) -> Unit)? = null
     )
 
-    var state: State by Delegates.observable(State()) { p, o, n ->
-    }
-
-    //var isCursorHeld: Boolean = false
+    var state = State()
 
     private val sx = getmaxx(stdscr)
     private val sy = getmaxy(stdscr)
@@ -33,8 +28,6 @@ class LogLinesView {
     internal val pad = newpad((MAX_LOG_LINES * 1.3).toInt(), position.endX) //fix guesstimation
     internal val pageSize = position.endY - position.startY + 1
     private val lastPageSize = pageSize - 1
-
-    //internal var autoscroll = false
 
     init {
         scrollok(pad, true)
@@ -112,7 +105,6 @@ class LogLinesView {
         curs_set(0)
         firstVisibleLine += second
         refresh()
-        Logger.d("Down, $firstVisibleLine")
     }
 
     fun home() {
@@ -171,22 +163,22 @@ class LogLinesView {
     internal fun refresh() {
         val notSeeingLastLine = firstVisibleLine <= linesCount - pageSize
 
+        if (state.isCursorHeld) {
+            curs_set(0)
+        }
+
         prefresh(pad, firstVisibleLine, 0, position.startY, position.startX, position.endY, position.endX)
         //call doupdate with pnoutrefresh
 
         when {
             state.isCursorHeld -> {
-                Logger.d("Cursor held")
-               // wmove(stdscr, state.cursorReturnLocation!!.second, state.cursorReturnLocation!!.first)
+                wmove(stdscr, state.cursorReturnLocation!!.second, state.cursorReturnLocation!!.first)
                 curs_set(1)
                 wrefresh(stdscr)
             }
 
             !notSeeingLastLine -> {
-                /*val x = getcurx(pad)
-                val y = getpary(pad)
-                Logger.d("Hold location $x $y")
-                state.holdRequest!!.invoke(x, y)*/
+                Logger.d("seeing last line, cursor held? ${state.isCursorHeld}")
                 curs_set(1)
             }
 

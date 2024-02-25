@@ -42,10 +42,10 @@ class LogLinesPresenter(
 
         scope.launch {
             appState.state
-                .map { it.isCursorHeld }
                 .collect {
                     view.state = view.state.copy(
-                        isCursorHeld = it
+                        isCursorHeld = it.isCursorHeld,
+                        cursorReturnLocation = it.inputFilterLocation
                     )
                 }
         }

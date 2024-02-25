@@ -92,7 +92,7 @@ class StatusPresenter(
             .state
             .filterIsInstance<Active>()
             .flatMapLatest { it.heartbeat }
-            //.distinctUntilChanged()
+            .distinctUntilChanged()
             .onEach {
                 view.state = view.state.copy(emulator = "DEVICE", running = it)
             }

@@ -38,11 +38,9 @@ class StatusView {
     }
 
     private fun updateView(n: State) {
-        Logger.d("UPDATE VIEW: $n")
+        //Logger.d("UPDATE VIEW: $n")
 
         updateBackground()
-        mvwprintw(window, 1, 0, AppConfig.INPUT_FILTER_PREFIX)
-
         updatePackageName(n.packageName)
         updateFilters(n.filters)
         updateAutoscroll(n.autoscroll)
@@ -51,6 +49,7 @@ class StatusView {
         wrefresh(window)
 
         if (state.isCursorHeld) {
+            Logger.d("STATUS VIEW -- RETURN CURSOR")
             wmove(stdscr, state.cursorReturnLocation!!.second, state.cursorReturnLocation!!.first)
             curs_set(1)
             wrefresh(stdscr)
@@ -110,6 +109,7 @@ class StatusView {
             curs_set(0)
 
             val cp = if (running) 2 else 1
+
             wattron(window, COLOR_PAIR(cp))
             mvwprintw(window, 1, getmaxx(window) - device.length - 1, device)
             wattroff(window, COLOR_PAIR(cp))

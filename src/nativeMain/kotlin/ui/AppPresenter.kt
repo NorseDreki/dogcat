@@ -38,7 +38,7 @@ class AppPresenter(
             else -> dogcat(Start.PickAllApps)
         }
 
-        appState.setInputFilterLocation("Filter: ".length, 49)
+        appState.setInputFilterLocation(AppConfig.INPUT_FILTER_PREFIX.length, 49)
 
         view.start()
 

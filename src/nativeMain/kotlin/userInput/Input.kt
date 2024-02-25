@@ -60,9 +60,8 @@ class DefaultInput(
                         appState.holdCursor(true)
                         inputMode = true
 
-                        //mvwaddstr(stdscr, y, 0, "Filter: ")
-                        wmove(stdscr, y , cursorPosition)
-                        waddstr(stdscr, " ".repeat(100))
+                        mvwprintw(stdscr, y, 0, AppConfig.INPUT_FILTER_PREFIX)
+                        waddstr(stdscr, " ".repeat(100)) //max input
                         //wclrtoeol(stdscr)
 
                         //move not needed?
@@ -73,7 +72,6 @@ class DefaultInput(
 
                         continue
                     }
-
 
                     // limit max input
                     if (inputMode) {
@@ -87,7 +85,9 @@ class DefaultInput(
                                     inputBuffer.deleteAt(cursorPosition - x - 1)
                                     cursorPosition--
 
-                                    mvdelch(y, cursorPosition)
+                                    //DEVICE on the right is blinking
+                                    //mvdelch(y, cursorPosition)
+                                    wdelch(stdscr)
                                 }
                             }
 
@@ -118,6 +118,7 @@ class DefaultInput(
                             }
                         }
                         wmove(stdscr, y, cursorPosition)
+                        appState.setInputFilterLocation(cursorPosition, y)
 
                     } else {
                         Logger.d("${context()} Process key $key")

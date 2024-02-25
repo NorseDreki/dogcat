@@ -1,6 +1,7 @@
 import dogcat.LogFilter.ByPackage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import logger.Logger
 
 data class AppStateHolder(
 
@@ -55,6 +56,7 @@ class InternalAppState : AppState {
     }
 
     override fun holdCursor(hold: Boolean) {
+        Logger.d("HOLD CURSOR $hold")
         state.value = state.value.copy(isCursorHeld = hold)
     }
 
