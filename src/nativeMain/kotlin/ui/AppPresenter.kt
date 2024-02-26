@@ -94,15 +94,15 @@ class AppPresenter(
     private suspend fun handleKeypress(keyCode: Int) {
         when (Keymap.bindings[keyCode]) {
 
-            Autoscroll -> {
+            AUTOSCROLL -> {
                 appState.autoscroll(!appState.state.value.autoscroll)
             }
 
-            ClearLogs -> {
+            CLEAR_LOGS -> {
                 dogcat(ClearLogSource)
             }
 
-            ToggleFilterByPackage -> {
+            TOGGLE_FILTER_BY_PACKAGE -> {
                 val f = appState.state.value.packageFilter
 
                 if (f.second) {
@@ -116,31 +116,31 @@ class AppPresenter(
                 }
             }
 
-            ResetFilterBySubstring -> {
+            RESET_FILTER_BY_SUBSTRING -> {
                 dogcat(ResetFilter(Substring::class))
             }
 
-            ResetFilterByMinLogLevel -> {
+            RESET_FILTER_BY_MIN_LOG_LEVEL -> {
                 dogcat(ResetFilter(MinLogLevel::class))
             }
 
-            MinLogLevelV -> {
+            MIN_LOG_LEVEL_V -> {
                 dogcat(FilterBy(MinLogLevel(V)))
             }
 
-            MinLogLevelD -> {
+            MIN_LOG_LEVEL_D -> {
                 dogcat(FilterBy(MinLogLevel(D)))
             }
 
-            MinLogLevelI -> {
+            MIN_LOG_LEVEL_I -> {
                 dogcat(FilterBy(MinLogLevel(I)))
             }
 
-            MinLogLevelW -> {
+            MIN_LOG_LEVEL_W -> {
                 dogcat(FilterBy(MinLogLevel(W)))
             }
 
-            MinLogLevelE -> {
+            MIN_LOG_LEVEL_E -> {
                 dogcat(FilterBy(MinLogLevel(E)))
             }
 

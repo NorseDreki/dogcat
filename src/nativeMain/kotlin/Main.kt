@@ -35,7 +35,7 @@ fun main(args: Array<String>) {
                 input
                     .keypresses
                     .filter {
-                        Keymap.bindings[it] == Actions.Quit
+                        Keymap.bindings[it] == Actions.QUIT
                     }
                     .onEach {
                         Logger.d("${context()} Cancel scope")
@@ -49,6 +49,8 @@ fun main(args: Array<String>) {
         appJob.join()
     }
     ui.close()
+    //close presenter
+    //exit with nonzero upon exception
 
     Logger.d("Exit!")
     Logger.close()

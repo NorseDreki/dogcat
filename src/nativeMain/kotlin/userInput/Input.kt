@@ -58,7 +58,7 @@ class DefaultInput(
                         continue
                     }
 
-                    if (Keymap.bindings[key] == Keymap.Actions.InputFilterBySubstring && !inputMode) {
+                    if (Keymap.bindings[key] == Keymap.Actions.INPUT_FILTER_BY_SUBSTRING && !inputMode) {
                         appState.holdCursor(true)
                         inputMode = true
 

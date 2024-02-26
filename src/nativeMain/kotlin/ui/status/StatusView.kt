@@ -5,8 +5,8 @@ import dogcat.LogFilter.*
 import dogcat.state.AppliedFilters
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
-import logger.Logger
 import ncurses.*
+import ui.CommonColors.*
 import kotlin.properties.Delegates
 
 @OptIn(ExperimentalForeignApi::class)
@@ -60,9 +60,9 @@ class StatusView {
     private fun updateBackground() {
         val sx = getmaxx(stdscr)
         wmove(window, 0, 0)
-        wattron(window, COLOR_PAIR(12))
+        wattron(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
         waddstr(window, " ".repeat(sx))
-        wattroff(window, COLOR_PAIR(12))
+        wattroff(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
     }
 
     private fun updateFilters(filters: AppliedFilters) {
@@ -72,19 +72,18 @@ class StatusView {
                     val fs = (it.value as Substring).substring
 
                     if (!state.isCursorHeld) {
-                        wattroff(window, COLOR_PAIR(12))
+                        wattroff(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
                         mvwprintw(window, 1, AppConfig.INPUT_FILTER_PREFIX.length, fs)
 
-                        //TODO don't clear to end, there is device info
                         wclrtoeol(window)
-                        wattron(window, COLOR_PAIR(12))
+                        wattron(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
                     }
                 }
 
                 MinLogLevel::class -> {
-                    wattron(window, COLOR_PAIR(12))
+                    wattron(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
                     mvwprintw(window, 0, 0, " Log: ${(it.value as MinLogLevel).logLevel.readable.uppercase()}")
-                    wattroff(window, COLOR_PAIR(12))
+                    wattroff(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
                 }
 
                 ByPackage::class -> {
@@ -96,31 +95,41 @@ class StatusView {
     }
 
     private fun updateAutoscroll(autoscroll: Boolean) {
-        wattron(window, COLOR_PAIR(12))
+        wattron(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
 
         //extract strings
         val a = if (autoscroll) "|  Autoscroll" else "|  No autoscroll"
         mvwprintw(window, 0, 15, a)
 
-        wattroff(window, COLOR_PAIR(12))
+        wattroff(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
     }
 
     private fun updateDevice(device: String?, running: Boolean) {
         device?.let {
             curs_set(0)
 
-            val cp = if (running) 2 else 1
+            val colorPairCode =
+                if (running) BLACK_ON_WHITE.colorPairCode
+                else RED_ON_WHITE.colorPairCode
 
-            wattron(window, COLOR_PAIR(cp))
+            wattron(window, COLOR_PAIR(colorPairCode))
+            if (!running) {
+                wattron(window, A_BOLD.toInt())
+            }
+
             mvwprintw(window, 0, getmaxx(window) - device.length - 1, device)
-            wattroff(window, COLOR_PAIR(cp))
+            wattroff(window, COLOR_PAIR(colorPairCode))
+
+            if (!running) {
+                wattroff(window, A_BOLD.toInt())
+            }
         }
     }
 
     private fun updatePackageName(packageName: String) {
-        wattron(window, COLOR_PAIR(12))
+        wattron(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
         val s = if (packageName.isNotEmpty()) "$packageName  |  " else "All apps  |  "
         mvwprintw(window, 0, getmaxx(window) - s.length - 1 - 15, s)
-        wattroff(window, COLOR_PAIR(12))
+        wattroff(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
     }
 }

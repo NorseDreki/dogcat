@@ -1,5 +1,6 @@
 package ui
 
+import dogcat.DogcatException
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
 import platform.posix.LC_ALL
@@ -8,53 +9,37 @@ import platform.posix.printf
 import platform.posix.setlocale
 
 @OptIn(ExperimentalForeignApi::class)
-class AppView {
+class AppView : HasLifecycle {
 
-    fun start() {
-        setlocale(LC_ALL, "en_US.UTF-8") // should be before initscr()
+    override suspend fun start() {
+        setlocale(LC_ALL, "en_US.UTF-8")
         initscr()
 
-        //The keypad function enables the reading of function keys like arrow keys, Home, End, and so on.
         keypad(stdscr, true);
         noecho();
 
-        //intrflush(stdscr, false)
-
-        //nonl()
-
-        //nl()
-        //Use the ncurses functions for output. My guess is that initscr changes terminal settings such that \n only performs a line feed, not a carriage return. –
-        //melpomene
-
-        nodelay(stdscr, true) //The nodelay option causes getch to be a non-blocking call. If no input is ready, getch returns ERR. If disabled (bf is  FALSE),  getch waits until a key is pressed
-
+        // The nodelay option causes getch to be a non-blocking call. If no input is ready, getch returns ERR.
+        // If disabled (bf is  FALSE),  getch waits until a key is pressed
+        nodelay(stdscr, true)
         //cbreak or raw, to make wgetch read unbuffered data, i.e., not waiting for '\n'.
-        //nodelay or timeout, to control the amount of time wgetch spends waiting for input.
-
-        //??? enable
-        //cbreak() //making getch() work without a buffer I.E. raw characters
 
         if (!has_colors()) {
             endwin()
-            printf("Your terminal does not support color\n")
+
+            throw DogcatException("Your terminal does not support color")
+            //printf("Your terminal does not support color\n")
             exit(1)
         }
 
-        //idlok¶
-
         use_default_colors()
         start_color()
-        init_pair(1, COLOR_RED.toShort(), -1)
-        init_pair(2, COLOR_GREEN.toShort(), -1)//COLOR_BLACK.toShort())
-        init_pair(3, COLOR_YELLOW.toShort(), -1)
-        //init_pair(4, COLOR_CYAN.toShort(), COLOR_BLACK.toShort())
 
-        init_pair(11, COLOR_BLACK.toShort(), COLOR_RED.toShort())
-        init_pair(12, COLOR_BLACK.toShort(), COLOR_WHITE.toShort())
-        init_pair(6, COLOR_BLACK.toShort(), COLOR_YELLOW.toShort())
+        CommonColors.entries.forEach {
+            init_pair(it.colorPairCode.toShort(), it.foregroundColor, it.backgroundColor)
+        }
     }
 
-    fun stop() {
+    override suspend fun stop() {
         endwin()
     }
 }

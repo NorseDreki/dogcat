@@ -112,38 +112,33 @@ class LogLinesPresenter(
             .keypresses
             .collect {
                 when (Keymap.bindings[it]) {
-                    Home -> {
+                    HOME -> {
                         appState.autoscroll(false)
-                        //view.state = view.state.copy(autoscroll = false)
                         view.home()
                     }
 
-                    End -> {
+                    END -> {
                         appState.autoscroll(true)
-                        //view.state = view.state.copy(autoscroll = true)
                         view.end()
                     }
 
-                    LineUp -> {
+                    LINE_UP -> {
                         appState.autoscroll(false)
-                        //view.state = view.state.copy(autoscroll = false)
                         view.lineUp()
                     }
 
-                    LineDown -> {
+                    LINE_DOWN -> {
                         appState.autoscroll(false)
-                        //view.state = view.state.copy(autoscroll = false)
                         view.lineDown(1)
                     }
 
-                    PageDown -> {
+                    PAGE_DOWN -> {
                         appState.autoscroll(false)
                         view.pageDown()
                     }
 
-                    PageUp -> {
+                    PAGE_UP -> {
                         appState.autoscroll(false)
-                        //view.state = view.state.copy(autoscroll = false)
                         view.pageUp()
                     }
 

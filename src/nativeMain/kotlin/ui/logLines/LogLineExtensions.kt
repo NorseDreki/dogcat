@@ -10,6 +10,8 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.yield
 import logger.Logger
 import ncurses.*
+import ui.CommonColors
+import ui.CommonColors.*
 import kotlin.math.min
 
 @OptIn(ExperimentalForeignApi::class)
@@ -33,19 +35,18 @@ suspend fun LogLinesView.processLogLine(
     val wrapped = wrappedLine.first
     recordLine(wrappedLine.second)
 
-    val level = logLine.level
-    when (level) {
+    when (val level = logLine.level) {
         W -> {
-            printLevelAndMessage(level.name, 6, wrapped, COLOR_PAIR(3))
+            printLevelAndMessage(level.name, BLACK_ON_YELLOW.colorPairCode, wrapped, COLOR_PAIR(YELLOW_ON_BG.colorPairCode))
         }
         E, F -> {
-            printLevelAndMessage(level.name, 11, wrapped, COLOR_PAIR(1))
+            printLevelAndMessage(level.name, BLACK_ON_RED.colorPairCode, wrapped, COLOR_PAIR(RED_ON_BG.colorPairCode))
         }
         I -> {
-            printLevelAndMessage(level.name, 12, wrapped, A_BOLD.toInt())
+            printLevelAndMessage(level.name, BLACK_ON_WHITE.colorPairCode, wrapped, A_BOLD.toInt())
         }
         else -> {
-            printLevelAndMessage(level.name, 12, wrapped, 0)
+            printLevelAndMessage(level.name, BLACK_ON_WHITE.colorPairCode, wrapped, 0)
         }
     }
 
