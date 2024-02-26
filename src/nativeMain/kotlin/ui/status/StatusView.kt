@@ -48,8 +48,9 @@ class StatusView {
 
         wrefresh(window)
 
+        //do not return if alreadey in place
         if (state.isCursorHeld) {
-            Logger.d("STATUS VIEW -- RETURN CURSOR")
+            //Logger.d("STATUS VIEW -- RETURN CURSOR")
             wmove(stdscr, state.cursorReturnLocation!!.second, state.cursorReturnLocation!!.first)
             curs_set(1)
             wrefresh(stdscr)

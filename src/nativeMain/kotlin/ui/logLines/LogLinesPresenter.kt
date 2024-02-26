@@ -6,10 +6,7 @@ import dogcat.Unparseable
 import dogcat.state.PublicState.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.buffer
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import logger.Logger
 import logger.context
@@ -24,6 +21,7 @@ class LogLinesPresenter(
     private val appState: AppState,
     private val input: Input,
 ) : HasLifecycle {
+
     //views can come and go, when input disappears
     private lateinit var view: LogLinesView
 
@@ -42,8 +40,21 @@ class LogLinesPresenter(
 
         scope.launch {
             appState.state
+                .map { it.autoscroll }
+                .distinctUntilChanged()
+                .collect {
+                    if (it) {
+                        Logger.d("AUTOSCROLL: $it")
+                        view.end()
+                    }
+                }
+        }
+
+        scope.launch {
+            appState.state
                 .collect {
                     view.state = view.state.copy(
+                        autoscroll = it.autoscroll,
                         isCursorHeld = it.isCursorHeld,
                         cursorReturnLocation = it.inputFilterLocation
                     )
@@ -100,43 +111,45 @@ class LogLinesPresenter(
         input
             .keypresses
             .collect {
-                Logger.d("${context()} Log lines key")
                 when (Keymap.bindings[it]) {
                     Home -> {
                         appState.autoscroll(false)
-                        view.state = view.state.copy(autoscroll = false)
+                        //view.state = view.state.copy(autoscroll = false)
                         view.home()
                     }
 
                     End -> {
                         appState.autoscroll(true)
-                        view.state = view.state.copy(autoscroll = true)
+                        //view.state = view.state.copy(autoscroll = true)
                         view.end()
                     }
 
                     LineUp -> {
                         appState.autoscroll(false)
-                        view.state = view.state.copy(autoscroll = false)
+                        //view.state = view.state.copy(autoscroll = false)
                         view.lineUp()
                     }
 
                     LineDown -> {
                         appState.autoscroll(false)
-                        view.state = view.state.copy(autoscroll = false)
+                        //view.state = view.state.copy(autoscroll = false)
                         view.lineDown(1)
                     }
 
                     PageDown -> {
+                        appState.autoscroll(false)
                         view.pageDown()
                     }
 
                     PageUp -> {
                         appState.autoscroll(false)
-                        view.state = view.state.copy(autoscroll = false)
+                        //view.state = view.state.copy(autoscroll = false)
                         view.pageUp()
                     }
 
-                    else -> {}
+                    else -> {
+                        // Other keys are handled elsewhere
+                    }
                 }
             }
     }

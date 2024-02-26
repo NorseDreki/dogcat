@@ -61,8 +61,6 @@ suspend fun LogLinesView.processLogLine(
         refresh()
     }
 
-
-
     yield()
 }
 
