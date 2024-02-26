@@ -79,7 +79,7 @@ class AppPresenter(
         dogcat
             .state
             .filterIsInstance<Active>()
-            .flatMapLatest { it.heartbeat }
+            .flatMapLatest { it.device.isOnline }
             .filter { it }
             .distinctUntilChanged()
             .flatMapLatest {

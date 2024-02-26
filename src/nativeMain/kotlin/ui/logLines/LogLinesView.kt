@@ -63,6 +63,8 @@ class LogLinesView {
     }
 
     fun pageDown() {
+        //maybe also hide cursor? sometimes it appears at very bottom
+
         //firstVisibleLine += pageSize
         //refresh()
 

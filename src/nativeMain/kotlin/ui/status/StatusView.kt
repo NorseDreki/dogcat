@@ -119,7 +119,7 @@ class StatusView {
 
     private fun updatePackageName(packageName: String) {
         wattron(window, COLOR_PAIR(12))
-        val s = if (packageName.isNotEmpty()) "$packageName on " else "All apps on "
+        val s = if (packageName.isNotEmpty()) "$packageName  |  " else "All apps  |  "
         mvwprintw(window, 0, getmaxx(window) - s.length - 1 - 15, s)
         wattroff(window, COLOR_PAIR(12))
     }

@@ -10,7 +10,7 @@ interface Shell {
 
     suspend fun appIdFor(packageName: String): String
 
-    suspend fun currentEmulatorName(): String
+    suspend fun runningDeviceLabel(): String
 
     suspend fun foregroundPackageName(): String
 

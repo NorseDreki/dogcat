@@ -199,7 +199,7 @@ class AdbShell(
         return proc ?: throw RuntimeException("Didn't find running process")
     }
 
-    override suspend fun currentEmulatorName(): String {
+    override suspend fun runningDeviceLabel(): String {
         val name = callWithTimeout("Couldn't launch ADB command") {
             Command("adb")
                 .args(
@@ -212,7 +212,6 @@ class AdbShell(
                 ?.first()
         }
 
-        Logger.d("${context()} !Emulator $name")
         return name ?: throw DogcatException("")
     }
 
@@ -283,7 +282,7 @@ class AdbShell(
 
             adbDevice = devices()
 
-            adbDeviceName = currentEmulatorName()
+            //adbDeviceName = currentEmulatorName()
 
 
             s

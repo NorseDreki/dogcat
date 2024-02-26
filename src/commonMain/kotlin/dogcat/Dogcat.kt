@@ -5,8 +5,8 @@ import dogcat.Command.Start.*
 import dogcat.LogFilter.ByPackage
 import dogcat.LogFilter.Substring
 import dogcat.state.AppliedFiltersState
+import dogcat.state.Device
 import dogcat.state.PublicState.*
-import dogcat.state.DefaultAppliedFiltersState
 import dogcat.state.PublicState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -112,7 +112,10 @@ class Dogcat(
         val filterLines = logLines.capture(restartSource)
         Logger.d("${context()} created shared lines in dogcat $filterLines")
 
-        val deviceName = shell.currentEmulatorName()
+        val device = Device(
+            shell.runningDeviceLabel(),
+            shell.heartbeat()
+        )
 
         val ci = Active(
             filterLines
@@ -120,10 +123,7 @@ class Dogcat(
 
             filters.applied,
 
-            //merge with heartbeat
-            deviceName,
-
-            shell.heartbeat()
+            device
         )
 
         stateSubject.emit(ci)

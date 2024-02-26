@@ -45,7 +45,7 @@ class StatusPresenter(
                 view.state = view.state.copy(
                     filters = filters,
                     autoscroll = appState.state.value.autoscroll,
-                    emulator = it.deviceName,
+                    emulator = it.device.label,
                     running = true
                 )
             }
@@ -56,7 +56,7 @@ class StatusPresenter(
         dogcat
             .state
             .filterIsInstance<Active>()
-            .flatMapLatest { it.heartbeat }
+            .flatMapLatest { it.device.isOnline }
             .filter { it }
             .distinctUntilChanged()
             .flatMapLatest { input.strings }
@@ -91,10 +91,10 @@ class StatusPresenter(
         dogcat
             .state
             .filterIsInstance<Active>()
-            .flatMapLatest { it.heartbeat }
+            .flatMapLatest { it.device.isOnline }
             .distinctUntilChanged()
             .onEach {
-                view.state = view.state.copy(emulator = "DEVICE", running = it)
+                view.state = view.state.copy(running = it)
             }
             .launchIn(scope)
     }
