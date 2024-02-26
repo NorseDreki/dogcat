@@ -88,8 +88,7 @@ class DefaultInput(
                                     cursorPosition--
 
                                     //DEVICE on the right is blinking
-                                    //mvdelch(y, cursorPosition)
-                                    wdelch(stdscr)
+                                    mvdelch(y, cursorPosition)
                                 }
                             }
 
