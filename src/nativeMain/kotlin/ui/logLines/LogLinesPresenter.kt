@@ -44,7 +44,6 @@ class LogLinesPresenter(
                 .distinctUntilChanged()
                 .collect {
                     if (it) {
-                        Logger.d("AUTOSCROLL: $it")
                         view.end()
                     }
                 }
@@ -68,7 +67,6 @@ class LogLinesPresenter(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun collectLogLines() {
-        var i = 0
         dogcat
             .state
             .flatMapLatest {
@@ -97,12 +95,6 @@ class LogLinesPresenter(
             }
             .buffer(0) //omg!
             .collect {
-                if (i < 20) {
-                    Logger.d("${context()} ${it.index} ll")
-
-                    i++
-                }
-
                 view.processLogLine(it)
             }
     }

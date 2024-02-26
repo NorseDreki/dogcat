@@ -9,8 +9,7 @@ import dogcat.state.PublicState.Active
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
-import logger.Logger
-import logger.context
+import ui.HasLifecycle
 import userInput.Input
 import kotlin.coroutines.coroutineContext
 
@@ -18,12 +17,12 @@ class StatusPresenter(
     private val dogcat: Dogcat,
     private val appState: AppState,
     private val input: Input
-) {
+) : HasLifecycle {
     //views can come and go, when input disappears
     private lateinit var view: StatusView
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    suspend fun start() {
+    override suspend fun start() {
         view = StatusView()
         view.start()
 
@@ -45,7 +44,7 @@ class StatusPresenter(
                 view.state = view.state.copy(
                     filters = filters,
                     autoscroll = appState.state.value.autoscroll,
-                    emulator = it.device.label,
+                    deviceLabel = it.device.label,
                     running = true
                 )
             }
@@ -69,8 +68,6 @@ class StatusPresenter(
         appState
             .state
             .onEach {
-                Logger.d("${context()} autoscroll in pres ${it.autoscroll}")
-
                 val p = if (it.packageFilter.second) {
                     it.packageFilter.first!!.packageName
                 } else {
@@ -99,7 +96,7 @@ class StatusPresenter(
             .launchIn(scope)
     }
 
-    fun stop() {
+    override suspend fun stop() {
         view.stop()
     }
 }

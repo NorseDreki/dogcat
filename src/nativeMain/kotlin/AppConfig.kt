@@ -8,7 +8,19 @@ object AppConfig {
 
     const val COMMAND_TIMEOUT_MILLIS = 3000L
 
-    const val INPUT_FILTER_PREFIX = " Filter: "
+    const val TAG_COLOR_PAIR_OFFSET = 100
+
+    const val LOG_LINES_VIEW_BOTTOM_MARGIN = 4
+
+    const val STATUS_VIEW_AUTOSCROLL_LEFT_MARGIN = 15
+
+    const val STATUS_VIEW_BOTTOM_MARGIN = 2
+
+    const val LOG_LEVEL_WIDTH = 1 + 3 + 1 // space, level, space
+
+    const val LOG_LINE_ESCAPE_REGEX_STRING = """[\t\n\r\\b\f\v\a\e]"""
+
+    const val LOCALE = "en_US.UTF-8"
 
     // Make sure pattern matching works on MinGW using '\n'
     // There is no 'line.separator' or 'Environment.NewLine'

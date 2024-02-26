@@ -1,16 +1,15 @@
-@file:OptIn(ExperimentalForeignApi::class)
-
 package ui.logLines
 
+import AppConfig.DEFAULT_TAG_WIDTH
+import AppConfig.LOG_LEVEL_WIDTH
+import AppConfig.LOG_LINE_ESCAPE_REGEX_STRING
 import dogcat.Brief
 import dogcat.LogLevel.*
 import dogcat.LogLine
 import dogcat.Unparseable
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.yield
-import logger.Logger
 import ncurses.*
-import ui.CommonColors
 import ui.CommonColors.*
 import kotlin.math.min
 
@@ -20,7 +19,8 @@ suspend fun LogLinesView.processLogLine(
 ) {
     if (it.value is Unparseable) {
         printTag("")
-        waddstr(pad, " ".repeat(1 + 3 + 1))
+        waddstr(pad, " ".repeat(LOG_LEVEL_WIDTH))
+
         //account for end of line in the same way as in wrapline
         waddstr(pad, (it.value as Unparseable).line + "\n")
         recordLine(1)
@@ -37,14 +37,22 @@ suspend fun LogLinesView.processLogLine(
 
     when (val level = logLine.level) {
         W -> {
-            printLevelAndMessage(level.name, BLACK_ON_YELLOW.colorPairCode, wrapped, COLOR_PAIR(YELLOW_ON_BG.colorPairCode))
+            printLevelAndMessage(
+                level.name,
+                BLACK_ON_YELLOW.colorPairCode,
+                wrapped,
+                COLOR_PAIR(YELLOW_ON_BG.colorPairCode)
+            )
         }
+
         E, F -> {
             printLevelAndMessage(level.name, BLACK_ON_RED.colorPairCode, wrapped, COLOR_PAIR(RED_ON_BG.colorPairCode))
         }
+
         I -> {
             printLevelAndMessage(level.name, BLACK_ON_WHITE.colorPairCode, wrapped, A_BOLD.toInt())
         }
+
         else -> {
             printLevelAndMessage(level.name, BLACK_ON_WHITE.colorPairCode, wrapped, 0)
         }
@@ -65,6 +73,7 @@ suspend fun LogLinesView.processLogLine(
     yield()
 }
 
+@OptIn(ExperimentalForeignApi::class)
 private fun LogLinesView.printLevelAndMessage(
     level: String,
     levelColorPair: Int,
@@ -73,9 +82,9 @@ private fun LogLinesView.printLevelAndMessage(
 ) {
     waddstr(pad, " ")
 
-    wattron(pad, COLOR_PAIR(levelColorPair));
+    wattron(pad, COLOR_PAIR(levelColorPair))
     waddstr(pad, " $level ")
-    wattroff(pad, COLOR_PAIR(levelColorPair));
+    wattroff(pad, COLOR_PAIR(levelColorPair))
 
     waddstr(pad, " ")
 
@@ -84,38 +93,44 @@ private fun LogLinesView.printLevelAndMessage(
     wattroff(pad, messageColorPair)
 }
 
+/**
+ * @return A pair of wrapped line (with correctly placed EOL) and number of screen lines it takes.
+ */
 private fun LogLinesView.wrapLine(
     message: String
 ): Pair<String, Int> {
 
-    val r = """[\t\n\r\\b\f\v\a\e]""".toRegex()
+    val escapeRegex = LOG_LINE_ESCAPE_REGEX_STRING.toRegex()
+    val line = message.replace(escapeRegex, " ")
 
     val width = position.endX
-    val header = AppConfig.DEFAULT_TAG_WIDTH + 1 + 3 + 1// space, level, space
-    val line = message.replace(r, " ")
+    val header = DEFAULT_TAG_WIDTH + LOG_LEVEL_WIDTH
     val wrapArea = width - header
-    var buf = ""
-    var current = 0
 
-    var count = 1
+    var lineBuffer = ""
+    var current = 0
+    var linesCount = 1
 
     while (current < line.length) {
         val next = min(current + wrapArea, line.length)
-        buf += line.substring(current, next)
+        lineBuffer += line.substring(current, next)
+
         if (next < line.length) {
-            count += 1
-            buf += " ".repeat(header) //
+            linesCount += 1
+            lineBuffer += " ".repeat(header)
         }
+
         current = next
     }
 
-    val sx = getmaxx(pad)
+    val fitsWidthPrecisely = (lineBuffer.length + header) % sx == 0
 
-    val s = if ((buf.length + header) % sx == 0) {
-        buf
-    } else {
-        buf + "\n"
-    }
+    val lineBufferPlus =
+        if (fitsWidthPrecisely) {
+            lineBuffer
+        } else {
+            lineBuffer + "\n"
+        }
 
-    return s to count
+    return lineBufferPlus to linesCount
 }

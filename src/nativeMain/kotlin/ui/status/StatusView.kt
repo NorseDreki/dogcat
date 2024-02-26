@@ -1,21 +1,29 @@
 package ui.status
 
-import AppConfig
+import AppConfig.STATUS_VIEW_AUTOSCROLL_LEFT_MARGIN
+import AppConfig.STATUS_VIEW_BOTTOM_MARGIN
 import dogcat.LogFilter.*
 import dogcat.state.AppliedFilters
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
 import ui.CommonColors.*
+import ui.HasLifecycle
+import ui.Strings
+import ui.Strings.ALL_APPS
+import ui.Strings.AUTOSCROLL
+import ui.Strings.INPUT_FILTER_PREFIX
+import ui.Strings.NO_AUTOSCROLL
+import ui.Strings.SEPARATOR
 import kotlin.properties.Delegates
 
 @OptIn(ExperimentalForeignApi::class)
-class StatusView {
+class StatusView : HasLifecycle {
 
     data class State(
         val filters: AppliedFilters = mapOf(),
         val packageName: String = "",
-        val emulator: String? = null,
+        val deviceLabel: String = "",
         val running: Boolean = false,
         val autoscroll: Boolean = false,
         val isCursorHeld: Boolean = false,
@@ -28,12 +36,12 @@ class StatusView {
 
     private lateinit var window: CPointer<WINDOW>
 
-    fun start() {
+    override suspend fun start() {
         val sy = getmaxy(stdscr)
-        window = newwin(0, 0, sy - 2, 0)!!
+        window = newwin(0, 0, sy - STATUS_VIEW_BOTTOM_MARGIN, 0)!!
     }
 
-    fun stop() {
+    override suspend fun stop() {
         delwin(window)
     }
 
@@ -41,7 +49,7 @@ class StatusView {
         //Logger.d("UPDATE VIEW: $n")
 
         updateBackground()
-        updateDevice(n.emulator, n.running)
+        updateDevice(n.deviceLabel, n.running)
         updatePackageName(n.packageName)
         updateFilters(n.filters)
         updateAutoscroll(n.autoscroll)
@@ -73,7 +81,7 @@ class StatusView {
 
                     if (!state.isCursorHeld) {
                         wattroff(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
-                        mvwprintw(window, 1, AppConfig.INPUT_FILTER_PREFIX.length, fs)
+                        mvwprintw(window, 1, INPUT_FILTER_PREFIX.length, fs)
 
                         wclrtoeol(window)
                         wattron(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
@@ -82,7 +90,10 @@ class StatusView {
 
                 MinLogLevel::class -> {
                     wattron(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
-                    mvwprintw(window, 0, 0, " Log: ${(it.value as MinLogLevel).logLevel.readable.uppercase()}")
+
+                    val s = "${Strings.LOG_LEVEL_PREFIX}${(it.value as MinLogLevel).logLevel.readable.uppercase()}"
+                    mvwprintw(window, 0, 0, s)
+
                     wattroff(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
                 }
 
@@ -97,14 +108,13 @@ class StatusView {
     private fun updateAutoscroll(autoscroll: Boolean) {
         wattron(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
 
-        //extract strings
-        val a = if (autoscroll) "|  Autoscroll" else "|  No autoscroll"
-        mvwprintw(window, 0, 15, a)
+        val a = if (autoscroll) AUTOSCROLL else NO_AUTOSCROLL
+        mvwprintw(window, 0, STATUS_VIEW_AUTOSCROLL_LEFT_MARGIN, a)
 
         wattroff(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
     }
 
-    private fun updateDevice(device: String?, running: Boolean) {
+    private fun updateDevice(device: String, running: Boolean) {
         device?.let {
             curs_set(0)
 
@@ -128,8 +138,14 @@ class StatusView {
 
     private fun updatePackageName(packageName: String) {
         wattron(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
-        val s = if (packageName.isNotEmpty()) "$packageName  |  " else "All apps  |  "
-        mvwprintw(window, 0, getmaxx(window) - s.length - 1 - 15, s)
+
+        val packageLabel =
+            if (packageName.isNotEmpty()) "$packageName$SEPARATOR"
+            else "$ALL_APPS$SEPARATOR"
+
+        val x = getmaxx(window) - packageLabel.length - 1 - state.deviceLabel.length
+        mvwprintw(window, 0, x, packageLabel)
+
         wattroff(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
     }
 }

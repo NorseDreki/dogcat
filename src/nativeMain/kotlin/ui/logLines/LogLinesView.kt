@@ -1,18 +1,23 @@
 package ui.logLines
 
-import AppConfig
-import dogcat.DogcatConfig
+import AppConfig.LOG_LINES_VIEW_BOTTOM_MARGIN
 import dogcat.DogcatConfig.MAX_LOG_LINES
 import kotlinx.cinterop.ExperimentalForeignApi
 import logger.Logger
 import logger.context
 import ncurses.*
-import ui.ViewPosition
+import ui.HasLifecycle
 import kotlin.math.min
-import kotlin.properties.Delegates
 
 @OptIn(ExperimentalForeignApi::class)
-class LogLinesView {
+class LogLinesView : HasLifecycle {
+
+    internal data class ViewPosition(
+        val startX: Int,
+        val startY: Int,
+        val endX: Int,
+        val endY: Int,
+    )
 
     data class State(
         val autoscroll: Boolean = false,
@@ -22,13 +27,15 @@ class LogLinesView {
 
     var state = State()
 
-    private val sx = getmaxx(stdscr)
+    internal val sx = getmaxx(stdscr)
     private val sy = getmaxy(stdscr)
 
-    internal val position = ViewPosition(0, 0, sx, sy - 4)
+    internal val position = ViewPosition(0, 0, sx, sy - LOG_LINES_VIEW_BOTTOM_MARGIN)
 
     internal val pad = newpad(MAX_LOG_LINES, position.endX)
     internal val pageSize = position.endY - position.startY + 1
+
+    // '-1' in order to leave bottom line to cursor
     private val lastPageSize = pageSize - 1
 
     init {
@@ -38,21 +45,29 @@ class LogLinesView {
     private var firstVisibleLine = 0
     internal var linesCount = 0
 
-    fun stop() {
+    override suspend fun start() {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun stop() {
         delwin(pad)
     }
 
+    /**
+     * A solution instead of per-line page up / page down movements would be to use 'clearok(pad, true)' marking
+     * the pad as ready for refresh. However, this solution for some reason make the Status View blink, and that is
+     * not acceptable. Hence, retreating for the per-line movement workaround.
+     *
+     * Leaving for reference:
+     *         firstVisibleLine -= num
+     *
+     *         clearok(pad, true)
+     *         refresh()
+     *         clearok(pad, false)
+     */
+
     fun pageUp() {
-        //firstVisibleLine -= pageSize
-        //refresh()
-
         val num = min(pageSize, firstVisibleLine)
-
-        /*firstVisibleLine -= num
-
-        clearok(pad, true)
-        refresh()
-        clearok(pad, false)*/
 
         repeat(num) {
             firstVisibleLine--
@@ -65,26 +80,7 @@ class LogLinesView {
     fun pageDown() {
         //maybe also hide cursor? sometimes it appears at very bottom
 
-        //firstVisibleLine += pageSize
-        //refresh()
-
-        //disable page down for some cases?
-
-        /*val num = if (autoscroll) {
-            min(pageSize, linesCount - lastPageSize - firstVisibleLine)
-        } else {
-            min(pageSize, linesCount - firstVisibleLine)
-        }*/
-
         val num = min(pageSize, linesCount - firstVisibleLine)
-
-        /*firstVisibleLine += num
-
-        clearok(pad, true)
-        refresh()
-        clearok(pad, false)*/
-
-        //val num = min(pageSize, linesCount - firstVisibleLine)
 
         repeat(num) {
             firstVisibleLine++
@@ -100,27 +96,17 @@ class LogLinesView {
         curs_set(0)
         firstVisibleLine--
         refresh()
-        Logger.d("Up, $firstVisibleLine")
     }
 
-    fun lineDown(second: Int) {
+    fun lineDown(count: Int) {
         if (firstVisibleLine == linesCount) return
 
         curs_set(0)
-        firstVisibleLine += second
+        firstVisibleLine += count
         refresh()
     }
 
     fun home() {
-        /*firstVisibleLine = 0
-
-        clearok(pad, true)
-        refresh()
-        clearok(pad, false)*/
-
-
-        //firstVisibleLine = 0
-        //refresh()
         if (firstVisibleLine == 0) return
 
         val num = min(pageSize, firstVisibleLine)
@@ -135,33 +121,19 @@ class LogLinesView {
             return
         }
 
-        //prefresh(pad, linesCount, 0, position.startY, position.startX, position.endY, position.endX)
-
         firstVisibleLine = linesCount - lastPageSize
         refresh()
-
-        //refresh()
-
         Logger.d("End $firstVisibleLine")
     }
 
     suspend fun clear() {
-        //prefresh(pad, linesCount, 0, position.startY, position.startX, position.endY, position.endX)
-
         wclear(pad)
         linesCount = 0
         firstVisibleLine = 0
 
         Logger.d("${context()} Cleared pad")
-        //werase(fp)
-        // refresh()
-        //wmove(pad, 0, 0)
-
-        //wprintw(pad, "123\n")
-        //curs_set(1)
         refresh()
     }
-
 
     //draw fake cursor
     internal fun refresh() {
@@ -191,12 +163,11 @@ class LogLinesView {
         }
     }
 
-    suspend internal fun recordLine(count: Int = 1) {
+    internal fun recordLine(count: Int = 1) {
         linesCount += count
 
         if (linesCount >= MAX_LOG_LINES) {
             linesCount = MAX_LOG_LINES - 1
         }
-        //Logger.d("${context()} record $count, $linesCount")
     }
 }

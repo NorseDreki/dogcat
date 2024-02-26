@@ -30,7 +30,7 @@ class Dogcat(
         when (command) {
             is Start -> start(command)
 
-            ClearLogSource -> {
+            ClearLogs -> {
                 stateSubject.emit(Inactive)
 
                 // keyboard input hangs upon clearing? when no emulators

@@ -11,7 +11,7 @@ sealed interface Command {
 
     data class FilterBy(val filter: LogFilter) : Command
     data class ResetFilter(val filterClass: KClass<out LogFilter>) : Command
-    data object ClearLogSource : Command
+    data object ClearLogs : Command
 
     data object Stop : Command
 }

@@ -110,7 +110,7 @@ class LogcatTest {
                     }
                     awaitItem()
 
-                    dogcat(Command.ClearLogSource)
+                    dogcat(Command.ClearLogs)
                     //awaitItem()
                     awaitComplete()
                     //expectNoEvents()
@@ -218,7 +218,7 @@ class LogcatTest {
         dogcat.state.test {
             awaitItem().shouldBeInstanceOf<Active>()
 
-            dogcat(Command.ClearLogSource)
+            dogcat(Command.ClearLogs)
 
             awaitItem() shouldBe PublicState.Inactive
             val input = awaitItem() as Active

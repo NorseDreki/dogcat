@@ -1,18 +1,18 @@
 package ui
 
+import AppConfig.LOCALE
 import dogcat.DogcatException
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
 import platform.posix.LC_ALL
 import platform.posix.exit
-import platform.posix.printf
 import platform.posix.setlocale
 
 @OptIn(ExperimentalForeignApi::class)
 class AppView : HasLifecycle {
 
     override suspend fun start() {
-        setlocale(LC_ALL, "en_US.UTF-8")
+        setlocale(LC_ALL, LOCALE)
         initscr()
 
         keypad(stdscr, true);

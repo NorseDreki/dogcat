@@ -2,6 +2,7 @@ package ui
 
 import AppState
 import dogcat.Command.*
+import dogcat.Command.Start.*
 import dogcat.Dogcat
 import dogcat.LogFilter.*
 import dogcat.LogLevel.*
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import logger.Logger
 import logger.context
+import ui.Strings.INPUT_FILTER_PREFIX
 import ui.logLines.LogLinesPresenter
 import ui.status.StatusPresenter
 import userInput.Arguments
@@ -33,12 +35,10 @@ class AppPresenter(
 
     override suspend fun start() {
         when {
-            Arguments.packageName != null -> dogcat(Start.PickAppPackage(Arguments.packageName!!))
-            Arguments.current == true -> dogcat(Start.PickForegroundApp)
-            else -> dogcat(Start.PickAllApps)
+            Arguments.packageName != null -> dogcat(PickAppPackage(Arguments.packageName!!))
+            Arguments.current == true -> dogcat(PickForegroundApp)
+            else -> dogcat(PickAllApps)
         }
-
-        appState.setInputFilterLocation(AppConfig.INPUT_FILTER_PREFIX.length, 49)
 
         view.start()
 
@@ -99,7 +99,7 @@ class AppPresenter(
             }
 
             CLEAR_LOGS -> {
-                dogcat(ClearLogSource)
+                dogcat(ClearLogs)
             }
 
             TOGGLE_FILTER_BY_PACKAGE -> {
@@ -111,7 +111,7 @@ class AppPresenter(
                     dogcat(ResetFilter(ByPackage::class))
                 } else if (f.first != null) {
                     Logger.d("${context()} !SelectAppByPackage")
-                    dogcat(Start.PickAppPackage(f.first!!.packageName))
+                    dogcat(PickAppPackage(f.first!!.packageName))
                     appState.filterByPackage(f.first, true)
                 }
             }

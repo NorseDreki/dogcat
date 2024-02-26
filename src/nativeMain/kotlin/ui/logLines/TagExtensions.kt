@@ -1,6 +1,7 @@
 package ui.logLines
 
 import AppConfig.DEFAULT_TAG_WIDTH
+import AppConfig.TAG_COLOR_PAIR_OFFSET
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
 
@@ -60,8 +61,6 @@ private val KNOWN_TAG_COLORS = mutableMapOf(
     "StrictMode" to COLOR_WHITE,
     "DEBUG" to COLOR_YELLOW,
 )
-
-private const val TAG_COLOR_PAIR_OFFSET = 100
 
 @OptIn(ExperimentalForeignApi::class)
 private val TAG_COLOR_MAP = (LAST_USED_TAG_COLORS + KNOWN_TAG_COLORS.values)

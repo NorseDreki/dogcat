@@ -3,13 +3,17 @@ package userInput
 import AppConfig.INPUT_KEY_DELAY_MILLIS
 import AppState
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import logger.Logger
 import logger.context
 import ncurses.*
 import ui.HasLifecycle
+import ui.Strings.INPUT_FILTER_PREFIX
 import kotlin.coroutines.coroutineContext
 
 interface Input : HasLifecycle {
@@ -33,14 +37,17 @@ class DefaultInput(
 
     @OptIn(ExperimentalForeignApi::class)
     override suspend fun start() {
-        val x = appState.state.value.inputFilterLocation.first
-        val y = appState.state.value.inputFilterLocation.second
+
 
         CoroutineScope(coroutineContext)
             .launch {
+                appState.setInputFilterLocation(INPUT_FILTER_PREFIX.length, getmaxy(stdscr) - 1)
+                val x = appState.state.value.inputFilterLocation.first
+                val y = appState.state.value.inputFilterLocation.second
+
                 var cursorPosition = x
 
-                mvwprintw(stdscr, y, 0, AppConfig.INPUT_FILTER_PREFIX)
+                mvwprintw(stdscr, y, 0, INPUT_FILTER_PREFIX)
 
                 while (isActive) {
                     val key = wgetch(stdscr)
