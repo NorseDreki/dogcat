@@ -1,5 +1,7 @@
 package ui.logLines
 
+import AppConfig
+import dogcat.DogcatConfig
 import dogcat.DogcatConfig.MAX_LOG_LINES
 import kotlinx.cinterop.ExperimentalForeignApi
 import logger.Logger
@@ -25,7 +27,7 @@ class LogLinesView {
 
     internal val position = ViewPosition(0, 0, sx, sy - 4)
 
-    internal val pad = newpad((MAX_LOG_LINES * 1.3).toInt(), position.endX) //fix guesstimation
+    internal val pad = newpad(MAX_LOG_LINES, position.endX)
     internal val pageSize = position.endY - position.startY + 1
     private val lastPageSize = pageSize - 1
 
@@ -178,7 +180,6 @@ class LogLinesView {
             }
 
             !notSeeingLastLine -> {
-                Logger.d("seeing last line, cursor held? ${state.isCursorHeld}")
                 curs_set(1)
             }
 
@@ -190,6 +191,10 @@ class LogLinesView {
 
     suspend internal fun recordLine(count: Int = 1) {
         linesCount += count
+
+        if (linesCount >= MAX_LOG_LINES) {
+            linesCount = MAX_LOG_LINES - 1
+        }
         //Logger.d("${context()} record $count, $linesCount")
     }
 }

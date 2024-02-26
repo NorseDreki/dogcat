@@ -40,6 +40,8 @@ class DefaultInput(
             .launch {
                 var cursorPosition = x
 
+                mvwprintw(stdscr, y, 0, AppConfig.INPUT_FILTER_PREFIX)
+
                 while (isActive) {
                     val key = wgetch(stdscr)
 
@@ -60,7 +62,7 @@ class DefaultInput(
                         appState.holdCursor(true)
                         inputMode = true
 
-                        mvwprintw(stdscr, y, 0, AppConfig.INPUT_FILTER_PREFIX)
+                        wmove(stdscr, y, x)
                         waddstr(stdscr, " ".repeat(100)) //max input
                         //wclrtoeol(stdscr)
 

@@ -47,6 +47,7 @@ class DefaultAppliedFiltersState : AppliedFiltersState {
         } else {
             appliedFiltersState.value - filterClass
         }
+
         appliedFiltersState.emit(next)
     }
 }
