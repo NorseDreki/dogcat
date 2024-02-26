@@ -41,10 +41,10 @@ class StatusView {
         //Logger.d("UPDATE VIEW: $n")
 
         updateBackground()
+        updateDevice(n.emulator, n.running)
         updatePackageName(n.packageName)
         updateFilters(n.filters)
         updateAutoscroll(n.autoscroll)
-        updateDevice(n.emulator, n.running)
 
         wrefresh(window)
 
@@ -112,14 +112,15 @@ class StatusView {
             val cp = if (running) 2 else 1
 
             wattron(window, COLOR_PAIR(cp))
-            mvwprintw(window, 1, getmaxx(window) - device.length - 1, device)
+            mvwprintw(window, 0, getmaxx(window) - device.length - 1, device)
             wattroff(window, COLOR_PAIR(cp))
         }
     }
 
     private fun updatePackageName(packageName: String) {
         wattron(window, COLOR_PAIR(12))
-        mvwprintw(window, 0, getmaxx(window) - packageName.length - 1, packageName)
+        val s = if (packageName.isNotEmpty()) "$packageName on " else "All apps on "
+        mvwprintw(window, 0, getmaxx(window) - s.length - 1 - 15, s)
         wattroff(window, COLOR_PAIR(12))
     }
 }

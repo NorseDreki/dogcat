@@ -78,9 +78,14 @@ class DefaultInput(
                     // limit max input
                     if (inputMode) {
                         when (key) {
-                            KEY_LEFT -> if (cursorPosition - x > 0) cursorPosition--
 
-                            KEY_RIGHT -> if (cursorPosition - x < inputBuffer.length) cursorPosition++
+                            KEY_LEFT -> {
+                                if (cursorPosition - x > 0) cursorPosition--
+                            }
+
+                            KEY_RIGHT -> {
+                                if (cursorPosition - x < inputBuffer.length) cursorPosition++
+                            }
 
                             KEY_BACKSPACE, 127/*, KEY_DELETE*/ -> {
                                 if (cursorPosition - x > 0) {
