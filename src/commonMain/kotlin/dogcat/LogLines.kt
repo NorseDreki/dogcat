@@ -110,7 +110,7 @@ class LogLines(
             af[LogFilter.MinLogLevel::class]?.let { "*:${(it as LogFilter.MinLogLevel).logLevel}" } ?: ""
         val pkgE = true
         val userId = if (pkgE) {
-            af[LogFilter.ByPackage::class]?.let { "--uid=${(it as LogFilter.ByPackage).resolvedUserId}" }
+            af[LogFilter.ByPackage::class]?.let { "--uid=${(it as LogFilter.ByPackage).appId}" }
                 ?: ""
         } else {
             ""

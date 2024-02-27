@@ -10,7 +10,7 @@ object Arguments {
 
     val packageName by parser.argument(ArgType.String, "package name", "description for p n").optional()
     val current by parser.option(ArgType.Boolean, shortName = "c", description = "Filter by currently running program")
-    val tagWidth by parser.option(ArgType.Int, shortName = "tw", description = "Filter by currently running program")
+    val lineNumbers by parser.option(ArgType.Boolean, shortName = "ln", description = "Show line numbers")
 
     fun validate(args: Array<String>) {
         parser.parse(args)

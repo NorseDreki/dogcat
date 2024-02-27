@@ -70,8 +70,8 @@ class DefaultInput(
                         inputMode = true
 
                         wmove(stdscr, y, x)
-                        waddstr(stdscr, " ".repeat(100)) //max input
-                        //wclrtoeol(stdscr)
+                        //waddstr(stdscr, " ".repeat(100)) //max input
+                        wclrtoeol(stdscr)
 
                         //move not needed?
                         wmove(stdscr, y , cursorPosition)

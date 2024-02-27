@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 import logger.Logger
 import logger.context
 import ui.HasLifecycle
+import userInput.Arguments
 import userInput.Input
 import userInput.Keymap
 import userInput.Keymap.Actions.*
@@ -54,6 +55,7 @@ class LogLinesPresenter(
                 .collect {
                     view.state = view.state.copy(
                         autoscroll = it.autoscroll,
+                        showLineNumbers = Arguments.lineNumbers ?: false,
                         isCursorHeld = it.isCursorHeld,
                         cursorReturnLocation = it.inputFilterLocation
                     )

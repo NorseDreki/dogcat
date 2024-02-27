@@ -6,11 +6,11 @@ interface Shell {
 
     fun lines(minLogLevel: String, userId: String) : Flow<String>
 
-    fun heartbeat(): Flow<Boolean>
+    fun deviceRunning(): Flow<Boolean>
 
     suspend fun appIdFor(packageName: String): String
 
-    suspend fun runningDeviceLabel(): String
+    suspend fun deviceLabel(): String
 
     suspend fun foregroundPackageName(): String
 

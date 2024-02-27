@@ -21,6 +21,7 @@ class LogLinesView : HasLifecycle {
 
     data class State(
         val autoscroll: Boolean = false,
+        val showLineNumbers: Boolean = false,
         val isCursorHeld: Boolean = false,
         val cursorReturnLocation: Pair<Int, Int>? = null,
     )

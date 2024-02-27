@@ -73,7 +73,7 @@ class Dogcat(
     private suspend fun start(subcommand: Start) {
         shell.validateShellOrThrow()
 
-        val running = shell.heartbeat().first()
+        val running = shell.deviceRunning().first()
 
         if (!running) {
             val ci = Terminated
@@ -113,8 +113,8 @@ class Dogcat(
         Logger.d("${context()} created shared lines in dogcat $filterLines")
 
         val device = Device(
-            shell.runningDeviceLabel(),
-            shell.heartbeat()
+            shell.deviceLabel(),
+            shell.deviceRunning()
         )
 
         val ci = Active(

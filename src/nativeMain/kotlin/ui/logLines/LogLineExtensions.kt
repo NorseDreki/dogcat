@@ -31,7 +31,11 @@ suspend fun LogLinesView.processLogLine(
     val logLine = it.value as Brief //do not cast
     printTag(logLine.tag)
 
-    val wrappedLine = wrapLine("${it.index} ${logLine.message}")
+    val line =
+        if (state.showLineNumbers) "-${it.index}- ${logLine.message}"
+        else logLine.message
+
+    val wrappedLine = wrapLine(line)
     val wrapped = wrappedLine.first
     recordLine(wrappedLine.second)
 

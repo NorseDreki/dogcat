@@ -23,8 +23,6 @@ class AdbShell(
 
     private lateinit var adbDevice: String
 
-    private lateinit var adbDeviceName: String
-
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun lines(minLogLevel: String, userId: String): Flow<String> {
         return flow {
@@ -121,7 +119,7 @@ class AdbShell(
             .flowOn(dispatcherIo)
     }
 
-    override fun heartbeat(): Flow<Boolean> = flow {
+    override fun deviceRunning(): Flow<Boolean> = flow {
         repeat(Int.MAX_VALUE) {
             val name = Command("adb")
                 .args(
@@ -199,7 +197,7 @@ class AdbShell(
         return proc ?: throw RuntimeException("Didn't find running process")
     }
 
-    override suspend fun runningDeviceLabel(): String {
+    override suspend fun deviceLabel(): String {
         val name = callWithTimeout("Couldn't launch ADB command") {
             Command("adb")
                 .args(
