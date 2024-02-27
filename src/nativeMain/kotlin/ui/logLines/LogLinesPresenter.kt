@@ -19,6 +19,7 @@ import kotlin.coroutines.coroutineContext
 
 class LogLinesPresenter(
     private val dogcat: Dogcat,
+    private val arguments: Arguments,
     private val appState: AppState,
     private val input: Input,
 ) : HasLifecycle {
@@ -55,7 +56,7 @@ class LogLinesPresenter(
                 .collect {
                     view.state = view.state.copy(
                         autoscroll = it.autoscroll,
-                        showLineNumbers = Arguments.lineNumbers ?: false,
+                        showLineNumbers = arguments.lineNumbers ?: false,
                         isCursorHeld = it.isCursorHeld,
                         cursorReturnLocation = it.inputFilterLocation
                     )

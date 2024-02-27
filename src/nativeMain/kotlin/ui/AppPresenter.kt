@@ -10,11 +10,13 @@ import dogcat.state.PublicState
 import dogcat.state.PublicState.Active
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import logger.Logger
 import logger.context
-import ui.Strings.INPUT_FILTER_PREFIX
 import ui.logLines.LogLinesPresenter
 import ui.status.StatusPresenter
 import userInput.Arguments
@@ -25,6 +27,7 @@ import kotlin.coroutines.coroutineContext
 
 class AppPresenter(
     private val dogcat: Dogcat,
+    private val arguments: Arguments,
     private val appState: AppState,
     private val input: Input,
     private val logLinesPresenter: LogLinesPresenter,
@@ -35,8 +38,8 @@ class AppPresenter(
 
     override suspend fun start() {
         when {
-            Arguments.packageName != null -> dogcat(PickAppPackage(Arguments.packageName!!))
-            Arguments.current == true -> dogcat(PickForegroundApp)
+            arguments.packageName != null -> dogcat(PickAppPackage(arguments.packageName!!))
+            arguments.current == true -> dogcat(PickForegroundApp)
             else -> dogcat(PickAllApps)
         }
 

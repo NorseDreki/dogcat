@@ -5,13 +5,21 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import logger.Logger
 import logger.context
+import platform.posix.exit
 import userInput.Arguments
 import userInput.Keymap
 import userInput.Keymap.Actions
 
 @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
 fun main(args: Array<String>) {
-    Arguments.validate(args)
+    val appModule = AppModule()
+
+    try {
+        appModule.arguments.validate(args)
+    } catch (e: Arguments.ValidationException) {
+        println(e.message)
+        exit(1)
+    }
 
     val ui = newSingleThreadContext("UI")
 
@@ -24,8 +32,6 @@ fun main(args: Array<String>) {
         //he key takeaway is that if you call launch on a custom CoroutineScope, any CoroutineExceptionHandler provided
         // directly to the CoroutineScope constructor or to launch will be executed when an exception is thrown within the launched coroutine.
         val appJob = CoroutineScope(ui).launch(handler) {
-            val appModule = AppModule()
-
             with(appModule) {
                 Logger.set(fileLogger)
 

@@ -5,7 +5,7 @@ import BuildConfig
 import FileLogger
 import InternalAppState
 import di.DogcatModule.dogcatModule
-import kotlinx.coroutines.CloseableCoroutineDispatcher
+import kotlinx.cli.ArgParser
 import logger.CanLog
 import logger.NoOpLogger
 import org.kodein.di.DI
@@ -14,6 +14,7 @@ import org.kodein.di.instance
 import ui.AppPresenter
 import ui.logLines.LogLinesPresenter
 import ui.status.StatusPresenter
+import userInput.Arguments
 import userInput.DefaultInput
 import userInput.Input
 
@@ -27,10 +28,12 @@ class AppModule {
                 NoOpLogger()
             }
         }
+        bindSingleton<Arguments> { Arguments(ArgParser("dogcat")) }
         bindSingleton<AppState> { InternalAppState() }
         bindSingleton<Input> { DefaultInput(instance()) }
         bindSingleton<AppPresenter> {
             AppPresenter(
+                instance(),
                 instance(),
                 instance(),
                 instance(),
@@ -49,6 +52,7 @@ class AppModule {
             LogLinesPresenter(
                 instance(),
                 instance(),
+                instance(),
                 instance()
             )
         }
@@ -60,6 +64,8 @@ class AppModule {
     }
 
     val fileLogger: CanLog by serviceLocator.instance()
+
+    val arguments: Arguments by serviceLocator.instance()
 
     val input: Input by serviceLocator.instance()
 
