@@ -1,6 +1,5 @@
 package ui.logLines
 
-import AppConfig.DEFAULT_TAG_WIDTH
 import AppConfig.TAG_COLOR_PAIR_OFFSET
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
@@ -14,15 +13,15 @@ internal fun LogLinesView.printTag(tag: String) {
     wattroff(pad, COLOR_PAIR(TAG_COLOR_MAP[color]!!))
 }
 
-private fun procrustes(tag: String) =
-    if (tag.length > DEFAULT_TAG_WIDTH) {
-        val excess = 1 - DEFAULT_TAG_WIDTH % 2
+private fun LogLinesView.procrustes(tag: String) =
+    if (tag.length > state.tagWidth) {
+        val excess = 1 - state.tagWidth % 2
 
-        tag.take(DEFAULT_TAG_WIDTH / 2 - excess) +
+        tag.take(state.tagWidth / 2 - excess) +
                 Typography.ellipsis +
-                tag.takeLast(DEFAULT_TAG_WIDTH / 2)
+                tag.takeLast(state.tagWidth / 2)
     } else {
-        tag.trim().padStart(DEFAULT_TAG_WIDTH)
+        tag.trim().padStart(state.tagWidth)
     }
 
 private fun allocateColor(tag: String): Int {

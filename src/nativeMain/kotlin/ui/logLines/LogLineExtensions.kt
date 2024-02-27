@@ -1,6 +1,5 @@
 package ui.logLines
 
-import AppConfig.DEFAULT_TAG_WIDTH
 import AppConfig.LOG_LEVEL_WIDTH
 import AppConfig.LOG_LINE_ESCAPE_REGEX_STRING
 import dogcat.Brief
@@ -108,7 +107,7 @@ private fun LogLinesView.wrapLine(
     val line = message.replace(escapeRegex, " ")
 
     val width = position.endX
-    val header = DEFAULT_TAG_WIDTH + LOG_LEVEL_WIDTH
+    val header = state.tagWidth + LOG_LEVEL_WIDTH
     val wrapArea = width - header
 
     var lineBuffer = ""

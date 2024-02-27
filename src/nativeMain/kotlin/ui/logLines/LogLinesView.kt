@@ -1,5 +1,6 @@
 package ui.logLines
 
+import AppConfig.DEFAULT_TAG_WIDTH
 import AppConfig.LOG_LINES_VIEW_BOTTOM_MARGIN
 import dogcat.DogcatConfig.MAX_LOG_LINES
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -22,6 +23,7 @@ class LogLinesView : HasLifecycle {
     data class State(
         val autoscroll: Boolean = false,
         val showLineNumbers: Boolean = false,
+        val tagWidth: Int = DEFAULT_TAG_WIDTH,
         val isCursorHeld: Boolean = false,
         val cursorReturnLocation: Pair<Int, Int>? = null,
     )

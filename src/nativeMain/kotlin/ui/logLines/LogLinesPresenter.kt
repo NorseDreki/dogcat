@@ -1,5 +1,6 @@
 package ui.logLines
 
+import AppConfig.DEFAULT_TAG_WIDTH
 import AppState
 import dogcat.Dogcat
 import dogcat.Unparseable
@@ -57,6 +58,7 @@ class LogLinesPresenter(
                     view.state = view.state.copy(
                         autoscroll = it.autoscroll,
                         showLineNumbers = arguments.lineNumbers ?: false,
+                        tagWidth = arguments.tagWidth ?: DEFAULT_TAG_WIDTH,
                         isCursorHeld = it.isCursorHeld,
                         cursorReturnLocation = it.inputFilterLocation
                     )
