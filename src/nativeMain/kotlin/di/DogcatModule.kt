@@ -2,8 +2,8 @@ package di
 
 import AdbShell
 import com.norsedreki.dogcat.*
-import com.norsedreki.dogcat.state.AppliedFiltersState
-import com.norsedreki.dogcat.state.DefaultAppliedFiltersState
+import com.norsedreki.dogcat.state.LogFiltersState
+import com.norsedreki.dogcat.state.DefaultLogFiltersState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import org.kodein.di.DI
@@ -12,8 +12,8 @@ import org.kodein.di.instance
 
 object DogcatModule {
 
-    internal val dogcatModule = DI.Module("com/norsedreki/dogcat") {
-        bindSingleton<AppliedFiltersState> { DefaultAppliedFiltersState() }
+    internal val dogcatModule = DI.Module("dogcat") {
+        bindSingleton<LogFiltersState> { DefaultLogFiltersState() }
         bindSingleton<LogLineParser> { LogLineBriefParser() }
         bindSingleton<LogLines> {
             LogLines(

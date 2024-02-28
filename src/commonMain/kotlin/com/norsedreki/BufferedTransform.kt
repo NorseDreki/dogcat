@@ -6,20 +6,20 @@ import kotlin.time.Duration
 import kotlin.time.TimeSource
 
 fun <T> Flow<T>.bufferedTransform(
-    shouldDrain: (List<T>, T) -> Boolean,
-    transform: (List<T>, T) -> T
+    shouldEmptyBuffer: (List<T>, T) -> Boolean,
+    transformItem: (List<T>, T) -> T
 ): Flow<T> = flow {
     val storage = mutableListOf<T>()
 
     collect { item ->
-        val willDrain = shouldDrain(storage, item)
+        val willDrain = shouldEmptyBuffer(storage, item)
         if (willDrain) {
             //TODO would not drain until new tag is met (thus not producing intermediate results)
             //storage.onEach { emit(it) }
             storage.clear()
         }
 
-        val newItem = transform(storage, item)
+        val newItem = transformItem(storage, item)
         storage.add(newItem)
         emit(newItem)
     }

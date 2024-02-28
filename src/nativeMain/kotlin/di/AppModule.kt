@@ -28,7 +28,7 @@ class AppModule {
                 NoOpLogger()
             }
         }
-        bindSingleton<Arguments> { Arguments(ArgParser("com/norsedreki/dogcat")) }
+        bindSingleton<Arguments> { Arguments(ArgParser("dogcat")) }
         bindSingleton<AppState> { InternalAppState() }
         bindSingleton<Input> { DefaultInput(instance()) }
         bindSingleton<AppPresenter> {

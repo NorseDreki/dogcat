@@ -3,17 +3,17 @@ package com.norsedreki.dogcat
 import com.norsedreki.bufferedTransform
 import com.norsedreki.dogcat.DogcatConfig.MAX_LOG_LINES
 import com.norsedreki.dogcat.LogFilter.*
-import com.norsedreki.dogcat.state.AppliedFiltersState
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import com.norsedreki.dogcat.state.LogFiltersState
 import com.norsedreki.logger.Logger
 import com.norsedreki.logger.context
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import kotlin.coroutines.coroutineContext
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class LogLines(
     private val lineParser: LogLineParser,
-    private val filtersState: AppliedFiltersState,
+    private val filtersState: LogFiltersState,
     private val shell: Shell,
     private val dispatcherCpu: CoroutineDispatcher,
 ) {
@@ -23,17 +23,19 @@ class LogLines(
     suspend fun capture(restartSource: Boolean = true): Flow<IndexedValue<LogLine>> {
         if (restartSource) {
             if (this::scope.isInitialized) {
-                Logger.d("${context()} !!!!! cancelling scope ${scope.coroutineContext[Job]}")
+                Logger.d("${context()} Cancel coroutine scope for log lines collection")
 
                 scope.cancel()
             }
 
-            scope = CoroutineScope(coroutineContext + dispatcherCpu)
+            // We need a dedicated job otherwise 'scope.cancel()' would cancel parent scope as well
+            scope = CoroutineScope(coroutineContext + dispatcherCpu + Job())
             sharedLines = createSharedLines()
-            Logger.d("${context()} created shared lines in capture $sharedLines")
+
+            Logger.d("${context()} Created shared log lines by re-starting ADB logcat")
         }
 
-        return filtersState.applied
+        return filtersState.state
             .flatMapConcat {
                 it.values.asFlow()
             }
@@ -47,11 +49,13 @@ class LogLines(
                 lineParser.parse(it)
             }
             .bufferedTransform(
-                shouldDrainBuffer(),
+                shouldEmptyBuffer(),
                 transformItem()
             )
             .withIndex()
-            .onCompletion { Logger.d("${context()} (2) COMPLETED Full LogLines chain") }
+            .onCompletion {
+                Logger.d("${context()} COMPLETION (2): Full log lines pipeline")
+            }
             .flowOn(dispatcherCpu)
     }
 
@@ -69,11 +73,12 @@ class LogLines(
                     Brief(item.level, "", item.owner, item.message)
                 }
             }
+
             is Unparseable -> item
         }
     }
 
-    private fun shouldDrainBuffer() = { buffer: List<LogLine>, item: LogLine ->
+    private fun shouldEmptyBuffer() = { buffer: List<LogLine>, item: LogLine ->
         when (item) {
             is Brief -> {
                 when {
@@ -91,6 +96,7 @@ class LogLines(
                             else -> true
                         }
                     }
+
                     else -> false
                 }
             }
@@ -100,7 +106,7 @@ class LogLines(
     }
 
     private fun createSharedLines(): Flow<String> {
-        val filters = filtersState.applied.value
+        val filters = filtersState.state.value
 
         val minLogLevel =
             filters[MinLogLevel::class]?.let {
@@ -119,6 +125,9 @@ class LogLines(
                 SharingStarted.Lazily,
                 MAX_LOG_LINES,
             )
-            .onCompletion { Logger.d("${context()} (3) COMPLETED Subscription to shareIn") }
+            .onCompletion {
+                Logger.d(
+                    "${context()} COMPLETION (3): ADB logcat log lines shred by 'shareIn")
+            }
     }
 }
