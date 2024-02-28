@@ -7,15 +7,16 @@ import com.norsedreki.dogcat.Dogcat
 import com.norsedreki.dogcat.LogFilter.*
 import com.norsedreki.dogcat.LogLevel.*
 import com.norsedreki.dogcat.state.DogcatState.Active
-import com.norsedreki.logger.Logger
-import com.norsedreki.logger.context
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import ui.logLines.LogLinesPresenter
 import ui.status.StatusPresenter
-import userInput.Arguments
+import userInput.AppArguments
 import userInput.Input
 import userInput.Keymap
 import userInput.Keymap.Actions.*
@@ -23,7 +24,7 @@ import kotlin.coroutines.coroutineContext
 
 class AppPresenter(
     private val dogcat: Dogcat,
-    private val arguments: Arguments,
+    private val appArguments: AppArguments,
     private val appState: AppState,
     private val input: Input,
     private val logLinesPresenter: LogLinesPresenter,
@@ -34,20 +35,20 @@ class AppPresenter(
 
     override suspend fun start() {
         when {
-            arguments.packageName != null -> dogcat(PickAppPackage(arguments.packageName!!))
-            arguments.current == true -> dogcat(PickForegroundApp)
+            appArguments.packageName != null -> dogcat(PickAppPackage(appArguments.packageName!!))
+            appArguments.current == true -> dogcat(PickForegroundApp)
             else -> dogcat(PickAllApps)
         }
 
         view.start()
 
+        logLinesPresenter.start()
+        statusPresenter.start()
+
         val scope = CoroutineScope(coroutineContext)
         scope.launch {
             collectKeypresses()
         }
-
-        logLinesPresenter.start()
-        statusPresenter.start()
     }
 
     override suspend fun stop() {
@@ -65,33 +66,25 @@ class AppPresenter(
             .state
             .filterIsInstance<Active>()
             .flatMapLatest { it.device.isOnline }
-
-            .catch {  } //!!
-
-            .filter { it }
             .distinctUntilChanged()
-            .flatMapLatest {
-                input.keypresses
+            .flatMapLatest { isOnline ->
+                if (isOnline) {
+                    input.keypresses
+                } else {
+                    emptyFlow()
+                }
             }
-            .onEach {
-                handleKeypress(it)
-            }
-            //yet, catch terminates the chain
-            /*.catch {
-                Logger.d("CATCH IN collect keypresses")
-            }
-            .onCompletion {
-                Logger.d("CATCH and complete")
-            }*/
             .collect {
+                dispatchKeyCode(it)
             }
     }
 
-    private suspend fun handleKeypress(keyCode: Int) {
+    private suspend fun dispatchKeyCode(keyCode: Int) {
         when (Keymap.bindings[keyCode]) {
 
             AUTOSCROLL -> {
-                appState.autoscroll(!appState.state.value.autoscroll)
+                val currentAutoscroll = appState.state.value.autoscroll
+                appState.autoscroll(!currentAutoscroll)
             }
 
             CLEAR_LOGS -> {
@@ -99,16 +92,15 @@ class AppPresenter(
             }
 
             TOGGLE_FILTER_BY_PACKAGE -> {
-                val f = appState.state.value.packageFilter
+                val packageFilter = appState.state.value.packageFilter
 
-                if (f.second) {
-                    Logger.d("${context()} !DeselectSelectAppByPackage")
-                    appState.filterByPackage(f.first, false)
+                if (packageFilter.second) {
+                    appState.filterByPackage(packageFilter.first, false)
                     dogcat(ResetFilter(ByPackage::class))
-                } else if (f.first != null) {
-                    Logger.d("${context()} !SelectAppByPackage")
-                    dogcat(PickAppPackage(f.first!!.packageName))
-                    appState.filterByPackage(f.first, true)
+
+                } else if (packageFilter.first != null) {
+                    dogcat(PickAppPackage(packageFilter.first!!.packageName))
+                    appState.filterByPackage(packageFilter.first, true)
                 }
             }
 
@@ -140,7 +132,9 @@ class AppPresenter(
                 dogcat(FilterBy(MinLogLevel(E)))
             }
 
-            else -> {}
+            else -> {
+                // Other keys are handled elsewhere
+            }
         }
     }
 }
