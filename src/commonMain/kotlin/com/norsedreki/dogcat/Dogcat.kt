@@ -111,8 +111,11 @@ class Dogcat(
 
         val filterLines = logLines.capture(restartSource)
 
+        val label = shell.deviceName()
+        Logger.d("cll device name $label")
+
         val device = Device(
-            shell.deviceName(),
+            label,
             shell.deviceRunning()
         )
 

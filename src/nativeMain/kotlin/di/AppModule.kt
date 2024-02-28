@@ -14,7 +14,7 @@ import org.kodein.di.instance
 import ui.AppPresenter
 import ui.logLines.LogLinesPresenter
 import ui.status.StatusPresenter
-import userInput.Arguments
+import userInput.AppArguments
 import userInput.DefaultInput
 import userInput.Input
 
@@ -28,7 +28,7 @@ class AppModule {
                 NoOpLogger()
             }
         }
-        bindSingleton<Arguments> { Arguments(ArgParser("dogcat")) }
+        bindSingleton<AppArguments> { AppArguments(ArgParser("dogcat")) }
         bindSingleton<AppState> { InternalAppState() }
         bindSingleton<Input> { DefaultInput(instance()) }
         bindSingleton<AppPresenter> {
@@ -65,7 +65,7 @@ class AppModule {
 
     val fileLogger: CanLog by serviceLocator.instance()
 
-    val arguments: Arguments by serviceLocator.instance()
+    val appArguments: AppArguments by serviceLocator.instance()
 
     val input: Input by serviceLocator.instance()
 

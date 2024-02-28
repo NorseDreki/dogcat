@@ -6,6 +6,7 @@ import com.norsedreki.dogcat.Dogcat
 import com.norsedreki.dogcat.LogFilter.ByPackage
 import com.norsedreki.dogcat.LogFilter.Substring
 import com.norsedreki.dogcat.state.DogcatState.Active
+import com.norsedreki.logger.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
@@ -40,6 +41,8 @@ class StatusPresenter(
                 filters[ByPackage::class]?.let {
                     appState.filterByPackage(it as ByPackage, true)
                 }
+
+                Logger.d("Pres active device label: ${it.device.label}")
 
                 view.state = view.state.copy(
                     filters = filters,

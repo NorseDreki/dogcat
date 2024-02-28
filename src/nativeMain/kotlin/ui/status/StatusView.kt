@@ -4,6 +4,7 @@ import AppConfig.STATUS_VIEW_AUTOSCROLL_LEFT_MARGIN
 import AppConfig.STATUS_VIEW_BOTTOM_MARGIN
 import com.norsedreki.dogcat.LogFilter.*
 import com.norsedreki.dogcat.state.LogFilters
+import com.norsedreki.logger.Logger
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
@@ -31,6 +32,7 @@ class StatusView : HasLifecycle {
     )
 
     var state: State by Delegates.observable(State()) { _, _, newValue ->
+        Logger.d(">>>>>>>>>>>----- Device label ${newValue.deviceLabel}")
         updateView(newValue)
     }
 
@@ -115,24 +117,22 @@ class StatusView : HasLifecycle {
     }
 
     private fun updateDevice(device: String, running: Boolean) {
-        device?.let {
-            curs_set(0)
+        curs_set(0)
 
-            val colorPairCode =
-                if (running) BLACK_ON_WHITE.colorPairCode
-                else RED_ON_WHITE.colorPairCode
+        val colorPairCode =
+            if (running) BLACK_ON_WHITE.colorPairCode
+            else RED_ON_WHITE.colorPairCode
 
-            wattron(window, COLOR_PAIR(colorPairCode))
-            if (!running) {
-                wattron(window, A_BOLD.toInt())
-            }
+        wattron(window, COLOR_PAIR(colorPairCode))
+        if (!running) {
+            wattron(window, A_BOLD.toInt())
+        }
 
-            mvwprintw(window, 0, getmaxx(window) - device.length - 1, device)
-            wattroff(window, COLOR_PAIR(colorPairCode))
+        mvwprintw(window, 0, getmaxx(window) - device.length - 1, device)
+        wattroff(window, COLOR_PAIR(colorPairCode))
 
-            if (!running) {
-                wattroff(window, A_BOLD.toInt())
-            }
+        if (!running) {
+            wattroff(window, A_BOLD.toInt())
         }
     }
 

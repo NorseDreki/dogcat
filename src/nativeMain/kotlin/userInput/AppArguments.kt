@@ -6,7 +6,9 @@ import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.optional
 
-class Arguments(private val parser: ArgParser) {
+class AppArguments(
+    private val parser: ArgParser
+) {
 
     class ValidationException(override val message: String) : RuntimeException(message)
 

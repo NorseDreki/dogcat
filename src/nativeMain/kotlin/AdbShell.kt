@@ -29,7 +29,7 @@ class AdbShell(
         return flow {
             Logger.d("${context()} Starting 'adb logcat'")
 
-            val logcat = //try {
+            val logcat = try {
                 Command("adb")
                     .args(
                         listOf("-s", adbDevice, "logcat", "-v", "brief", appId, minLogLevel)
@@ -37,12 +37,12 @@ class AdbShell(
                     .stdout(Pipe)
                     .spawn()
 
-            /*} catch (e: KommandException) {
+            } catch (e: KommandException) {
                 emit("--- ADB couldn't start: ${e.message}, ${e.errorType}, ${e.cause}")
                 Logger.d(">>>>>>>>>>>>>>>>>>>>>>>>>>  KommandException" + e.message + e.errorType)
 
                 return@flow
-            }*/
+            }
             //now handle stderror?
 
             try {
@@ -103,9 +103,9 @@ class AdbShell(
             //retry?
             .onCompletion { cause ->
                 if (cause == null) {
-                    Logger.d("${context()} (4) COMPLETED, loglinessource.lines $cause\n")
+                    Logger.d("${context()} (1) COMPLETED, loglinessource.lines $cause\n")
                     emit("--- ADB has terminated, no longer waiting for input") //will suspend
-                    Logger.d("${context()} (4) COMPLETED emitted, loglinessource.lines $cause\n")
+                    Logger.d("${context()} (1) COMPLETED emitted, loglinessource.lines $cause\n")
                 } else {
                     Logger.d("${context()} EXIT COMPLETE $cause\r")
                 }
@@ -135,7 +135,19 @@ class AdbShell(
 
             //maybe catch and ignore exceptions, or ignore some part
 
+            /*➜  tools adb -s emulator-5554 emu avd name
+                error: could not connect to TCP port 5554: Connection refused
+            ➜  tools adb -s emulator-5555 emu avd name
+                error: could not connect to TCP port 5555: Connection refused
+            ➜  tools adb -s emulator-555512 emu avd name
+                error: could not connect to TCP port 555512: Connection refused*/
+
             val running = name?.contains("running") ?: false
+
+            if (!running) {
+                adbDevice = ""
+            }
+
             emit(running)
 
             delay(DEVICE_POLLING_PERIOD_MILLIS)
@@ -213,11 +225,13 @@ class AdbShell(
                 ?.first()
         }
 
+        Logger.d("deviceName $name $adbDevice")
+
         return name ?: adbDevice //throw DogcatException("")
     }
 
     override suspend fun clearLogLines() {
-        throw DogcatException("Clear logcat failed")
+        //throw DogcatException("Clear logcat failed")
 
         val exitCode = callWithTimeout("Could not clear logcat") {
             Command("adb")
@@ -255,7 +269,7 @@ class AdbShell(
                         null
                     }
                 }
-        } ?: throw DogcatException("1234")
+        } ?: throw DogcatException("ADB returned no running devices")
 
         return device
     }

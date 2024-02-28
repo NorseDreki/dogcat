@@ -127,7 +127,7 @@ class LogLines(
             )
             .onCompletion {
                 Logger.d(
-                    "${context()} COMPLETION (2): ADB logcat log lines shred by 'shareIn")
+                    "${context()} COMPLETION (2): ADB logcat log lines shred by 'shareIn'")
             }
     }
 }

@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.onEach
 import com.norsedreki.logger.Logger
 import com.norsedreki.logger.context
 import platform.posix.exit
-import userInput.Arguments
+import userInput.AppArguments
 import userInput.Keymap
 import userInput.Keymap.Actions
 
@@ -15,15 +15,15 @@ fun main(args: Array<String>) {
     val appModule = AppModule()
 
     try {
-        appModule.arguments.validate(args)
-    } catch (e: Arguments.ValidationException) {
+        appModule.appArguments.validate(args)
+    } catch (e: AppArguments.ValidationException) {
         println(e.message)
         exit(1)
     }
 
     val ui = newSingleThreadContext("UI")
 
-    val handler = CoroutineExceptionHandler { c, t ->
+    val handler = CoroutineExceptionHandler { _, t ->
         Logger.d("TOP LEVEL CATCH! $t ${t.message}")
 
         /*runBlocking {
