@@ -3,7 +3,6 @@ import kotlinx.coroutines.flow.flow
 import kotlin.time.Duration
 import kotlin.time.TimeSource
 
-//TODO would not drain until new tag is met (thus not producing intermediate results)
 fun <T> Flow<T>.bufferedTransform(
     shouldDrain: (List<T>, T) -> Boolean,
     transform: (List<T>, T) -> T
@@ -13,6 +12,7 @@ fun <T> Flow<T>.bufferedTransform(
     collect { item ->
         val willDrain = shouldDrain(storage, item)
         if (willDrain) {
+            //TODO would not drain until new tag is met (thus not producing intermediate results)
             //storage.onEach { emit(it) }
             storage.clear()
         }

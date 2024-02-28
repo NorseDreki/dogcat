@@ -28,13 +28,15 @@ class Dogcat(
         Logger.d("${context()} Command $command")
 
         when (command) {
-            is Start -> start(command)
+            is Start -> {
+                start(command)
+            }
 
             ClearLogs -> {
                 stateSubject.emit(Inactive)
 
                 // keyboard input hangs upon clearing? when no emulators
-                shell.clearSource()
+                shell.clearLogLines()
                 captureLogLines()
             }
 
@@ -113,7 +115,7 @@ class Dogcat(
         Logger.d("${context()} created shared lines in dogcat $filterLines")
 
         val device = Device(
-            shell.deviceLabel(),
+            shell.deviceName(),
             shell.deviceRunning()
         )
 

@@ -56,6 +56,7 @@ class StatusPresenter(
             .state
             .filterIsInstance<Active>()
             .flatMapLatest { it.device.isOnline }
+            .catch {  } //!!
             .filter { it }
             .distinctUntilChanged()
             .flatMapLatest { input.strings }

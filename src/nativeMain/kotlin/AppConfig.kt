@@ -10,6 +10,8 @@ object AppConfig {
 
     const val COMMAND_TIMEOUT_MILLIS = 3000L
 
+    const val DEVICE_POLLING_PERIOD_MILLIS = 1000L
+
     const val TAG_COLOR_PAIR_OFFSET = 100
 
     const val LOG_LINES_VIEW_BOTTOM_MARGIN = 4
@@ -22,7 +24,7 @@ object AppConfig {
 
     const val LOG_LINE_ESCAPE_REGEX_STRING = """[\t\n\r\\b\f\v\a\e]"""
 
-    const val LOCALE = "en_US.UTF-8"
+    const val DEFAULT_LOCALE = "en_US.UTF-8"
 
     // Make sure pattern matching works on MinGW using '\n'
     // There is no 'line.separator' or 'Environment.NewLine'

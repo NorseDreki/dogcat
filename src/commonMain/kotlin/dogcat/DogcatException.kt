@@ -1,6 +1,6 @@
 package dogcat
 
 class DogcatException(
-    message: String,
-    cause: Throwable? = null
+    override val message: String,
+    override val cause: Throwable? = null
 ) : RuntimeException(message, cause)

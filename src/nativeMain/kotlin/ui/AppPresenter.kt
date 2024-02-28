@@ -10,10 +10,7 @@ import dogcat.state.PublicState
 import dogcat.state.PublicState.Active
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import logger.Logger
 import logger.context
@@ -66,6 +63,7 @@ class AppPresenter(
         view.stop()
     }
 
+    // no need for this anymore
     private suspend fun collectDogcatEvents() {
         dogcat
             .state
@@ -83,14 +81,25 @@ class AppPresenter(
             .state
             .filterIsInstance<Active>()
             .flatMapLatest { it.device.isOnline }
+
+            .catch {  } //!!
+
             .filter { it }
             .distinctUntilChanged()
             .flatMapLatest {
                 input.keypresses
             }
-            //catch?
-            .collect {
+            .onEach {
                 handleKeypress(it)
+            }
+            //yet, catch terminates the chain
+            /*.catch {
+                Logger.d("CATCH IN collect keypresses")
+            }
+            .onCompletion {
+                Logger.d("CATCH and complete")
+            }*/
+            .collect {
             }
     }
 

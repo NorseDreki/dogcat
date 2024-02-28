@@ -9,7 +9,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.*
-import dogcat.LogcatBriefParser
+import dogcat.LogLineBriefParser
 import dogcat.state.DefaultAppliedFiltersState
 import dogcat.state.PublicState
 import kotlin.test.BeforeTest
@@ -35,7 +35,7 @@ class LogcatTest {
     @BeforeTest fun beforeTest() {
         val ls = DummyLogSource()
         val s = DefaultAppliedFiltersState()
-        val lp = LogcatBriefParser()
+        val lp = LogLineBriefParser()
 
         dogcat = Dogcat(s, LogLines(ls, lp, s, dispatcher, dispatcher))
     }

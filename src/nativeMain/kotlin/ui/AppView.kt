@@ -1,18 +1,17 @@
 package ui
 
-import AppConfig.LOCALE
+import AppConfig.DEFAULT_LOCALE
 import dogcat.DogcatException
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
 import platform.posix.LC_ALL
-import platform.posix.exit
 import platform.posix.setlocale
 
 @OptIn(ExperimentalForeignApi::class)
 class AppView : HasLifecycle {
 
     override suspend fun start() {
-        setlocale(LC_ALL, LOCALE)
+        setlocale(LC_ALL, DEFAULT_LOCALE)
         initscr()
 
         keypad(stdscr, true);
@@ -21,14 +20,13 @@ class AppView : HasLifecycle {
         // The nodelay option causes getch to be a non-blocking call. If no input is ready, getch returns ERR.
         // If disabled (bf is  FALSE),  getch waits until a key is pressed
         nodelay(stdscr, true)
-        //cbreak or raw, to make wgetch read unbuffered data, i.e., not waiting for '\n'.
+        // cbreak or raw, to make wgetch read unbuffered data, i.e., not waiting for '\n'.
 
         if (!has_colors()) {
-            endwin()
-
-            throw DogcatException("Your terminal does not support color")
-            //printf("Your terminal does not support color\n")
-            exit(1)
+            throw DogcatException(
+                "As of now, the app can only run on a terminal which supports colors. " +
+                        "It seems this terminal doesn't."
+            )
         }
 
         use_default_colors()

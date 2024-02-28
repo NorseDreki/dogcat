@@ -4,19 +4,19 @@ import kotlinx.coroutines.flow.Flow
 
 interface Shell {
 
-    fun lines(minLogLevel: String, userId: String) : Flow<String>
+    fun logLines(minLogLevel: String, appId: String) : Flow<String>
 
     fun deviceRunning(): Flow<Boolean>
 
     suspend fun appIdFor(packageName: String): String
 
-    suspend fun deviceLabel(): String
+    suspend fun deviceName(): String
 
     suspend fun foregroundPackageName(): String
 
-    suspend fun clearSource()
+    suspend fun clearLogLines()
 
-    suspend fun devices(): String
+    suspend fun firstRunningDevice(): String
 
     suspend fun validateShellOrThrow()
 }

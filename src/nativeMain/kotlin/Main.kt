@@ -24,7 +24,12 @@ fun main(args: Array<String>) {
     val ui = newSingleThreadContext("UI")
 
     val handler = CoroutineExceptionHandler { c, t ->
-        Logger.d("CATCH! ${t.message}")
+        Logger.d("TOP LEVEL CATCH! $t ${t.message}")
+
+        /*runBlocking {
+            appModule.appPresenter.stop()
+        }*/
+
         println("${t.message}")
     }
 
@@ -54,6 +59,9 @@ fun main(args: Array<String>) {
         }
         appJob.join()
     }
+
+
+
     ui.close()
     //close presenter
     //exit with nonzero upon exception

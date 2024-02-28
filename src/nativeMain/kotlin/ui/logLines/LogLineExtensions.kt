@@ -116,6 +116,8 @@ private fun LogLinesView.wrapLine(
 
     while (current < line.length) {
         val next = min(current + wrapArea, line.length)
+
+        // TOP LEVEL CATCH! kotlin.ArrayIndexOutOfBoundsException null
         lineBuffer += line.substring(current, next)
 
         if (next < line.length) {

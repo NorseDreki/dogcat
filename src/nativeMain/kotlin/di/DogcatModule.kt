@@ -14,7 +14,7 @@ object DogcatModule {
 
     internal val dogcatModule = DI.Module("dogcat") {
         bindSingleton<AppliedFiltersState> { DefaultAppliedFiltersState() }
-        bindSingleton<LogLineParser> { LogcatBriefParser() }
+        bindSingleton<LogLineParser> { LogLineBriefParser() }
         bindSingleton<LogLines> {
             LogLines(
                 instance(),
