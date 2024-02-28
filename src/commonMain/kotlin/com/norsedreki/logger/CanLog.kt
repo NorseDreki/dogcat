@@ -1,4 +1,4 @@
-package logger
+package com.norsedreki.logger
 
 interface CanLog {
     fun d(line: String)

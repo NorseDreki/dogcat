@@ -3,8 +3,8 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import logger.Logger
-import logger.context
+import com.norsedreki.logger.Logger
+import com.norsedreki.logger.context
 import platform.posix.exit
 import userInput.Arguments
 import userInput.Keymap

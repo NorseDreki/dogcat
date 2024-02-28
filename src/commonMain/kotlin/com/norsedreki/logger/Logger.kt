@@ -1,4 +1,4 @@
-package logger
+package com.norsedreki.logger
 
 object Logger : CanLog {
 

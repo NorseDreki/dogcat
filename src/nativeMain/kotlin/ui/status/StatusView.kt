@@ -2,8 +2,8 @@ package ui.status
 
 import AppConfig.STATUS_VIEW_AUTOSCROLL_LEFT_MARGIN
 import AppConfig.STATUS_VIEW_BOTTOM_MARGIN
-import dogcat.LogFilter.*
-import dogcat.state.AppliedFilters
+import com.norsedreki.dogcat.LogFilter.*
+import com.norsedreki.dogcat.state.AppliedFilters
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*

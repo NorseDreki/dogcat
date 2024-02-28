@@ -2,15 +2,15 @@ package ui.logLines
 
 import AppConfig.DEFAULT_TAG_WIDTH
 import AppState
-import dogcat.Dogcat
-import dogcat.Unparseable
-import dogcat.state.PublicState.*
+import com.norsedreki.dogcat.Dogcat
+import com.norsedreki.dogcat.Unparseable
+import com.norsedreki.dogcat.state.PublicState.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import logger.Logger
-import logger.context
+import com.norsedreki.logger.Logger
+import com.norsedreki.logger.context
 import ui.HasLifecycle
 import userInput.Arguments
 import userInput.Input

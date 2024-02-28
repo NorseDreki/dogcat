@@ -1,17 +1,20 @@
-import dogcat.state.PublicState.Active
-import dogcat.state.PublicState.WaitingInput
+import com.norsedreki.dogcat.state.PublicState.Active
+import com.norsedreki.dogcat.state.PublicState.WaitingInput
 import app.cash.turbine.test
 import app.cash.turbine.turbineScope
+import com.norsedreki.dogcat.Command
 import dogcat.*
-import dogcat.Command.Start
+import com.norsedreki.dogcat.Command.Start
+import com.norsedreki.dogcat.Dogcat
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.*
-import dogcat.LogLineBriefParser
-import dogcat.state.DefaultAppliedFiltersState
-import dogcat.state.PublicState
+import com.norsedreki.dogcat.LogLineBriefParser
+import com.norsedreki.dogcat.LogLines
+import com.norsedreki.dogcat.state.DefaultAppliedFiltersState
+import com.norsedreki.dogcat.state.PublicState
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 

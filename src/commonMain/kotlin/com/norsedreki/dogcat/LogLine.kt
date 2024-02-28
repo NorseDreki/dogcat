@@ -1,4 +1,4 @@
-package dogcat
+package com.norsedreki.dogcat
 
 sealed interface LogLine
 

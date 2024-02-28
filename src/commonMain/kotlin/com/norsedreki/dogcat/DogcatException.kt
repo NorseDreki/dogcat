@@ -1,4 +1,4 @@
-package dogcat
+package com.norsedreki.dogcat
 
 class DogcatException(
     override val message: String,

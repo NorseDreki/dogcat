@@ -1,4 +1,4 @@
-import dogcat.LogFilter
+import com.norsedreki.dogcat.LogFilter
 import io.kotest.matchers.collections.shouldContain
 import kotlin.test.Test
 

@@ -2,7 +2,7 @@ import AppConfig.APP_LOG_FILENAME
 import AppConfig.LINE_SEPARATOR
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
-import logger.CanLog
+import com.norsedreki.logger.CanLog
 import platform.posix.*
 import ui.HasLifecycle
 

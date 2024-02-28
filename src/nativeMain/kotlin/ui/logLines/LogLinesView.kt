@@ -2,10 +2,10 @@ package ui.logLines
 
 import AppConfig.DEFAULT_TAG_WIDTH
 import AppConfig.LOG_LINES_VIEW_BOTTOM_MARGIN
-import dogcat.DogcatConfig.MAX_LOG_LINES
+import com.norsedreki.dogcat.DogcatConfig.MAX_LOG_LINES
 import kotlinx.cinterop.ExperimentalForeignApi
-import logger.Logger
-import logger.context
+import com.norsedreki.logger.Logger
+import com.norsedreki.logger.context
 import ncurses.*
 import ui.HasLifecycle
 import kotlin.math.min

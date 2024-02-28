@@ -1,3 +1,5 @@
+package com.norsedreki
+
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlin.time.Duration

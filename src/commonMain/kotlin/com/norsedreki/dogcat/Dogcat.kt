@@ -1,19 +1,19 @@
-package dogcat
+package com.norsedreki.dogcat
 
-import dogcat.Command.*
-import dogcat.Command.Start.*
-import dogcat.LogFilter.ByPackage
-import dogcat.LogFilter.Substring
-import dogcat.state.AppliedFiltersState
-import dogcat.state.Device
-import dogcat.state.PublicState.*
-import dogcat.state.PublicState
+import com.norsedreki.dogcat.Command.*
+import com.norsedreki.dogcat.Command.Start.*
+import com.norsedreki.dogcat.LogFilter.ByPackage
+import com.norsedreki.dogcat.LogFilter.Substring
+import com.norsedreki.dogcat.state.AppliedFiltersState
+import com.norsedreki.dogcat.state.Device
+import com.norsedreki.dogcat.state.PublicState.*
+import com.norsedreki.dogcat.state.PublicState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onCompletion
-import logger.Logger
-import logger.context
+import com.norsedreki.logger.Logger
+import com.norsedreki.logger.context
 
 class Dogcat(
     private val filters: AppliedFiltersState,

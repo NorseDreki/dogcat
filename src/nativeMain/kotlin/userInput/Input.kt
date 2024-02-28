@@ -9,8 +9,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import logger.Logger
-import logger.context
+import com.norsedreki.logger.Logger
+import com.norsedreki.logger.context
 import ncurses.*
 import ui.HasLifecycle
 import ui.Strings.INPUT_FILTER_PREFIX

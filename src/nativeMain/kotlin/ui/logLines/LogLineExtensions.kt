@@ -2,10 +2,10 @@ package ui.logLines
 
 import AppConfig.LOG_LEVEL_WIDTH
 import AppConfig.LOG_LINE_ESCAPE_REGEX_STRING
-import dogcat.Brief
-import dogcat.LogLevel.*
-import dogcat.LogLine
-import dogcat.Unparseable
+import com.norsedreki.dogcat.Brief
+import com.norsedreki.dogcat.LogLevel.*
+import com.norsedreki.dogcat.LogLine
+import com.norsedreki.dogcat.Unparseable
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.yield
 import ncurses.*

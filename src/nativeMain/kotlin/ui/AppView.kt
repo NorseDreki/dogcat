@@ -1,7 +1,7 @@
 package ui
 
 import AppConfig.DEFAULT_LOCALE
-import dogcat.DogcatException
+import com.norsedreki.dogcat.DogcatException
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
 import platform.posix.LC_ALL

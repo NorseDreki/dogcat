@@ -1,11 +1,11 @@
 package ui.status
 
 import AppState
-import dogcat.Command.FilterBy
-import dogcat.Dogcat
-import dogcat.LogFilter.ByPackage
-import dogcat.LogFilter.Substring
-import dogcat.state.PublicState.Active
+import com.norsedreki.dogcat.Command.FilterBy
+import com.norsedreki.dogcat.Dogcat
+import com.norsedreki.dogcat.LogFilter.ByPackage
+import com.norsedreki.dogcat.LogFilter.Substring
+import com.norsedreki.dogcat.state.PublicState.Active
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*

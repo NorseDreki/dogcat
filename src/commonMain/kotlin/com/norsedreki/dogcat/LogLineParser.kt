@@ -1,6 +1,6 @@
-package dogcat
+package com.norsedreki.dogcat
 
-import logger.Logger
+import com.norsedreki.logger.Logger
 
 interface LogLineParser {
     fun parse(line: String) : LogLine

@@ -5,8 +5,8 @@ import com.kgit2.kommand.exception.KommandException
 import com.kgit2.kommand.process.Child
 import com.kgit2.kommand.process.Command
 import com.kgit2.kommand.process.Stdio.Pipe
-import dogcat.DogcatException
-import dogcat.Shell
+import com.norsedreki.dogcat.DogcatException
+import com.norsedreki.dogcat.Shell
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.consumeEach
@@ -14,8 +14,8 @@ import kotlinx.coroutines.channels.produce
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onCompletion
-import logger.Logger
-import logger.context
+import com.norsedreki.logger.Logger
+import com.norsedreki.logger.context
 import kotlin.coroutines.coroutineContext
 
 class AdbShell(

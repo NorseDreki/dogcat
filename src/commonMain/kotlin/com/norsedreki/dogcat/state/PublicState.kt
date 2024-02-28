@@ -1,6 +1,6 @@
-package dogcat.state
+package com.norsedreki.dogcat.state
 
-import dogcat.LogLine
+import com.norsedreki.dogcat.LogLine
 import kotlinx.coroutines.flow.Flow
 
 sealed interface PublicState {
@@ -12,7 +12,7 @@ sealed interface PublicState {
         val applied: Flow<AppliedFilters>,
         val device: Device,
 
-    ) : PublicState//, AppliedFiltersState
+        ) : PublicState//, AppliedFiltersState
 
     data object Inactive : PublicState
 

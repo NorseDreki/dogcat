@@ -6,8 +6,8 @@ import FileLogger
 import InternalAppState
 import di.DogcatModule.dogcatModule
 import kotlinx.cli.ArgParser
-import logger.CanLog
-import logger.NoOpLogger
+import com.norsedreki.logger.CanLog
+import com.norsedreki.logger.NoOpLogger
 import org.kodein.di.DI
 import org.kodein.di.bindSingleton
 import org.kodein.di.instance
@@ -28,7 +28,7 @@ class AppModule {
                 NoOpLogger()
             }
         }
-        bindSingleton<Arguments> { Arguments(ArgParser("dogcat")) }
+        bindSingleton<Arguments> { Arguments(ArgParser("com/norsedreki/dogcat")) }
         bindSingleton<AppState> { InternalAppState() }
         bindSingleton<Input> { DefaultInput(instance()) }
         bindSingleton<AppPresenter> {

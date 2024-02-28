@@ -1,7 +1,7 @@
-import dogcat.LogFilter.ByPackage
+import com.norsedreki.dogcat.LogFilter.ByPackage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import logger.Logger
+import com.norsedreki.logger.Logger
 
 data class AppStateHolder(
 

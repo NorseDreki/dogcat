@@ -1,4 +1,4 @@
-package logger
+package com.norsedreki.logger
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.currentCoroutineContext

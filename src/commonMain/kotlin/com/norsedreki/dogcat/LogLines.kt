@@ -1,13 +1,13 @@
-package dogcat
+package com.norsedreki.dogcat
 
-import bufferedTransform
-import dogcat.DogcatConfig.MAX_LOG_LINES
-import dogcat.LogFilter.*
-import dogcat.state.AppliedFiltersState
+import com.norsedreki.bufferedTransform
+import com.norsedreki.dogcat.DogcatConfig.MAX_LOG_LINES
+import com.norsedreki.dogcat.LogFilter.*
+import com.norsedreki.dogcat.state.AppliedFiltersState
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import logger.Logger
-import logger.context
+import com.norsedreki.logger.Logger
+import com.norsedreki.logger.context
 import kotlin.coroutines.coroutineContext
 
 @OptIn(ExperimentalCoroutinesApi::class)

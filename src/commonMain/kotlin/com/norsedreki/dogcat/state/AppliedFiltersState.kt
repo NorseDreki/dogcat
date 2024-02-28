@@ -1,15 +1,15 @@
-package dogcat.state
+package com.norsedreki.dogcat.state
 
-import dogcat.DogcatConfig.DEFAULT_MIN_LOG_LEVEL
-import dogcat.LogFilter
-import dogcat.LogFilter.MinLogLevel
-import dogcat.LogFilter.Substring
+import com.norsedreki.dogcat.DogcatConfig.DEFAULT_MIN_LOG_LEVEL
+import com.norsedreki.dogcat.LogFilter
+import com.norsedreki.dogcat.LogFilter.MinLogLevel
+import com.norsedreki.dogcat.LogFilter.Substring
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import logger.Logger
-import logger.context
+import com.norsedreki.logger.Logger
+import com.norsedreki.logger.context
 import kotlin.reflect.KClass
 
 
