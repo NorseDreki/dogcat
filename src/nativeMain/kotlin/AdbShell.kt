@@ -1,4 +1,5 @@
 import AppConfig.COMMAND_TIMEOUT_MILLIS
+import AppConfig.DEVICE_POLLING_PERIOD_MILLIS
 import com.kgit2.kommand.exception.ErrorType
 import com.kgit2.kommand.exception.KommandException
 import com.kgit2.kommand.process.Child
@@ -24,24 +25,24 @@ class AdbShell(
     private lateinit var adbDevice: String
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun lines(minLogLevel: String, userId: String): Flow<String> {
+    override fun logLines(minLogLevel: String, appId: String): Flow<String> {
         return flow {
             Logger.d("${context()} Starting 'adb logcat'")
 
-            val logcat = try {
+            val logcat = //try {
                 Command("adb")
                     .args(
-                        listOf("-s", adbDevice, "logcat", "-v", "brief", userId, minLogLevel)
+                        listOf("-s", adbDevice, "logcat", "-v", "brief", appId, minLogLevel)
                     )
                     .stdout(Pipe)
                     .spawn()
 
-            } catch (e: KommandException) {
+            /*} catch (e: KommandException) {
                 emit("--- ADB couldn't start: ${e.message}, ${e.errorType}, ${e.cause}")
                 Logger.d(">>>>>>>>>>>>>>>>>>>>>>>>>>  KommandException" + e.message + e.errorType)
 
                 return@flow
-            }
+            }*/
             //now handle stderror?
 
             try {
@@ -101,8 +102,6 @@ class AdbShell(
         }
             //retry?
             .onCompletion { cause ->
-                Logger.d("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! $cause\n")
-
                 if (cause == null) {
                     Logger.d("${context()} (4) COMPLETED, loglinessource.lines $cause\n")
                     emit("--- ADB has terminated, no longer waiting for input") //will suspend
@@ -113,28 +112,33 @@ class AdbShell(
             }
             //Do we expect more exceptions not caught from try-catch-finally above? Which can those be?
             //how to better handle?
-            .catch { cause ->
+            /*.catch { cause ->
                 Logger.d("|||||||||||||||||||||||||||||||||||||||||||||||||||  Flow was cancelled, cleaning up resources...")
-            }
+            }*/
             .flowOn(dispatcherIo)
     }
 
     override fun deviceRunning(): Flow<Boolean> = flow {
         repeat(Int.MAX_VALUE) {
-            val name = Command("adb")
-                .args(
-                    listOf("-s", adbDevice, "emu", "avd", "status")
-                )
-                .stdout(Pipe)
-                .output()
-                .stdout
-                ?.lines()
-                ?.first()
+
+            val name = callWithTimeout("123") {
+                Command("adb")
+                    .args(
+                        listOf("-s", adbDevice, "emu", "avd", "status")
+                    )
+                    .stdout(Pipe)
+                    .output()
+                    .stdout
+                    ?.lines()
+                    ?.first()
+            }
+
+            //maybe catch and ignore exceptions, or ignore some part
 
             val running = name?.contains("running") ?: false
             emit(running)
 
-            delay(1000L)
+            delay(DEVICE_POLLING_PERIOD_MILLIS)
         }
     }
         .flowOn(dispatcherIo)
@@ -169,7 +173,7 @@ class AdbShell(
     override suspend fun foregroundPackageName(): String {
         val packageNamePattern = """^ +ResumedActivity: +ActivityRecord\{[^ ]* [^ ]* ([^ ^/]*).*$""".toRegex()
 
-        val child = callWithTimeout("123") {
+        val child = callWithTimeout("Could not get a dump of running activities") {
             Command("adb")
                 .args(
                     listOf("-s", adbDevice, "shell", "dumpsys", "activity", "activities")
@@ -177,28 +181,27 @@ class AdbShell(
                 .stdout(Pipe)
                 .spawn()
         }
-        var proc: String? = null
-        val stdoutReader = child.bufferedStdout() ?: throw DogcatException("")
+        var packageName: String? = null
+        val stdoutReader = child.bufferedStdout() ?: throw DogcatException("!!!!!!!!")
 
         while (coroutineContext.isActive) {
             val line = stdoutReader.readLine() ?: break
-            val m = packageNamePattern.matchEntire(line)
+            val match = packageNamePattern.matchEntire(line)
 
-            if (m != null) {
-                val (packageName) = m.destructured
-                Logger.d("LP $packageName\r")
+            if (match != null) {
+                val (pn) = match.destructured
 
-                proc = packageName
+                packageName = pn
                 break
             }
         }
         child.shutdownSafely()
 
-        return proc ?: throw RuntimeException("Didn't find running process")
+        return packageName ?: throw DogcatException("Didn't find running process")
     }
 
-    override suspend fun deviceLabel(): String {
-        val name = callWithTimeout("Couldn't launch ADB command") {
+    override suspend fun deviceName(): String {
+        val name = callWithTimeout("Couldn't get label for $adbDevice") {
             Command("adb")
                 .args(
                     listOf("-s", adbDevice, "emu", "avd", "name")
@@ -210,10 +213,12 @@ class AdbShell(
                 ?.first()
         }
 
-        return name ?: throw DogcatException("")
+        return name ?: adbDevice //throw DogcatException("")
     }
 
-    override suspend fun clearSource() {
+    override suspend fun clearLogLines() {
+        throw DogcatException("Clear logcat failed")
+
         val exitCode = callWithTimeout("Could not clear logcat") {
             Command("adb")
                 .args(
@@ -229,10 +234,8 @@ class AdbShell(
         Logger.d("${context()} Exit code for 'adb logcat -c': ${exitCode}")
     }
 
-    override suspend fun devices(): String {
-        val devicesPattern = """List of devices attached\R(.*)""".toRegex()
-
-        val output = callWithTimeout("123") {
+    override suspend fun firstRunningDevice(): String {
+        val output = callWithTimeout("Could not get first running device") {
             Command("adb")
                 .args(
                     listOf("devices")
@@ -240,65 +243,53 @@ class AdbShell(
                 .output()
         }
 
-        val deviceId = output.stdout?.let {
-            val userId = it.lines().firstNotNullOfOrNull {
-                val parts = it.split("\t")
+        val device = output.stdout?.let {
+            it.lines()
+                .firstNotNullOfOrNull {
+                    val parts = it.split("\t")
 
-                if (parts.size == 2 && parts[1] == "device") {
-                    // This is a running and healthy device
-                    parts[0]
-                } else {
-                    null
+                    if (parts.size == 2 && parts[1] == "device") {
+                        // This is a running and healthy device
+                        parts[0]
+                    } else {
+                        null
+                    }
                 }
-            }
+        } ?: throw DogcatException("1234")
 
-            userId
-
-/*
-            val match = devicesPattern.find(it)
-
-            match?.let {
-                val (userId) = it.destructured
-                userId
-            }
-*/
-        } ?: throw DogcatException("123")
-
-        return deviceId ?: throw RuntimeException("UserId not found!")
+        return device
     }
 
-    //adb -s emulator-5554 emu avd name
     override suspend fun validateShellOrThrow() {
-        val returnCode = callWithTimeout("ADB is not here") {
-            val s = Command("adb")
+        val m = "Android Debug Bridge (ADB), a part of Android"
+        val returnStatus = callWithTimeout(m) {
+            val status = Command("adb")
                 .args(
                     listOf("version")
                 )
                 .stdout(Pipe)
                 .status()
 
+            adbDevice = firstRunningDevice()
 
-            adbDevice = devices()
-
-            //adbDeviceName = currentEmulatorName()
-
-
-            s
+            status
         }
 
-        if (returnCode != 0) {
-            throw DogcatException("ADB is not working: $returnCode")
+        if (returnStatus != 0) {
+            throw DogcatException("Android Debug Bridge (ADB) is found but returned an error code $returnStatus.")
         }
     }
 
     private suspend fun <T> callWithTimeout(errorPrefix: String, command: suspend CoroutineScope.() -> T): T {
+        val m = "Android Debug Bridge (ADB), a part of Android"
+
         return try {
             withContext(dispatcherIo) {
                 withTimeout(COMMAND_TIMEOUT_MILLIS) {
                     command()
                 }
             }
-        } catch (e : KommandException) {
+        } catch (e: KommandException) {
             throw DogcatException(errorPrefix, e)
         } catch (e: TimeoutCancellationException) {
             throw DogcatException(errorPrefix, e)
@@ -309,7 +300,7 @@ class AdbShell(
         try {
             kill()
         } catch (e: KommandException) {
-            Logger.d(">>>>>>>>>>>>>>>>>>>>> Shutdownsafely ${e.message} $e")
+            Logger.d("Exception when trying to kill shell command: ${e.message} $e")
         }
     }
 }
