@@ -1,5 +1,5 @@
-import com.norsedreki.dogcat.state.PublicState.Active
-import com.norsedreki.dogcat.state.PublicState.WaitingInput
+import com.norsedreki.dogcat.state.DogcatState.Active
+import com.norsedreki.dogcat.state.DogcatState.WaitingInput
 import app.cash.turbine.test
 import app.cash.turbine.turbineScope
 import com.norsedreki.dogcat.Command
@@ -13,8 +13,8 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.*
 import com.norsedreki.dogcat.LogLineBriefParser
 import com.norsedreki.dogcat.LogLines
-import com.norsedreki.dogcat.state.DefaultAppliedFiltersState
-import com.norsedreki.dogcat.state.PublicState
+import com.norsedreki.dogcat.state.DefaultLogFiltersState
+import com.norsedreki.dogcat.state.DogcatState
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
@@ -37,7 +37,7 @@ class LogcatTest {
 
     @BeforeTest fun beforeTest() {
         val ls = DummyLogSource()
-        val s = DefaultAppliedFiltersState()
+        val s = DefaultLogFiltersState()
         val lp = LogLineBriefParser()
 
         dogcat = Dogcat(s, LogLines(ls, lp, s, dispatcher, dispatcher))
@@ -210,7 +210,7 @@ class LogcatTest {
             dogcat(Command.Stop)
             advanceUntilIdle()
 
-            awaitItem() shouldBe PublicState.Terminated
+            awaitItem() shouldBe DogcatState.Terminated
         }
     }
 
@@ -223,7 +223,7 @@ class LogcatTest {
 
             dogcat(Command.ClearLogs)
 
-            awaitItem() shouldBe PublicState.Inactive
+            awaitItem() shouldBe DogcatState.Inactive
             val input = awaitItem() as Active
 
             input.lines.test {

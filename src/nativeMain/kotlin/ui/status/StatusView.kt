@@ -3,7 +3,7 @@ package ui.status
 import AppConfig.STATUS_VIEW_AUTOSCROLL_LEFT_MARGIN
 import AppConfig.STATUS_VIEW_BOTTOM_MARGIN
 import com.norsedreki.dogcat.LogFilter.*
-import com.norsedreki.dogcat.state.AppliedFilters
+import com.norsedreki.dogcat.state.LogFilters
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
@@ -21,7 +21,7 @@ import kotlin.properties.Delegates
 class StatusView : HasLifecycle {
 
     data class State(
-        val filters: AppliedFilters = mapOf(),
+        val filters: LogFilters = mapOf(),
         val packageName: String = "",
         val deviceLabel: String = "",
         val running: Boolean = false,
@@ -73,7 +73,7 @@ class StatusView : HasLifecycle {
         wattroff(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
     }
 
-    private fun updateFilters(filters: AppliedFilters) {
+    private fun updateFilters(filters: LogFilters) {
         filters.forEach {
             when (it.key) {
                 Substring::class -> {

@@ -54,7 +54,7 @@ class LogLines(
             )
             .withIndex()
             .onCompletion {
-                Logger.d("${context()} COMPLETION (2): Full log lines pipeline")
+                Logger.d("${context()} COMPLETION (3): Full log lines pipeline")
             }
             .flowOn(dispatcherCpu)
     }
@@ -127,7 +127,7 @@ class LogLines(
             )
             .onCompletion {
                 Logger.d(
-                    "${context()} COMPLETION (3): ADB logcat log lines shred by 'shareIn")
+                    "${context()} COMPLETION (2): ADB logcat log lines shred by 'shareIn")
             }
     }
 }

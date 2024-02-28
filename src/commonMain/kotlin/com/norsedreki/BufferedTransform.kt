@@ -12,9 +12,8 @@ fun <T> Flow<T>.bufferedTransform(
     val storage = mutableListOf<T>()
 
     collect { item ->
-        val willDrain = shouldEmptyBuffer(storage, item)
-        if (willDrain) {
-            //TODO would not drain until new tag is met (thus not producing intermediate results)
+        val willEmpty = shouldEmptyBuffer(storage, item)
+        if (willEmpty) {
             //storage.onEach { emit(it) }
             storage.clear()
         }

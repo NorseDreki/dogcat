@@ -5,7 +5,7 @@ import com.norsedreki.dogcat.Command.FilterBy
 import com.norsedreki.dogcat.Dogcat
 import com.norsedreki.dogcat.LogFilter.ByPackage
 import com.norsedreki.dogcat.LogFilter.Substring
-import com.norsedreki.dogcat.state.PublicState.Active
+import com.norsedreki.dogcat.state.DogcatState.Active
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
@@ -35,7 +35,7 @@ class StatusPresenter(
             //.take(1)
             .mapLatest { it }
             .onEach {
-                val filters = it.applied.first()
+                val filters = it.filters.first()
 
                 filters[ByPackage::class]?.let {
                     appState.filterByPackage(it as ByPackage, true)

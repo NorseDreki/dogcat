@@ -4,50 +4,48 @@ import com.norsedreki.dogcat.DogcatConfig.DEFAULT_MIN_LOG_LEVEL
 import com.norsedreki.dogcat.LogFilter
 import com.norsedreki.dogcat.LogFilter.MinLogLevel
 import com.norsedreki.dogcat.LogFilter.Substring
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import com.norsedreki.logger.Logger
-import com.norsedreki.logger.context
 import kotlin.reflect.KClass
 
 
-typealias AppliedFilters = Map<KClass<out LogFilter>, LogFilter>
+typealias LogFilters = Map<KClass<out LogFilter>, LogFilter>
 
-interface AppliedFiltersState {
-    val applied: StateFlow<AppliedFilters>
+interface LogFiltersState {
+
+    val state: StateFlow<LogFilters>
 
     suspend fun apply(filter: LogFilter)
 
     suspend fun reset(filterClass: KClass<out LogFilter>)
 }
 
-class DefaultAppliedFiltersState : AppliedFiltersState {
+class DefaultLogFiltersState : LogFiltersState {
 
-    private val defaultFilters: AppliedFilters =
+    private val defaultFilters: LogFilters =
         mapOf(
             Substring::class to Substring(""),
             MinLogLevel::class to MinLogLevel(DEFAULT_MIN_LOG_LEVEL)
         )
 
-    private val appliedFiltersState = MutableStateFlow(defaultFilters)
-    override val applied = appliedFiltersState.asStateFlow()
+    private val stateSubject = MutableStateFlow(defaultFilters)
+    override val state = stateSubject.asStateFlow()
 
     override suspend fun apply(filter: LogFilter) {
-        val next = appliedFiltersState.value + (filter::class to filter)
-        appliedFiltersState.emit(next)
+        val next = stateSubject.value + (filter::class to filter)
+        stateSubject.emit(next)
     }
 
     override suspend fun reset(filterClass: KClass<out LogFilter>) {
         val default = defaultFilters[filterClass]
 
         val next = if (default != null) {
-            appliedFiltersState.value + (filterClass to default)
+            stateSubject.value + (filterClass to default)
         } else {
-            appliedFiltersState.value - filterClass
+            stateSubject.value - filterClass
         }
 
-        appliedFiltersState.emit(next)
+        stateSubject.emit(next)
     }
 }

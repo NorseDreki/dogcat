@@ -6,14 +6,13 @@ import com.norsedreki.dogcat.Command.Start.*
 import com.norsedreki.dogcat.Dogcat
 import com.norsedreki.dogcat.LogFilter.*
 import com.norsedreki.dogcat.LogLevel.*
-import com.norsedreki.dogcat.state.PublicState
-import com.norsedreki.dogcat.state.PublicState.Active
+import com.norsedreki.dogcat.state.DogcatState.Active
+import com.norsedreki.logger.Logger
+import com.norsedreki.logger.context
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import com.norsedreki.logger.Logger
-import com.norsedreki.logger.context
 import ui.logLines.LogLinesPresenter
 import ui.status.StatusPresenter
 import userInput.Arguments
@@ -44,9 +43,6 @@ class AppPresenter(
 
         val scope = CoroutineScope(coroutineContext)
         scope.launch {
-            collectDogcatEvents()
-        }
-        scope.launch {
             collectKeypresses()
         }
 
@@ -61,18 +57,6 @@ class AppPresenter(
         statusPresenter.stop()
 
         view.stop()
-    }
-
-    // no need for this anymore
-    private suspend fun collectDogcatEvents() {
-        dogcat
-            .state
-            .filterIsInstance<PublicState.Terminated>()
-            .collect {
-                println(
-                    "Either ADB is not found in your PATH or it's found but no emulator is running "
-                )
-            }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

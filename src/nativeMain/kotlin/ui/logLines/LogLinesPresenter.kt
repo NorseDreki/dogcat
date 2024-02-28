@@ -4,7 +4,7 @@ import AppConfig.DEFAULT_TAG_WIDTH
 import AppState
 import com.norsedreki.dogcat.Dogcat
 import com.norsedreki.dogcat.Unparseable
-import com.norsedreki.dogcat.state.PublicState.*
+import com.norsedreki.dogcat.state.DogcatState.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
@@ -89,11 +89,6 @@ class LogLinesPresenter(
 
                         view.processLogLine(IndexedValue(0, Unparseable(waiting)))
 
-                        emptyFlow()
-                    }
-
-                    Terminated -> {
-                        Logger.d("${context()} No more reading lines, terminated")
                         emptyFlow()
                     }
                 }
