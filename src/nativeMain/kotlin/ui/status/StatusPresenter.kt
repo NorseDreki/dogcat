@@ -10,6 +10,7 @@ import com.norsedreki.logger.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import ui.HasLifecycle
 import userInput.Input
 import kotlin.coroutines.coroutineContext
@@ -19,21 +20,40 @@ class StatusPresenter(
     private val appState: AppState,
     private val input: Input
 ) : HasLifecycle {
+
     //views can come and go, when input disappears
     private lateinit var view: StatusView
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun start() {
         view = StatusView()
         view.start()
 
         val scope = CoroutineScope(coroutineContext)
 
-        //scope.launch?
+        scope.launch {
+            collectDogcatState()
+        }
+        scope.launch {
+            collectUserStringInput()
+        }
+        scope.launch {
+            collectAppState()
+        }
+        scope.launch {
+            collectDeviceStatus()
+        }
+    }
+
+    override suspend fun stop() {
+        //also cancel scope?
+        view.stop()
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private suspend fun collectDogcatState() {
         dogcat
             .state
             .filterIsInstance<Active>()
-            //.take(1)
             .mapLatest { it }
             .onEach {
                 val filters = it.filters.first()
@@ -48,59 +68,60 @@ class StatusPresenter(
                     filters = filters,
                     autoscroll = appState.state.value.autoscroll,
                     deviceLabel = it.device.label,
-                    running = true
+                    isDeviceOnline = true
                 )
             }
-            .launchIn(scope)
+            .collect()
+    }
 
-
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private suspend fun collectUserStringInput() {
         //or just allow for filtering since lines are already cached in sharedLines?
+        // it's already allowed
         dogcat
             .state
             .filterIsInstance<Active>()
             .flatMapLatest { it.device.isOnline }
-            .catch {  } //!!
             .filter { it }
             .distinctUntilChanged()
             .flatMapLatest { input.strings }
             .onEach {
                 dogcat(FilterBy(Substring(it)))
             }
-            .launchIn(scope)
+            .collect()
+    }
 
-
+    private suspend fun collectAppState() {
         appState
             .state
             .onEach {
-                val p = if (it.packageFilter.second) {
+                val packageName = if (it.packageFilter.second) {
                     it.packageFilter.first!!.packageName
                 } else {
                     ""
                 }
 
                 view.state = view.state.copy(
-                    packageName = p,
+                    packageName = packageName,
                     autoscroll = it.autoscroll,
                     isCursorHeld = it.isCursorHeld,
                     cursorReturnLocation = it.inputFilterLocation
                 )
 
             }
-            .launchIn(scope)
+            .collect()
+    }
 
-
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private suspend fun collectDeviceStatus() {
         dogcat
             .state
             .filterIsInstance<Active>()
             .flatMapLatest { it.device.isOnline }
             .distinctUntilChanged()
             .onEach {
-                view.state = view.state.copy(running = it)
+                view.state = view.state.copy(isDeviceOnline = it)
             }
-            .launchIn(scope)
-    }
-
-    override suspend fun stop() {
-        view.stop()
+            .collect()
     }
 }

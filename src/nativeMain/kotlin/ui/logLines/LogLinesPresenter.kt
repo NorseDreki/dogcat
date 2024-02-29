@@ -35,39 +35,45 @@ class LogLinesPresenter(
         val scope = CoroutineScope(coroutineContext)
 
         scope.launch {
+            collectAutoscroll()
+        }
+        scope.launch {
+            collectAppState()
+        }
+        scope.launch {
             collectLogLines()
         }
         scope.launch {
             collectKeypresses()
         }
-
-        scope.launch {
-            appState.state
-                .map { it.autoscroll }
-                .distinctUntilChanged()
-                .collect {
-                    if (it) {
-                        view.end()
-                    }
-                }
-        }
-
-        scope.launch {
-            appState.state
-                .collect {
-                    view.state = view.state.copy(
-                        autoscroll = it.autoscroll,
-                        showLineNumbers = appArguments.lineNumbers ?: false,
-                        tagWidth = appArguments.tagWidth ?: DEFAULT_TAG_WIDTH,
-                        isCursorHeld = it.isCursorHeld,
-                        cursorReturnLocation = it.inputFilterLocation
-                    )
-                }
-        }
     }
 
     override suspend fun stop() {
         view.stop()
+    }
+
+    private suspend fun collectAutoscroll() {
+        appState.state
+            .map { it.autoscroll }
+            .distinctUntilChanged()
+            .collect {
+                if (it) {
+                    view.end()
+                }
+            }
+    }
+
+    private suspend fun collectAppState() {
+        appState.state
+            .collect {
+                view.state = view.state.copy(
+                    autoscroll = it.autoscroll,
+                    showLineNumbers = appArguments.lineNumbers ?: false,
+                    tagWidth = appArguments.tagWidth ?: DEFAULT_TAG_WIDTH,
+                    isCursorHeld = it.isCursorHeld,
+                    cursorReturnLocation = it.inputFilterLocation
+                )
+            }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -90,7 +96,7 @@ class LogLinesPresenter(
                     }
                 }
             }
-            .buffer(0) //omg!
+            .buffer(0)
             .collect {
                 view.processLogLine(it)
             }

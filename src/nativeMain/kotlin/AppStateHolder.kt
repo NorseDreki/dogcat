@@ -12,8 +12,6 @@ data class AppStateHolder(
     val inputFilterLocation: Pair<Int, Int>,
 
     val isCursorHeld: Boolean,
-
-    val cursorHoldLocation: Pair<Int, Int>,
 )
 
 interface AppState {
@@ -36,8 +34,7 @@ class InternalAppState : AppState {
             false,
             null to false,
             0 to 0,
-            false,
-            0 to 0
+            false
         )
     )
 
@@ -54,7 +51,6 @@ class InternalAppState : AppState {
     }
 
     override fun holdCursor(hold: Boolean) {
-        Logger.d("HOLD CURSOR $hold")
         state.value = state.value.copy(isCursorHeld = hold)
     }
 }

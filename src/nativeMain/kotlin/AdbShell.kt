@@ -1,6 +1,5 @@
 import AppConfig.COMMAND_TIMEOUT_MILLIS
 import AppConfig.DEVICE_POLLING_PERIOD_MILLIS
-import com.kgit2.kommand.exception.ErrorType
 import com.kgit2.kommand.exception.KommandException
 import com.kgit2.kommand.process.Child
 import com.kgit2.kommand.process.Command
@@ -28,21 +27,20 @@ class AdbShell(
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun logLines(minLogLevel: String, appId: String): Flow<String> {
         return flow {
-            Logger.d("${context()} Starting ADB logcat")
+            Logger.d("${context()} Starting ADB Logcat")
 
-            val logcat =
-                Command("adb") //wrap in callWithTImeout?
+            val logcat = callWithTimeout("Could not start ADB Logcat") {
+                Command("adb")
                     .args(
                         listOf("-s", adbDevice, "logcat", "-v", "brief", appId, minLogLevel)
                     )
                     .stdout(Pipe)
                     .spawn()
-
+            }
             //now handle stderror?
 
             val stdoutReader = logcat.bufferedStdout()
-                ?: throw KommandException("Must have stdout", ErrorType.IO) // wrap in dogcatexception
-
+                ?: throw DogcatException("Error in a dependent library, could not get STDOUT of ADB Logcat")
 
             coroutineScope {
                 val lines = produce(dispatcherIo) {
@@ -192,8 +190,6 @@ class AdbShell(
     }
 
     override suspend fun clearLogLines() {
-        //throw DogcatException("Clear logcat failed")
-
         val exitCode = callWithTimeout("Could not clear logcat") {
             Command("adb")
                 .args(
@@ -275,7 +271,7 @@ class AdbShell(
         try {
             kill()
         } catch (e: KommandException) {
-            Logger.d("Exception when trying to kill shell command: ${e.message} $e")
+            Logger.d("Kommand library has thrown an exception when trying to kill a process: ${e.message} $e")
         }
     }
 }

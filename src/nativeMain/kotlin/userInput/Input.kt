@@ -2,6 +2,8 @@ package userInput
 
 import AppConfig.INPUT_KEY_DELAY_MILLIS
 import AppState
+import com.norsedreki.logger.Logger
+import com.norsedreki.logger.context
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -9,8 +11,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import com.norsedreki.logger.Logger
-import com.norsedreki.logger.context
 import ncurses.*
 import ui.HasLifecycle
 import ui.Strings.INPUT_FILTER_PREFIX
@@ -53,13 +53,6 @@ class DefaultInput(
                     val key = wgetch(stdscr)
 
                     if (key == ERR) {
-                        /*if (inputMode) {
-                            wmove(stdscr, y , cursorPosition)
-                            curs_set(1)
-
-                            wrefresh(stdscr)
-                        }*/
-
                         delay(INPUT_KEY_DELAY_MILLIS)
 
                         continue
@@ -70,11 +63,9 @@ class DefaultInput(
                         inputMode = true
 
                         wmove(stdscr, y, x)
-                        //waddstr(stdscr, " ".repeat(100)) //max input
                         wclrtoeol(stdscr)
 
-                        //move not needed?
-                        wmove(stdscr, y , cursorPosition)
+                        wmove(stdscr, y, cursorPosition)
                         curs_set(1)
 
                         wrefresh(stdscr)

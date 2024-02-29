@@ -46,17 +46,15 @@ private val LAST_USED_TAG_COLORS = mutableListOf(
     COLOR_CYAN
 )
 
-// need this?
 @OptIn(ExperimentalForeignApi::class)
 private val KNOWN_TAG_COLORS = mutableMapOf(
     "EGL_emulation" to COLOR_WHITE,
+    "OpenGLRenderer" to COLOR_WHITE,
+    "Looper" to COLOR_WHITE,
+    "Finsky" to COLOR_WHITE,
+    "Choreographer" to COLOR_WHITE,
 
-    "dalvikvm" to COLOR_WHITE,
-    "Process" to COLOR_WHITE,
-    "ActivityManager" to COLOR_WHITE,
-    "ActivityThread" to COLOR_WHITE,
-    "AndroidRuntime" to COLOR_CYAN,
-    "jdwp" to COLOR_WHITE,
+    // Later, add more handling to these special cases to stand them out
     "StrictMode" to COLOR_WHITE,
     "DEBUG" to COLOR_YELLOW,
 )

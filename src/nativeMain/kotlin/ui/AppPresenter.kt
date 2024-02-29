@@ -46,6 +46,7 @@ class AppPresenter(
         statusPresenter.start()
 
         val scope = CoroutineScope(coroutineContext)
+
         scope.launch {
             collectKeypresses()
         }

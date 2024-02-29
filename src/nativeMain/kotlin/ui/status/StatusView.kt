@@ -25,7 +25,7 @@ class StatusView : HasLifecycle {
         val filters: LogFilters = mapOf(),
         val packageName: String = "",
         val deviceLabel: String = "",
-        val running: Boolean = false,
+        val isDeviceOnline: Boolean = false,
         val autoscroll: Boolean = false,
         val isCursorHeld: Boolean = false,
         val cursorReturnLocation: Pair<Int, Int>? = null
@@ -51,7 +51,7 @@ class StatusView : HasLifecycle {
         //Logger.d("UPDATE VIEW: $n")
 
         updateBackground()
-        updateDevice(n.deviceLabel, n.running)
+        updateDevice(n.deviceLabel, n.isDeviceOnline)
         updatePackageName(n.packageName)
         updateFilters(n.filters)
         updateAutoscroll(n.autoscroll)

@@ -6,7 +6,7 @@ object AppConfig {
 
     const val MAX_TAG_WIDTH = 50
 
-    const val APP_LOG_FILENAME = "log.txt"
+    const val APP_LOG_FILENAME = "debug.log"
 
     const val COMMAND_TIMEOUT_MILLIS = 3000L
 
