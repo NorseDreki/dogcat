@@ -3,16 +3,16 @@ package ui.logLines
 import AppConfig.DEFAULT_TAG_WIDTH
 import AppState
 import com.norsedreki.dogcat.Dogcat
-import com.norsedreki.dogcat.Unparseable
-import com.norsedreki.dogcat.state.DogcatState.*
+import com.norsedreki.dogcat.state.DogcatState.Active
+import com.norsedreki.dogcat.state.DogcatState.Inactive
+import com.norsedreki.logger.Logger
+import com.norsedreki.logger.context
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import com.norsedreki.logger.Logger
-import com.norsedreki.logger.context
 import ui.HasLifecycle
-import userInput.Arguments
+import userInput.AppArguments
 import userInput.Input
 import userInput.Keymap
 import userInput.Keymap.Actions.*
@@ -20,7 +20,7 @@ import kotlin.coroutines.coroutineContext
 
 class LogLinesPresenter(
     private val dogcat: Dogcat,
-    private val arguments: Arguments,
+    private val appArguments: AppArguments,
     private val appState: AppState,
     private val input: Input,
 ) : HasLifecycle {
@@ -57,8 +57,8 @@ class LogLinesPresenter(
                 .collect {
                     view.state = view.state.copy(
                         autoscroll = it.autoscroll,
-                        showLineNumbers = arguments.lineNumbers ?: false,
-                        tagWidth = arguments.tagWidth ?: DEFAULT_TAG_WIDTH,
+                        showLineNumbers = appArguments.lineNumbers ?: false,
+                        tagWidth = appArguments.tagWidth ?: DEFAULT_TAG_WIDTH,
                         isCursorHeld = it.isCursorHeld,
                         cursorReturnLocation = it.inputFilterLocation
                     )
@@ -77,17 +77,14 @@ class LogLinesPresenter(
             .flatMapLatest {
                 when (it) {
                     is Active -> {
-                        Logger.d("${context()} Capturing input...")
-                        view.clear()
+                        Logger.d("${context()} Start capturing log lines")
 
                         it.lines
                     }
 
                     Inactive -> {
-                        Logger.d("${context()} Cleared Logcat and re-started")
-                        val waiting = "--------- log lines are empty, let's wait -- input cleared"
-
-                        view.processLogLine(IndexedValue(0, Unparseable(waiting)))
+                        Logger.d("${context()} Stop capturing log lines")
+                        view.clear()
 
                         emptyFlow()
                     }

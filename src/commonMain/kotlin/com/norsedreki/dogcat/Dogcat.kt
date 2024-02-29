@@ -88,7 +88,7 @@ class Dogcat(
             }
 
             is PickAppPackage -> {
-                //stateSubject.emit(Inactive)
+                stateSubject.emit(Inactive)
 
                 val packageName = subcommand.packageName
                 val appId = shell.appIdFor(packageName)
@@ -121,7 +121,7 @@ class Dogcat(
 
         val active = Active(
             filterLines
-                .onCompletion { Logger.d("${context()} (4) COMPLETED: Capturing input filterLines $it") },
+                .onCompletion { Logger.d("${context()} COMPLETION (4): Capturing input filterLines $it") },
 
             filters.state,
 

@@ -7,15 +7,16 @@ import com.kgit2.kommand.process.Command
 import com.kgit2.kommand.process.Stdio.Pipe
 import com.norsedreki.dogcat.DogcatException
 import com.norsedreki.dogcat.Shell
+import com.norsedreki.logger.Logger
+import com.norsedreki.logger.context
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.channels.produce
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onCompletion
-import com.norsedreki.logger.Logger
-import com.norsedreki.logger.context
 import kotlin.coroutines.coroutineContext
 
 class AdbShell(
@@ -27,94 +28,54 @@ class AdbShell(
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun logLines(minLogLevel: String, appId: String): Flow<String> {
         return flow {
-            Logger.d("${context()} Starting 'adb logcat'")
+            Logger.d("${context()} Starting ADB logcat")
 
-            val logcat = try {
-                Command("adb")
+            val logcat =
+                Command("adb") //wrap in callWithTImeout?
                     .args(
                         listOf("-s", adbDevice, "logcat", "-v", "brief", appId, minLogLevel)
                     )
                     .stdout(Pipe)
                     .spawn()
 
-            } catch (e: KommandException) {
-                emit("--- ADB couldn't start: ${e.message}, ${e.errorType}, ${e.cause}")
-                Logger.d(">>>>>>>>>>>>>>>>>>>>>>>>>>  KommandException" + e.message + e.errorType)
-
-                return@flow
-            }
             //now handle stderror?
 
-            try {
-                val stdoutReader = logcat.bufferedStdout()
-                    ?: throw KommandException("Must have stdout", ErrorType.IO)
+            val stdoutReader = logcat.bufferedStdout()
+                ?: throw KommandException("Must have stdout", ErrorType.IO) // wrap in dogcatexception
 
-                coroutineScope {
-                    val lines = produce(dispatcherIo) {
-                        var numLines = 0
 
-                        while (isActive /*&& numLines < DogcatConfig.MAX_LOG_LINES*/) {
-                            val line = stdoutReader.readLine()
+            coroutineScope {
+                val lines = produce(dispatcherIo) {
+                    while (isActive) {
+                        val line = stdoutReader.readLine()
 
-                            if (line != null) {
-                                send(line)
-                                numLines++
-                            } else {
-                                Logger.d(">>>>>>>>>>>>>>>>> stop break $isActive")
-                                //close()
-                                break
-                            }
+                        if (line != null) {
+                            send(line)
+                        } else {
+                            break
                         }
-                        close()
-                        Logger.d(">>>>>>>>>>>>>>>>> stop launch")
                     }
-
-                    try {
-                        lines.consumeEach {
-                            emit(it)
-                        }
-                    } catch (e: CancellationException) {
-                        Logger.d(">>>>>>>>>>>>>>>>> inner catch $e  $this")
-                        logcat.shutdownSafely()
-                        cancel()
-
-                        //? However, it's important to note that CancellationException should not be caught and handled in your code. It's meant to be handled by the coroutine library. If you want to perform some action when a coroutine is cancelled, you should do it in a finally block inside the coroutine, not by catching CancellationException.
-
-                        //? "Cancellation is implemented by throwing CancellationException, which is a RuntimeException. This design has a number of implications that are explained in this section. The most important rule of structured concurrency is that coroutine should not propagate CancellationException and should not handle it (via try/catch), unless it is doing some cleanup."
-
-                    } catch (e: ClosedReceiveChannelException) {
-                        Logger.d(">>>>>>>>>>>>>>>>> catch that no more receiving $e  $this")
-                    }
+                    close()
                 }
-            } catch (e: KommandException) {
-                emit("--- Exception when interacting with ADB: ${e.message}, ${e.errorType}, ${e.cause}")
-                Logger.d(">>>>>>>>>>>>>>>>> outer   Kommand!  $e $this")
 
-            } catch (e: CancellationException) {
-                //might be coming from linesChannel.send(line)
-                Logger.d(">>>>>>>>>>>>>>>>> outer   Cancellation!  $e $this")
+                try {
+                    lines.consumeEach {
+                        emit(it)
+                    }
+                } catch (e: ClosedReceiveChannelException) {
+                    Logger.d("Could not consume all elements in 'lines' channel: $e ")
 
-            } finally {
-                Logger.d(">>>>>>>>>>>>>>>>> outer   finally -- shutdown logcat!  $this")
-                logcat.shutdownSafely()
+                } finally {
+                    Logger.d("COMPLETION (0): Cleaning up resources after consuming log lines")
+
+                    logcat.shutdownSafely()
+                    cancel()
+                }
             }
-            Logger.d(">>>>>>>>>>>>>>>>>>>>>>>> ${context()} !!!!!!!!! Exiting flow builder ${currentCoroutineContext().isActive}")
         }
-            //retry?
             .onCompletion { cause ->
-                if (cause == null) {
-                    Logger.d("${context()} (1) COMPLETED, loglinessource.lines $cause\n")
-                    emit("--- ADB has terminated, no longer waiting for input") //will suspend
-                    Logger.d("${context()} (1) COMPLETED emitted, loglinessource.lines $cause\n")
-                } else {
-                    Logger.d("${context()} EXIT COMPLETE $cause\r")
-                }
+                Logger.d("${context()} COMPLETION (1): ADB logcat has terminated, maybe with exception: $cause")
             }
-            //Do we expect more exceptions not caught from try-catch-finally above? Which can those be?
-            //how to better handle?
-            /*.catch { cause ->
-                Logger.d("|||||||||||||||||||||||||||||||||||||||||||||||||||  Flow was cancelled, cleaning up resources...")
-            }*/
             .flowOn(dispatcherIo)
     }
 
