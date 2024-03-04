@@ -44,7 +44,9 @@ class StatusView : HasLifecycle {
     }
 
     override suspend fun stop() {
-        delwin(window)
+//        if (this::window.isInitialized) {
+            delwin(window)
+ //       }
     }
 
     private fun updateView(n: State) {

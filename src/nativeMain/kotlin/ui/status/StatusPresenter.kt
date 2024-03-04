@@ -46,7 +46,9 @@ class StatusPresenter(
 
     override suspend fun stop() {
         //also cancel scope?
-        view.stop()
+        if (this::view.isInitialized) {
+            view.stop()
+        }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

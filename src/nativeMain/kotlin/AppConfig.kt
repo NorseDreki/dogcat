@@ -26,6 +26,8 @@ object AppConfig {
 
     const val DEFAULT_LOCALE = "en_US.UTF-8"
 
+    const val EXIT_CODE_ERROR = 1
+
     // Make sure pattern matching works on MinGW using '\n'
     // There is no 'line.separator' or 'Environment.NewLine'
     //"\r?\n|\r".toRegex()

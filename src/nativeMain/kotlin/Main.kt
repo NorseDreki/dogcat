@@ -1,71 +1,104 @@
+import AppConfig.EXIT_CODE_ERROR
+import com.norsedreki.logger.Logger
+import com.norsedreki.logger.context
 import di.AppModule
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
-import com.norsedreki.logger.Logger
-import com.norsedreki.logger.context
 import platform.posix.exit
-import userInput.AppArguments
+import userInput.AppArguments.ValidationException
 import userInput.Keymap
-import userInput.Keymap.Actions
+import userInput.Keymap.Actions.QUIT
+
+val appModule = AppModule()
 
 @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
+val ui = newSingleThreadContext("UI")
+
+lateinit var appJob: Job
+
 fun main(args: Array<String>) {
-    val appModule = AppModule()
+    Logger.set(appModule.fileLogger)
 
     try {
         appModule.appArguments.validate(args)
-    } catch (e: AppArguments.ValidationException) {
-        println(e.message)
-        exit(1)
-    }
+    } catch (e: ValidationException) {
+        Logger.d("Application arguments validation failed: ${e.message}")
 
-    val ui = newSingleThreadContext("UI")
+        stop(EXIT_CODE_ERROR, e.message)
+    }
 
     val handler = CoroutineExceptionHandler { _, t ->
-        Logger.d("TOP LEVEL CATCH! $t ${t.message}")
+        Logger.d("Exception in top-level handler: ${t.message}")
 
-        /*runBlocking {
-            appModule.appPresenter.stop()
-        }*/
+        stop(EXIT_CODE_ERROR, t.message)
 
-        println("${t.message}")
+        Logger.d("Exit handler")
     }
+
+
 
     runBlocking(ui) {
-        //he key takeaway is that if you call launch on a custom CoroutineScope, any CoroutineExceptionHandler provided
-        // directly to the CoroutineScope constructor or to launch will be executed when an exception is thrown within the launched coroutine.
-        val appJob = CoroutineScope(ui).launch(handler) {
-            with(appModule) {
-                Logger.set(fileLogger)
+        appJob = CoroutineScope(ui).launch(handler) {
 
-                appPresenter.start()
-                input.start()
+            appModule.appPresenter.start()
+            appModule.input.start()
 
-                input
-                    .keypresses
-                    .filter {
-                        Keymap.bindings[it] == Actions.QUIT
-                    }
-                    .onEach {
-                        Logger.d("${context()} Cancel scope")
+            appModule.input
+                .keypresses
+                .filter {
+                    Keymap.bindings[it] == QUIT
+                }
+                .onEach {
+                    Logger.d("${context()} User quits the application")
 
-                        appPresenter.stop()
-                        coroutineContext.cancelChildren()
-                    }
-                    .launchIn(this@launch)
-            }
+                    appModule.appPresenter.stop()
+                    coroutineContext.cancelChildren()
+                }
+                .onCompletion {
+                    Logger.d("Inpt compl")
+                }
+                .launchIn(this@launch)
+
+            Logger.d("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
         }
         appJob.join()
+        Logger.d("Joined app job")
     }
 
+    Logger.d("BEFORE STOP")
 
+    stop(0)
+
+    Logger.d("AFTER STOP")
+    ui.close()
+    Logger.d("UI.close complete")
+
+    exit(0)
+}
+
+
+fun stop(exitCode: Int, exitMessage: String? = null) {
+    Logger.d("EXIT APP WITH STOP")
+
+    runBlocking {
+        appModule.appPresenter.stop()
+    }
+
+    //appJob.cancel()
+
+    Logger.d("Close ui, ${appJob.isActive} ${appJob.isCancelled}, ${appJob.isCompleted}")
 
     ui.close()
-    //close presenter
-    //exit with nonzero upon exception
 
-    Logger.d("Exit!")
-    Logger.close()
+    Logger.d("Exit the application with code $exitCode")
+    //Logger.close()
+
+    exitMessage?.let {
+        println(it)
+    }
+
+    //exit(exitCode)
 }

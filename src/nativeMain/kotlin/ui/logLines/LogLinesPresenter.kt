@@ -49,7 +49,9 @@ class LogLinesPresenter(
     }
 
     override suspend fun stop() {
-        view.stop()
+        if (this::view.isInitialized) {
+            view.stop()
+        }
     }
 
     private suspend fun collectAutoscroll() {

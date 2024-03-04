@@ -60,7 +60,9 @@ class LogLines(
     }
 
     suspend fun stop() {
-        scope.cancel()
+        if (this::scope.isInitialized) {
+            scope.cancel()
+        }
     }
 
     private fun transformItem() = { buffer: List<LogLine>, item: LogLine ->
