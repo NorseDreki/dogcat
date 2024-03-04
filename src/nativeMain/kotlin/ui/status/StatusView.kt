@@ -32,7 +32,7 @@ class StatusView : HasLifecycle {
     )
 
     var state: State by Delegates.observable(State()) { _, _, newValue ->
-        Logger.d(">>>>>>>>>>>----- Device label ${newValue.deviceLabel}")
+        Logger.d(">>>>>>>>>>>----- UPDATE STATUS VIEW STATE,  Device label ${newValue.deviceLabel}")
         updateView(newValue)
     }
 

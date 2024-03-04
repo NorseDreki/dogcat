@@ -11,9 +11,12 @@ import com.norsedreki.dogcat.state.DogcatState.Inactive
 import com.norsedreki.dogcat.state.LogFiltersState
 import com.norsedreki.logger.Logger
 import com.norsedreki.logger.context
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.SharingStarted.Companion.Lazily
+import kotlinx.coroutines.launch
+import kotlin.coroutines.coroutineContext
+import kotlin.test.fail
 
 class Dogcat(
     private val logLines: LogLines,
@@ -26,6 +29,8 @@ class Dogcat(
         .onCompletion {
             Logger.d("${context()} (5) COMPLETION, state")
         }
+
+    private lateinit var isDeviceOnline: Flow<Boolean>
 
     suspend operator fun invoke(command: Command) {
         Logger.d("${context()} Dogcat got command: $command")
@@ -77,10 +82,30 @@ class Dogcat(
     private suspend fun start(subcommand: Start) {
         shell.validateShellOrThrow()
 
+        if (this::isDeviceOnline.isInitialized) {
+            fail("Calling a 'Start' command is allowed only once")
+
+        }
+
+        val scope = CoroutineScope(coroutineContext)
+        isDeviceOnline = shell.isDeviceOnline().shareIn(scope, Lazily, 1)
+
+        scope.launch {
+            isDeviceOnline
+                .runningFold(true) { acc, value ->
+                    val isDeviceOnlineAgain = value && !acc
+
+                    if (isDeviceOnlineAgain) {
+                        stateSubject.emit(Inactive)
+                        captureLogLines()
+                    }
+                    value
+                }
+                .collect()
+        }
+
         when (subcommand) {
             is PickForegroundApp -> {
-                println("Resolving foreground app...")
-
                 val packageName = shell.foregroundPackageName()
                 val appId = shell.appIdFor(packageName)
 
@@ -91,8 +116,6 @@ class Dogcat(
 
             is PickAppPackage -> {
                 stateSubject.emit(Inactive)
-
-                println("Resolving app package...")
 
                 val packageName = subcommand.packageName
                 val appId = shell.appIdFor(packageName)
@@ -115,12 +138,9 @@ class Dogcat(
 
         val filterLines = logLines.capture(restartSource)
 
-        val label = shell.deviceName()
-        Logger.d("cll device name $label")
-
         val device = Device(
-            label,
-            shell.deviceRunning()
+            shell.deviceName(),
+            isDeviceOnline
         )
 
         val active = Active(

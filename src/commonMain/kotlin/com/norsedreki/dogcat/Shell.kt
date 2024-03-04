@@ -6,7 +6,7 @@ interface Shell {
 
     fun logLines(minLogLevel: String, appId: String) : Flow<String>
 
-    fun deviceRunning(): Flow<Boolean>
+    fun isDeviceOnline(): Flow<Boolean>
 
     suspend fun appIdFor(packageName: String): String
 

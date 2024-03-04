@@ -33,7 +33,6 @@ fun main(args: Array<String>) {
         runBlocking {
             appModule.appPresenter.stop()
         }
-
         println(e.message)
     }
 

@@ -35,6 +35,7 @@ class AdbShell(
                         listOf("-s", adbDevice, "logcat", "-v", "brief", appId, minLogLevel)
                     )
                     .stdout(Pipe)
+                    .stderr(Pipe)
                     .spawn()
             }
             //now handle stderror?
@@ -77,7 +78,9 @@ class AdbShell(
             .flowOn(dispatcherIo)
     }
 
-    override fun deviceRunning(): Flow<Boolean> = flow {
+    override fun isDeviceOnline(): Flow<Boolean> = flow {
+        Logger.d("!!!!!!!! NEW DEVICE RUNNING")
+
         repeat(Int.MAX_VALUE) {
 
             val name = callWithTimeout("123") {
@@ -103,9 +106,11 @@ class AdbShell(
 
             val running = name?.contains("running") ?: false
 
-            if (!running) {
+            /*if (!running) {
                 adbDevice = ""
-            }
+            }*/
+
+            Logger.d("RUNNING? $running")
 
             emit(running)
 
@@ -186,7 +191,11 @@ class AdbShell(
 
         Logger.d("deviceName $name $adbDevice")
 
-        return name ?: adbDevice //throw DogcatException("")
+        val result =
+            if (!name.isNullOrEmpty()) name
+            else adbDevice
+
+        return result
     }
 
     override suspend fun clearLogLines() {
@@ -241,6 +250,7 @@ class AdbShell(
                 .stdout(Pipe)
                 .status()
 
+            //maybe just invoking this would be enough for ADB test
             adbDevice = firstRunningDevice()
 
             status

@@ -65,12 +65,13 @@ class StatusPresenter(
                 }
 
                 Logger.d("Pres active device label: ${it.device.label}")
+                Logger.d(">>>>>>>>>>>----- UPDATE STATUS VIEW STATE,  DogcatState $it")
 
                 view.state = view.state.copy(
                     filters = filters,
                     autoscroll = appState.state.value.autoscroll,
                     deviceLabel = it.device.label,
-                    isDeviceOnline = true
+                    isDeviceOnline = it.device.isOnline.first()
                 )
             }
             .collect()
@@ -103,6 +104,7 @@ class StatusPresenter(
                     ""
                 }
 
+                Logger.d(">>>>>>>>>>>----- UPDATE STATUS VIEW STATE,  App state $it")
                 view.state = view.state.copy(
                     packageName = packageName,
                     autoscroll = it.autoscroll,
@@ -122,6 +124,7 @@ class StatusPresenter(
             .flatMapLatest { it.device.isOnline }
             .distinctUntilChanged()
             .onEach {
+                Logger.d(">>>>>>>>>>>----- UPDATE STATUS VIEW STATE,  Device status $it")
                 view.state = view.state.copy(isDeviceOnline = it)
             }
             .collect()

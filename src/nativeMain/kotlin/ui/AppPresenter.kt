@@ -35,8 +35,18 @@ class AppPresenter(
 
     override suspend fun start() {
         when {
-            appArguments.packageName != null -> dogcat(PickAppPackage(appArguments.packageName!!))
-            appArguments.current == true -> dogcat(PickForegroundApp)
+            appArguments.packageName != null -> {
+                println("Resolving app package...")
+
+                dogcat(PickAppPackage(appArguments.packageName!!))
+            }
+
+            appArguments.current == true -> {
+                println("Resolving foreground app...")
+
+                dogcat(PickForegroundApp)
+            }
+
             else -> dogcat(PickAllApps)
         }
 
@@ -100,7 +110,11 @@ class AppPresenter(
                     dogcat(ResetFilter(ByPackage::class))
 
                 } else if (packageFilter.first != null) {
-                    dogcat(PickAppPackage(packageFilter.first!!.packageName))
+                    val packageName = packageFilter.first!!.packageName
+                    val appId = packageFilter.first!!.appId
+
+                    dogcat(FilterBy(ByPackage(packageName, appId)))
+
                     appState.filterByPackage(packageFilter.first, true)
                 }
             }
