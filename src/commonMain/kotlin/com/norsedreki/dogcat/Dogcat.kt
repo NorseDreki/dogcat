@@ -79,6 +79,8 @@ class Dogcat(
 
         when (subcommand) {
             is PickForegroundApp -> {
+                println("Resolving foreground app...")
+
                 val packageName = shell.foregroundPackageName()
                 val appId = shell.appIdFor(packageName)
 
@@ -89,6 +91,8 @@ class Dogcat(
 
             is PickAppPackage -> {
                 stateSubject.emit(Inactive)
+
+                println("Resolving app package...")
 
                 val packageName = subcommand.packageName
                 val appId = shell.appIdFor(packageName)

@@ -5,21 +5,17 @@ import di.AppModule
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import platform.posix.exit
 import userInput.AppArguments.ValidationException
 import userInput.Keymap
 import userInput.Keymap.Actions.QUIT
 
-val appModule = AppModule()
-
 @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
-val ui = newSingleThreadContext("UI")
-
-lateinit var appJob: Job
-
 fun main(args: Array<String>) {
+    var exitCode = EXIT_CODE_ERROR
+
+    val appModule = AppModule()
     Logger.set(appModule.fileLogger)
 
     try {
@@ -27,21 +23,24 @@ fun main(args: Array<String>) {
     } catch (e: ValidationException) {
         Logger.d("Application arguments validation failed: ${e.message}")
 
-        stop(EXIT_CODE_ERROR, e.message)
+        println(e.message)
+        exit(exitCode)
     }
 
-    val handler = CoroutineExceptionHandler { _, t ->
-        Logger.d("Exception in top-level handler: ${t.message}")
+    val handler = CoroutineExceptionHandler { _, e ->
+        Logger.d("Exception in top-level handler: ${e.message}")
 
-        stop(EXIT_CODE_ERROR, t.message)
+        runBlocking {
+            appModule.appPresenter.stop()
+        }
 
-        Logger.d("Exit handler")
+        println(e.message)
     }
 
-
+    val ui = newSingleThreadContext("UI")
 
     runBlocking(ui) {
-        appJob = CoroutineScope(ui).launch(handler) {
+        val appJob = CoroutineScope(ui).launch(handler) {
 
             appModule.appPresenter.start()
             appModule.input.start()
@@ -56,49 +55,18 @@ fun main(args: Array<String>) {
 
                     appModule.appPresenter.stop()
                     coroutineContext.cancelChildren()
-                }
-                .onCompletion {
-                    Logger.d("Inpt compl")
+
+                    exitCode = 0
                 }
                 .launchIn(this@launch)
-
-            Logger.d("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
         }
         appJob.join()
-        Logger.d("Joined app job")
     }
-
-    Logger.d("BEFORE STOP")
-
-    stop(0)
-
-    Logger.d("AFTER STOP")
-    ui.close()
-    Logger.d("UI.close complete")
-
-    exit(0)
-}
-
-
-fun stop(exitCode: Int, exitMessage: String? = null) {
-    Logger.d("EXIT APP WITH STOP")
-
-    runBlocking {
-        appModule.appPresenter.stop()
-    }
-
-    //appJob.cancel()
-
-    Logger.d("Close ui, ${appJob.isActive} ${appJob.isCancelled}, ${appJob.isCompleted}")
 
     ui.close()
 
-    Logger.d("Exit the application with code $exitCode")
-    //Logger.close()
+    Logger.d("Exiting the application with code $exitCode")
+    Logger.close()
 
-    exitMessage?.let {
-        println(it)
-    }
-
-    //exit(exitCode)
+    exit(exitCode)
 }
