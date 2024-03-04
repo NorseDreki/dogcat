@@ -6,7 +6,6 @@ import com.norsedreki.dogcat.Dogcat
 import com.norsedreki.dogcat.LogFilter.ByPackage
 import com.norsedreki.dogcat.LogFilter.Substring
 import com.norsedreki.dogcat.state.DogcatState.Active
-import com.norsedreki.logger.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
@@ -57,15 +56,12 @@ class StatusPresenter(
             .state
             .filterIsInstance<Active>()
             .mapLatest { it }
-            .onEach {
+            .collect {
                 val filters = it.filters.first()
 
                 filters[ByPackage::class]?.let {
                     appState.filterByPackage(it as ByPackage, true)
                 }
-
-                Logger.d("Pres active device label: ${it.device.label}")
-                Logger.d(">>>>>>>>>>>----- UPDATE STATUS VIEW STATE,  DogcatState $it")
 
                 view.state = view.state.copy(
                     filters = filters,
@@ -74,46 +70,32 @@ class StatusPresenter(
                     isDeviceOnline = it.device.isOnline.first()
                 )
             }
-            .collect()
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun collectUserStringInput() {
-        //or just allow for filtering since lines are already cached in sharedLines?
-        // it's already allowed
-        dogcat
-            .state
-            .filterIsInstance<Active>()
-            .flatMapLatest { it.device.isOnline }
-            .filter { it }
-            .distinctUntilChanged()
-            .flatMapLatest { input.strings }
-            .onEach {
+        input.strings
+            .collect {
                 dogcat(FilterBy(Substring(it)))
             }
-            .collect()
     }
 
     private suspend fun collectAppState() {
         appState
             .state
-            .onEach {
+            .collect {
                 val packageName = if (it.packageFilter.second) {
                     it.packageFilter.first!!.packageName
                 } else {
                     ""
                 }
 
-                Logger.d(">>>>>>>>>>>----- UPDATE STATUS VIEW STATE,  App state $it")
                 view.state = view.state.copy(
                     packageName = packageName,
                     autoscroll = it.autoscroll,
                     isCursorHeld = it.isCursorHeld,
                     cursorReturnLocation = it.inputFilterLocation
                 )
-
             }
-            .collect()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -123,10 +105,8 @@ class StatusPresenter(
             .filterIsInstance<Active>()
             .flatMapLatest { it.device.isOnline }
             .distinctUntilChanged()
-            .onEach {
-                Logger.d(">>>>>>>>>>>----- UPDATE STATUS VIEW STATE,  Device status $it")
+            .collect {
                 view.state = view.state.copy(isDeviceOnline = it)
             }
-            .collect()
     }
 }

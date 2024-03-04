@@ -4,11 +4,11 @@ import AppConfig.STATUS_VIEW_AUTOSCROLL_LEFT_MARGIN
 import AppConfig.STATUS_VIEW_BOTTOM_MARGIN
 import com.norsedreki.dogcat.LogFilter.*
 import com.norsedreki.dogcat.state.LogFilters
-import com.norsedreki.logger.Logger
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
-import ui.CommonColors.*
+import ui.CommonColors.BLACK_ON_WHITE
+import ui.CommonColors.RED_ON_WHITE
 import ui.HasLifecycle
 import ui.Strings
 import ui.Strings.ALL_APPS
@@ -32,7 +32,6 @@ class StatusView : HasLifecycle {
     )
 
     var state: State by Delegates.observable(State()) { _, _, newValue ->
-        Logger.d(">>>>>>>>>>>----- UPDATE STATUS VIEW STATE,  Device label ${newValue.deviceLabel}")
         updateView(newValue)
     }
 
@@ -44,9 +43,7 @@ class StatusView : HasLifecycle {
     }
 
     override suspend fun stop() {
-//        if (this::window.isInitialized) {
-            delwin(window)
- //       }
+        delwin(window)
     }
 
     private fun updateView(n: State) {

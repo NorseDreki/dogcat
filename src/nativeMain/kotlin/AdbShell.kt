@@ -38,7 +38,6 @@ class AdbShell(
                     .stderr(Pipe)
                     .spawn()
             }
-            //now handle stderror?
 
             val stdoutReader = logcat.bufferedStdout()
                 ?: throw DogcatException("Error in a dependent library, could not get STDOUT of ADB Logcat")
@@ -79,8 +78,6 @@ class AdbShell(
     }
 
     override fun isDeviceOnline(): Flow<Boolean> = flow {
-        Logger.d("!!!!!!!! NEW DEVICE RUNNING")
-
         repeat(Int.MAX_VALUE) {
 
             val name = callWithTimeout("123") {
