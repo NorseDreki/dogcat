@@ -6,6 +6,7 @@ import com.norsedreki.dogcat.Brief
 import com.norsedreki.dogcat.LogLevel.*
 import com.norsedreki.dogcat.LogLine
 import com.norsedreki.dogcat.Unparseable
+import com.norsedreki.logger.Logger
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.yield
 import ncurses.*
@@ -36,7 +37,9 @@ suspend fun LogLinesView.processLogLine(
 
     val wrappedLine = wrapLine(line)
     val wrapped = wrappedLine.first
-    recordLine(wrappedLine.second)
+    val count = wrappedLine.second
+
+    recordLine(count)
 
     when (val level = logLine.level) {
         W -> {
@@ -64,12 +67,20 @@ suspend fun LogLinesView.processLogLine(
     if (state.autoscroll) {
         //handle a case when current lines take less than a screen
         //end()
-        if (linesCount < pageSize) {
+
+        val f = state.overscroll && linesCount - firstVisibleLine <= pageSize
+
+        if (linesCount < pageSize || f) {
+            Logger.d("REFRESH with autoscroll $f")
             refresh()
         } else {
-            lineDown(wrappedLine.second) //batch calls in order not to draw each line
+            lineDown(count) //batch calls in order not to draw each line
         }
     } else {
+        if (state.overscroll) {
+            if (firstVisibleLine >= count) firstVisibleLine -= count
+        }
+        Logger.d("REFRESH: Process log line no autoscroll $firstVisibleLine")
         refresh()
     }
 

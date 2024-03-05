@@ -22,6 +22,7 @@ class LogLinesView : HasLifecycle {
 
     data class State(
         val autoscroll: Boolean = false,
+        val overscroll: Boolean = false,
         val showLineNumbers: Boolean = false,
         val tagWidth: Int = DEFAULT_TAG_WIDTH,
         val isCursorHeld: Boolean = false,
@@ -41,11 +42,13 @@ class LogLinesView : HasLifecycle {
     // '-1' in order to leave bottom line to cursor
     private val lastPageSize = pageSize - 1
 
+    //internal var overscroll = false
+
     init {
         scrollok(pad, true)
     }
 
-    private var firstVisibleLine = 0
+    internal var firstVisibleLine = 0
     internal var linesCount = 0
 
     override suspend fun start() {
@@ -81,6 +84,8 @@ class LogLinesView : HasLifecycle {
     }
 
     fun pageDown() {
+        if (state.overscroll && linesCount - firstVisibleLine <= pageSize * 2) return
+
         //maybe also hide cursor? sometimes it appears at very bottom
 
         val num = min(pageSize, linesCount - firstVisibleLine)
@@ -102,7 +107,9 @@ class LogLinesView : HasLifecycle {
     }
 
     fun lineDown(count: Int) {
-        if (firstVisibleLine == linesCount) return
+        //if (overscroll && linesCount - firstVisibleLine <= pageSize) return
+
+        if (firstVisibleLine >= linesCount) return
 
         curs_set(0)
         firstVisibleLine += count
@@ -140,6 +147,12 @@ class LogLinesView : HasLifecycle {
 
     //draw fake cursor
     internal fun refresh() {
+        /*Logger.d("REFRESH: FVL $firstVisibleLine")
+
+        if (overscroll) {
+            if (firstVisibleLine > 0) firstVisibleLine--
+        }*/
+
         val notSeeingLastLine = firstVisibleLine <= linesCount - pageSize
 
         if (state.isCursorHeld) {
@@ -170,7 +183,12 @@ class LogLinesView : HasLifecycle {
         linesCount += count
 
         if (linesCount >= MAX_LOG_LINES) {
+            //state.overscroll = true
+
+            state = state.copy(overscroll = true)
+
             linesCount = MAX_LOG_LINES - 1
+            //firstVisibleLine = linesCount - pageSize
         }
     }
 }

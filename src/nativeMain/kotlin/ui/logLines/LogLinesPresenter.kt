@@ -87,6 +87,10 @@ class LogLinesPresenter(
                     is Active -> {
                         Logger.d("${context()} Start capturing log lines")
 
+                        view.state = view.state.copy(
+                            overscroll = false
+                        )
+
                         it.lines
                     }
 
