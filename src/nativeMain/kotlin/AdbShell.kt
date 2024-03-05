@@ -26,6 +26,7 @@ class AdbShell(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun logLines(minLogLevel: String, appId: String): Flow<String> {
+
         return flow {
             Logger.d("${context()} Starting ADB Logcat")
 
@@ -102,12 +103,6 @@ class AdbShell(
                 error: could not connect to TCP port 555512: Connection refused*/
 
             val running = name?.contains("running") ?: false
-
-            /*if (!running) {
-                adbDevice = ""
-            }*/
-
-            Logger.d("RUNNING? $running")
 
             emit(running)
 
@@ -258,9 +253,7 @@ class AdbShell(
         }
     }
 
-    private suspend fun <T> callWithTimeout(errorPrefix: String, command: suspend CoroutineScope.() -> T): T {
-        val m = "Android Debug Bridge (ADB), a part of Android"
-
+    private suspend fun <T> callWithTimeout(errorMessage: String, command: suspend CoroutineScope.() -> T): T {
         return try {
             withContext(dispatcherIo) {
                 withTimeout(COMMAND_TIMEOUT_MILLIS) {
@@ -268,9 +261,10 @@ class AdbShell(
                 }
             }
         } catch (e: KommandException) {
-            throw DogcatException(errorPrefix, e)
+            throw DogcatException(errorMessage, e)
+
         } catch (e: TimeoutCancellationException) {
-            throw DogcatException(errorPrefix, e)
+            throw DogcatException(errorMessage, e)
         }
     }
 

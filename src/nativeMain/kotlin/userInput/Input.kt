@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import ncurses.*
 import ui.HasLifecycle
 import ui.Strings.INPUT_FILTER_PREFIX
+import userInput.Keymap.Actions.INPUT_FILTER_BY_SUBSTRING
 import kotlin.coroutines.coroutineContext
 
 interface Input : HasLifecycle {
@@ -58,7 +59,7 @@ class DefaultInput(
                         continue
                     }
 
-                    if (Keymap.bindings[key] == Keymap.Actions.INPUT_FILTER_BY_SUBSTRING && !inputMode) {
+                    if (Keymap.bindings[key] == INPUT_FILTER_BY_SUBSTRING && !inputMode) {
                         appState.holdCursor(true)
                         inputMode = true
 

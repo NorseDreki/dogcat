@@ -59,7 +59,7 @@ class LogLines(
             .flowOn(dispatcherCpu)
     }
 
-    suspend fun stop() {
+    fun stop() {
         if (this::scope.isInitialized) {
             scope.cancel()
         }

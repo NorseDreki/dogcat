@@ -81,28 +81,7 @@ class Dogcat(
 
     private suspend fun start(subcommand: Start) {
         shell.validateShellOrThrow()
-
-        if (this::isDeviceOnline.isInitialized) {
-            fail("Calling a 'Start' command is allowed only once")
-
-        }
-
-        val scope = CoroutineScope(coroutineContext)
-        isDeviceOnline = shell.isDeviceOnline().shareIn(scope, Lazily, 1)
-
-        scope.launch {
-            isDeviceOnline
-                .runningFold(true) { acc, value ->
-                    val isDeviceOnlineAgain = value && !acc
-
-                    if (isDeviceOnlineAgain) {
-                        stateSubject.emit(Inactive)
-                        captureLogLines()
-                    }
-                    value
-                }
-                .collect()
-        }
+        collectDeviceOnline()
 
         when (subcommand) {
             is PickForegroundApp -> {
@@ -131,6 +110,30 @@ class Dogcat(
         }
 
         captureLogLines()
+    }
+
+    private suspend fun collectDeviceOnline() {
+        if (this::isDeviceOnline.isInitialized) {
+            fail("Calling a 'Start' command is allowed only once")
+
+        }
+
+        val scope = CoroutineScope(coroutineContext)
+        isDeviceOnline = shell.isDeviceOnline().shareIn(scope, Lazily, 1)
+
+        scope.launch {
+            isDeviceOnline
+                .runningFold(true) { acc, value ->
+                    val isDeviceOnlineAgain = value && !acc
+
+                    if (isDeviceOnlineAgain) {
+                        stateSubject.emit(Inactive)
+                        captureLogLines()
+                    }
+                    value
+                }
+                .collect()
+        }
     }
 
     private suspend fun captureLogLines(restartSource: Boolean = true) {
