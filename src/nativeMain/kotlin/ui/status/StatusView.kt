@@ -55,7 +55,6 @@ class StatusView : HasLifecycle {
 
         wrefresh(window)
 
-        //do not return if alreadey in place
         if (state.isCursorHeld) {
             val x = state.cursorReturnLocation!!.first
             val y = state.cursorReturnLocation.second

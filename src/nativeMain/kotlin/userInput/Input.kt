@@ -37,96 +37,110 @@ class DefaultInput(
     private var inputMode = false
     private var inputBuffer = StringBuilder()
 
+    private val inputX = INPUT_FILTER_PREFIX.length
+
+    @OptIn(ExperimentalForeignApi::class)
+    private val inputY by lazy { getmaxy(stdscr) - 1 }
+
+    private var cursorPosition = inputX
+
     @OptIn(ExperimentalForeignApi::class)
     override suspend fun start() {
-
         CoroutineScope(coroutineContext)
             .launch {
-                val x = INPUT_FILTER_PREFIX.length
-                val y = getmaxy(stdscr) - 1
-
-                appState.setUserInputLocation(x, y)
-                var cursorPosition = x
-                mvwprintw(stdscr, y, 0, INPUT_FILTER_PREFIX)
+                appState.setUserInputLocation(inputX, inputY)
+                mvwprintw(stdscr, inputY, 0, INPUT_FILTER_PREFIX)
 
                 while (isActive) {
                     val key = wgetch(stdscr)
 
                     if (key == ERR) {
                         delay(INPUT_KEY_DELAY_MILLIS)
-
                         continue
                     }
 
                     if (Keymap.bindings[key] == INPUT_FILTER_BY_SUBSTRING && !inputMode) {
-                        appState.holdCursor(true)
-                        inputMode = true
-
-                        wmove(stdscr, y, x)
-                        wclrtoeol(stdscr)
-
-                        wmove(stdscr, y, cursorPosition)
-                        curs_set(1)
-                        wrefresh(stdscr)
-
+                        enterInputMode()
                         continue
                     }
 
-                    // limit max input
                     if (inputMode) {
-                        when (key) {
-                            KEY_LEFT -> {
-                                if (cursorPosition - x > 0) cursorPosition--
-                            }
-                            KEY_RIGHT -> {
-                                if (cursorPosition - x < inputBuffer.length) cursorPosition++
-                            }
-                            KEY_BACKSPACE, 127 -> {
-                                if (cursorPosition - x > 0) {
-                                    inputBuffer.deleteAt(cursorPosition - x - 1)
-                                    cursorPosition--
-
-                                    mvdelch(y, cursorPosition)
-                                }
-                            }
-                            '\n'.code -> {
-                                val input = inputBuffer.toString()
-                                inputBuffer.clear()
-                                cursorPosition = x
-                                curs_set(0)
-
-                                inputMode = false
-                                appState.holdCursor(false)
-
-                                stringsSubject.emit(input)
-                            }
-                            27 -> { // ESCAPE
-                                mvwprintw(stdscr, y, x, " ".repeat(inputBuffer.length))
-
-                                inputBuffer.clear()
-                                cursorPosition = x
-                            }
-
-                            else -> {
-                                val char = key.toChar()
-
-                                if (char in ' '..'~') {
-                                    inputBuffer.insert(cursorPosition - x, char)
-                                    mvaddch(y, cursorPosition, key.toUInt())
-
-                                    cursorPosition++
-                                }
-                            }
-                        }
-                        wmove(stdscr, y, cursorPosition)
-                        appState.setUserInputLocation(cursorPosition, y)
-
+                        processKeyInInputMode(key)
                     } else {
                         Logger.d("${context()} Process key $key")
                         keypressesSubject.emit(key)
                     }
                 }
             }
+    }
+
+    @OptIn(ExperimentalForeignApi::class)
+    private fun enterInputMode() {
+        appState.holdCursor(true)
+        inputMode = true
+
+        wmove(stdscr, inputY, inputX)
+        wclrtoeol(stdscr)
+
+        wmove(stdscr, inputY, cursorPosition)
+        curs_set(1)
+        wrefresh(stdscr)
+    }
+
+    @OptIn(ExperimentalForeignApi::class)
+    private suspend fun processKeyInInputMode(key: Int) {
+        when (key) {
+
+            KEY_LEFT -> {
+                if (cursorPosition - inputX > 0) cursorPosition--
+            }
+
+            KEY_RIGHT -> {
+                if (cursorPosition - inputX < inputBuffer.length) cursorPosition++
+            }
+
+            KEY_BACKSPACE, 127 -> {
+                if (cursorPosition - inputX > 0) {
+                    inputBuffer.deleteAt(cursorPosition - inputX - 1)
+                    cursorPosition--
+
+                    mvdelch(inputY, cursorPosition)
+                }
+            }
+
+            '\n'.code -> {
+                val input = inputBuffer.toString()
+                inputBuffer.clear()
+                cursorPosition = inputX
+                curs_set(0)
+
+                inputMode = false
+                appState.holdCursor(false)
+
+                stringsSubject.emit(input)
+            }
+
+            27 -> { // ESCAPE
+                mvwprintw(stdscr, inputY, inputX, " ".repeat(inputBuffer.length))
+
+                inputBuffer.clear()
+                cursorPosition = inputX
+            }
+
+            else -> {
+                val char = key.toChar()
+
+                if (char in ' '..'~') {
+                    inputBuffer.insert(cursorPosition - inputX, char)
+                    mvaddch(inputY, cursorPosition, key.toUInt())
+
+                    cursorPosition++
+                }
+            }
+        }
+
+        wmove(stdscr, inputY, cursorPosition)
+        appState.setUserInputLocation(cursorPosition, inputY)
     }
 
     override suspend fun stop() {
