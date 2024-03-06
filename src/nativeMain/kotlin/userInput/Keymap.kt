@@ -11,7 +11,6 @@ object Keymap {
         'p'.code to AUTOSCROLL,
         'q'.code to QUIT,
 
-        //add escape to cancel filter
         'f'.code to INPUT_FILTER_BY_SUBSTRING,
 
         'a'.code to HOME,

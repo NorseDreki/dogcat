@@ -1,7 +1,6 @@
 package ui.logLines
 
 import AppConfig.LOG_LEVEL_WIDTH
-import AppConfig.LOG_LINE_ESCAPE_REGEX_STRING
 import com.norsedreki.dogcat.Brief
 import com.norsedreki.dogcat.LogLevel.*
 import com.norsedreki.dogcat.LogLine
@@ -13,75 +12,97 @@ import ui.CommonColors.*
 import kotlin.math.min
 
 @OptIn(ExperimentalForeignApi::class)
-suspend fun LogLinesView.processLogLine(
-    it: IndexedValue<LogLine>,
+suspend fun LogLinesView.printLogLine(
+    logLine: IndexedValue<LogLine>,
 ) {
-    if (it.value is Unparseable) {
+    if (logLine.value is Unparseable) {
+        // pad tag area
         printTag("")
+
+        // pad level area
         waddstr(pad, " ".repeat(LOG_LEVEL_WIDTH))
 
-        //account for end of line in the same way as in wrapline
-        waddstr(pad, (it.value as Unparseable).line + "\n")
-        recordLine(1)
+        // display unparseable log line in place of message
+        val line = (logLine.value as Unparseable).line
+        waddstr(pad, line + "\n")
 
+        incrementLinesCount(1)
         return
     }
 
-    val logLine = it.value as Brief //do not cast
-    printTag(logLine.tag)
+    val numLinesOnScreen = printBriefLogLine(logLine)
 
-    val line =
-        if (state.showLineNumbers) "-${it.index}- ${logLine.message}"
-        else logLine.message
+    refreshPrintedLine(numLinesOnScreen)
 
-    val wrappedLine = wrapLine(line)
-    val wrapped = wrappedLine.first
-    val count = wrappedLine.second
+    yield()
+}
 
-    recordLine(count)
+private fun LogLinesView.refreshPrintedLine(numLinesOnScreen: Int) {
+    if (state.autoscroll) {
 
-    when (val level = logLine.level) {
+        val isOverscrollWithinLastPage =
+            state.overscroll && linesCount - firstVisibleLine <= pageSize
+
+        if (linesCount < pageSize || isOverscrollWithinLastPage) {
+            refresh()
+        } else {
+            lineDown(numLinesOnScreen) //batch calls in order not to draw each line
+        }
+    } else {
+        if (state.overscroll) {
+            if (firstVisibleLine >= numLinesOnScreen)
+                firstVisibleLine -= numLinesOnScreen
+        }
+        refresh()
+    }
+}
+
+@OptIn(ExperimentalForeignApi::class)
+private fun LogLinesView.printBriefLogLine(
+    logLine: IndexedValue<LogLine>
+): Int {
+    val briefLogLine = logLine.value as Brief
+    printTag(briefLogLine.tag)
+
+    val message =
+        if (state.showLineNumbers) "-${logLine.index}- ${briefLogLine.message}"
+        else briefLogLine.message
+
+    val wrappedMessageAndCount = wrapLine(message)
+    val wrappedMessage = wrappedMessageAndCount.first
+    val linesCount = wrappedMessageAndCount.second
+
+    incrementLinesCount(linesCount)
+
+    when (val level = briefLogLine.level) {
         W -> {
             printLevelAndMessage(
                 level.name,
                 BLACK_ON_YELLOW.colorPairCode,
-                wrapped,
+                wrappedMessage,
                 COLOR_PAIR(YELLOW_ON_BG.colorPairCode)
             )
         }
 
         E, F -> {
-            printLevelAndMessage(level.name, BLACK_ON_RED.colorPairCode, wrapped, COLOR_PAIR(RED_ON_BG.colorPairCode))
+            printLevelAndMessage(
+                level.name,
+                BLACK_ON_RED.colorPairCode,
+                wrappedMessage,
+                COLOR_PAIR(RED_ON_BG.colorPairCode)
+            )
         }
 
         I -> {
-            printLevelAndMessage(level.name, BLACK_ON_WHITE.colorPairCode, wrapped, A_BOLD.toInt())
+            printLevelAndMessage(level.name, BLACK_ON_WHITE.colorPairCode, wrappedMessage, A_BOLD.toInt())
         }
 
         else -> {
-            printLevelAndMessage(level.name, BLACK_ON_WHITE.colorPairCode, wrapped, 0)
+            printLevelAndMessage(level.name, BLACK_ON_WHITE.colorPairCode, wrappedMessage, 0)
         }
     }
 
-    if (state.autoscroll) {
-        //handle a case when current lines take less than a screen
-        //end()
-
-        val f = state.overscroll && linesCount - firstVisibleLine <= pageSize
-
-        if (linesCount < pageSize || f) {
-            refresh()
-        } else {
-            lineDown(count) //batch calls in order not to draw each line
-        }
-    } else {
-        if (state.overscroll) {
-            if (firstVisibleLine >= count) firstVisibleLine -= count
-        }
-        refresh()
-    }
-
-    yield()
+    return linesCount
 }
 
 @OptIn(ExperimentalForeignApi::class)
@@ -108,11 +129,11 @@ private fun LogLinesView.printLevelAndMessage(
  * @return A pair of wrapped line (with correctly placed EOL) and number of screen lines it takes.
  */
 private fun LogLinesView.wrapLine(
-    message: String
+    inputLine: String
 ): Pair<String, Int> {
 
-    val escapeRegex = LOG_LINE_ESCAPE_REGEX_STRING.toRegex()
-    val line = message.replace(escapeRegex, " ")
+    val escapeRegex = """[\t\n\r\\b\f\v\a\e]""".toRegex()
+    val line = inputLine.replace(escapeRegex, " ")
 
     val width = endX
     val header = state.tagWidth + LOG_LEVEL_WIDTH
@@ -138,12 +159,12 @@ private fun LogLinesView.wrapLine(
 
     val fitsWidthPrecisely = (lineBuffer.length + header) % endX == 0
 
-    val lineBufferPlus =
+    val lineBufferResult =
         if (fitsWidthPrecisely) {
             lineBuffer
         } else {
             lineBuffer + "\n"
         }
 
-    return lineBufferPlus to linesCount
+    return lineBufferResult to linesCount
 }

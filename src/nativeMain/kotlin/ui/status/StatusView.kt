@@ -10,7 +10,6 @@ import ncurses.*
 import ui.CommonColors.BLACK_ON_WHITE
 import ui.CommonColors.RED_ON_WHITE
 import ui.HasLifecycle
-import ui.Strings
 import ui.Strings.ALL_APPS
 import ui.Strings.AUTOSCROLL
 import ui.Strings.INPUT_FILTER_PREFIX
@@ -47,19 +46,19 @@ class StatusView : HasLifecycle {
         delwin(window)
     }
 
-    private fun updateView(n: State) {
+    private fun updateView(state: State) {
         updateBackground()
-        updateDevice(n.deviceLabel, n.isDeviceOnline)
-        updatePackageName(n.packageName)
-        updateFilters(n.filters)
-        updateAutoscroll(n.autoscroll)
+        updateDevice(state.deviceLabel, state.isDeviceOnline)
+        updatePackageName(state.packageName)
+        updateFilters(state.filters)
+        updateAutoscroll(state.autoscroll)
 
         wrefresh(window)
 
         //do not return if alreadey in place
         if (state.isCursorHeld) {
             val x = state.cursorReturnLocation!!.first
-            val y = state.cursorReturnLocation!!.second
+            val y = state.cursorReturnLocation.second
 
             wmove(stdscr, y, x)
             curs_set(1)
@@ -80,11 +79,11 @@ class StatusView : HasLifecycle {
         filters.forEach {
             when (it.key) {
                 Substring::class -> {
-                    val fs = (it.value as Substring).substring
+                    val s = (it.value as Substring).substring
 
                     if (!state.isCursorHeld) {
                         wattroff(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
-                        mvwprintw(window, 1, INPUT_FILTER_PREFIX.length, fs)
+                        mvwprintw(window, 1, INPUT_FILTER_PREFIX.length, s)
 
                         wclrtoeol(window)
                         wattron(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
@@ -113,8 +112,8 @@ class StatusView : HasLifecycle {
     private fun updateAutoscroll(autoscroll: Boolean) {
         wattron(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
 
-        val a = if (autoscroll) AUTOSCROLL else NO_AUTOSCROLL
-        mvwprintw(window, 0, STATUS_VIEW_AUTOSCROLL_LEFT_MARGIN, a)
+        val s = if (autoscroll) AUTOSCROLL else NO_AUTOSCROLL
+        mvwprintw(window, 0, STATUS_VIEW_AUTOSCROLL_LEFT_MARGIN, s)
 
         wattroff(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
     }

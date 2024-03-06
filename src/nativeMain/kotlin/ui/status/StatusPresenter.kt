@@ -43,7 +43,6 @@ class StatusPresenter(
     }
 
     override suspend fun stop() {
-        //also cancel scope?
         if (this::view.isInitialized) {
             view.stop()
         }
@@ -82,17 +81,18 @@ class StatusPresenter(
         appState
             .state
             .collect {
-                val packageName = if (it.packageFilter.second) {
-                    it.packageFilter.first!!.packageName
-                } else {
-                    ""
-                }
+                val packageName =
+                    if (it.packageFilter.second) {
+                        it.packageFilter.first!!.packageName
+                    } else {
+                        ""
+                    }
 
                 view.state = view.state.copy(
                     packageName = packageName,
                     autoscroll = it.autoscroll,
                     isCursorHeld = it.isCursorHeld,
-                    cursorReturnLocation = it.inputFilterLocation
+                    cursorReturnLocation = it.userInputLocation
                 )
             }
     }

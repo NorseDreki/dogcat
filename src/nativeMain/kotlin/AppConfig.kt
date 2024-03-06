@@ -22,8 +22,6 @@ object AppConfig {
 
     const val LOG_LEVEL_WIDTH = 1 + 3 + 1 // space, level, space
 
-    const val LOG_LINE_ESCAPE_REGEX_STRING = """[\t\n\r\\b\f\v\a\e]"""
-
     const val DEFAULT_LOCALE = "en_US.UTF-8"
 
     const val EXIT_CODE_ERROR = 1

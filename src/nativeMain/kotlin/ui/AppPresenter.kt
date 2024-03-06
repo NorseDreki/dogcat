@@ -31,7 +31,7 @@ class AppPresenter(
     private val statusPresenter: StatusPresenter,
 ) : HasLifecycle {
 
-    private val view = AppView()
+    private lateinit var view: AppView
 
     override suspend fun start() {
         when {
@@ -50,6 +50,7 @@ class AppPresenter(
             else -> dogcat(PickAllApps)
         }
 
+        view = AppView()
         view.start()
 
         logLinesPresenter.start()
@@ -68,7 +69,9 @@ class AppPresenter(
         logLinesPresenter.stop()
         statusPresenter.stop()
 
-        view.stop()
+        if (this::view.isInitialized) {
+            view.stop()
+        }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

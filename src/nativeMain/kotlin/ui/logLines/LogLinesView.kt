@@ -4,7 +4,6 @@ import AppConfig.DEFAULT_TAG_WIDTH
 import AppConfig.LOG_LINES_VIEW_BOTTOM_MARGIN
 import com.norsedreki.dogcat.DogcatConfig.MAX_LOG_LINES
 import com.norsedreki.logger.Logger
-import com.norsedreki.logger.context
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
@@ -69,8 +68,6 @@ class LogLinesView : HasLifecycle {
             firstVisibleLine--
             refresh()
         }
-
-        Logger.d("Page Up by $pageSize, $firstVisibleLine")
     }
 
     fun pageDown() {
@@ -80,8 +77,6 @@ class LogLinesView : HasLifecycle {
             firstVisibleLine++
             refresh()
         }
-
-        Logger.d("Page Down by $pageSize, $firstVisibleLine")
     }
 
     fun lineUp() {
@@ -116,15 +111,15 @@ class LogLinesView : HasLifecycle {
 
         firstVisibleLine = linesCount - lastPageSize
         refresh()
-        Logger.d("End $firstVisibleLine")
+
+        Logger.d("End, FVL: $firstVisibleLine, page size: $pageSize")
     }
 
-    suspend fun clear() {
+    fun clear() {
         wclear(pad)
         linesCount = 0
         firstVisibleLine = 0
 
-        Logger.d("${context()} Cleared pad")
         refresh()
     }
 
@@ -135,12 +130,15 @@ class LogLinesView : HasLifecycle {
             curs_set(0)
         }
 
-        prefresh(pad, firstVisibleLine, 0, 0, 0, endY, endX)
         //call doupdate with pnoutrefresh
+        prefresh(pad, firstVisibleLine, 0, 0, 0, endY, endX)
 
         when {
             state.isCursorHeld -> {
-                wmove(stdscr, state.cursorReturnLocation!!.second, state.cursorReturnLocation!!.first)
+                val y = state.cursorReturnLocation!!.second
+                val x = state.cursorReturnLocation!!.first
+
+                wmove(stdscr, y, x)
                 curs_set(1)
                 wrefresh(stdscr)
             }
@@ -155,7 +153,7 @@ class LogLinesView : HasLifecycle {
         }
     }
 
-    internal fun recordLine(count: Int = 1) {
+    internal fun incrementLinesCount(count: Int = 1) {
         linesCount += count
 
         if (linesCount >= MAX_LOG_LINES) {

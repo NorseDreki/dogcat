@@ -1,7 +1,6 @@
 import com.norsedreki.dogcat.LogFilter.ByPackage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import com.norsedreki.logger.Logger
 
 data class AppStateHolder(
 
@@ -9,7 +8,7 @@ data class AppStateHolder(
 
     val packageFilter: Pair<ByPackage?, Boolean>,
 
-    val inputFilterLocation: Pair<Int, Int>,
+    val userInputLocation: Pair<Int, Int>,
 
     val isCursorHeld: Boolean,
 )
@@ -22,7 +21,7 @@ interface AppState {
 
     fun filterByPackage(f: ByPackage?, enable: Boolean)
 
-    fun setInputFilterLocation(x: Int, y: Int)
+    fun setUserInputLocation(x: Int, y: Int)
 
     fun holdCursor(hold: Boolean)
 }
@@ -46,8 +45,8 @@ class InternalAppState : AppState {
         state.value = state.value.copy(packageFilter = f to enable)
     }
 
-    override fun setInputFilterLocation(x: Int, y: Int) {
-        state.value = state.value.copy(inputFilterLocation = x to y)
+    override fun setUserInputLocation(x: Int, y: Int) {
+        state.value = state.value.copy(userInputLocation = x to y)
     }
 
     override fun holdCursor(hold: Boolean) {

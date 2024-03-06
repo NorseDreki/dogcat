@@ -60,10 +60,12 @@ private val KNOWN_TAG_COLORS = mutableMapOf(
 )
 
 @OptIn(ExperimentalForeignApi::class)
-private val TAG_COLOR_MAP = (LAST_USED_TAG_COLORS + KNOWN_TAG_COLORS.values)
-    .associateWith {
-        val nextColorPair = TAG_COLOR_PAIR_OFFSET + it
-        init_pair(nextColorPair.toShort(), it.toShort(), -1)
+private val TAG_COLOR_MAP by lazy {
+    (LAST_USED_TAG_COLORS + KNOWN_TAG_COLORS.values)
+        .associateWith {
+            val nextColorPair = TAG_COLOR_PAIR_OFFSET + it
+            init_pair(nextColorPair.toShort(), it.toShort(), -1)
 
-        nextColorPair
-    }
+            nextColorPair
+        }
+}

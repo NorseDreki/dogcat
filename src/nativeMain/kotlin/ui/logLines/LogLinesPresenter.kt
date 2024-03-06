@@ -72,7 +72,7 @@ class LogLinesPresenter(
                     showLineNumbers = appArguments.lineNumbers ?: false,
                     tagWidth = appArguments.tagWidth ?: DEFAULT_TAG_WIDTH,
                     isCursorHeld = it.isCursorHeld,
-                    cursorReturnLocation = it.inputFilterLocation
+                    cursorReturnLocation = it.userInputLocation
                 )
             }
     }
@@ -103,7 +103,7 @@ class LogLinesPresenter(
             }
             .buffer(0)
             .collect {
-                view.processLogLine(it)
+                view.printLogLine(it)
             }
     }
 
