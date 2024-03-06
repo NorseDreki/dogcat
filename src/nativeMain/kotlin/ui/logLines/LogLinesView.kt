@@ -3,22 +3,16 @@ package ui.logLines
 import AppConfig.DEFAULT_TAG_WIDTH
 import AppConfig.LOG_LINES_VIEW_BOTTOM_MARGIN
 import com.norsedreki.dogcat.DogcatConfig.MAX_LOG_LINES
-import kotlinx.cinterop.ExperimentalForeignApi
 import com.norsedreki.logger.Logger
 import com.norsedreki.logger.context
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
 import ui.HasLifecycle
 import kotlin.math.min
 
 @OptIn(ExperimentalForeignApi::class)
 class LogLinesView : HasLifecycle {
-
-    internal data class ViewPosition(
-        val startX: Int,
-        val startY: Int,
-        val endX: Int,
-        val endY: Int,
-    )
 
     data class State(
         val autoscroll: Boolean = false,
@@ -31,28 +25,24 @@ class LogLinesView : HasLifecycle {
 
     var state = State()
 
-    internal val sx = getmaxx(stdscr)
-    private val sy = getmaxy(stdscr)
-
-    internal val position = ViewPosition(0, 0, sx, sy - LOG_LINES_VIEW_BOTTOM_MARGIN)
-
-    internal val pad = newpad(MAX_LOG_LINES, position.endX)
-    internal val pageSize = position.endY - position.startY + 1
-
-    // '-1' in order to leave bottom line to cursor
-    private val lastPageSize = pageSize - 1
-
-    //internal var overscroll = false
-
-    init {
-        scrollok(pad, true)
-    }
-
     internal var firstVisibleLine = 0
     internal var linesCount = 0
 
+    internal lateinit var pad: CPointer<WINDOW>
+
+    internal val endX by lazy { getmaxx(stdscr) }
+    internal val pageSize by lazy { endY + 1 }
+
+    private val endY by lazy {
+        val sy = getmaxy(stdscr)
+        sy - LOG_LINES_VIEW_BOTTOM_MARGIN
+    }
+    private val lastPageSize by lazy { pageSize - 1 }
+
     override suspend fun start() {
-        TODO("Not yet implemented")
+        pad = newpad(MAX_LOG_LINES, endX)!!
+
+        scrollok(pad, true)
     }
 
     override suspend fun stop() {
@@ -84,10 +74,6 @@ class LogLinesView : HasLifecycle {
     }
 
     fun pageDown() {
-        if (state.overscroll && linesCount - firstVisibleLine <= pageSize * 2) return
-
-        //maybe also hide cursor? sometimes it appears at very bottom
-
         val num = min(pageSize, linesCount - firstVisibleLine)
 
         repeat(num) {
@@ -107,8 +93,6 @@ class LogLinesView : HasLifecycle {
     }
 
     fun lineDown(count: Int) {
-        //if (overscroll && linesCount - firstVisibleLine <= pageSize) return
-
         if (firstVisibleLine >= linesCount) return
 
         curs_set(0)
@@ -126,7 +110,6 @@ class LogLinesView : HasLifecycle {
     }
 
     fun end() {
-        //to few lines for page down, we are at beggining of log
         if (linesCount <= pageSize) {
             return
         }
@@ -145,21 +128,14 @@ class LogLinesView : HasLifecycle {
         refresh()
     }
 
-    //draw fake cursor
     internal fun refresh() {
-        /*Logger.d("REFRESH: FVL $firstVisibleLine")
-
-        if (overscroll) {
-            if (firstVisibleLine > 0) firstVisibleLine--
-        }*/
-
         val notSeeingLastLine = firstVisibleLine <= linesCount - pageSize
 
         if (state.isCursorHeld) {
             curs_set(0)
         }
 
-        prefresh(pad, firstVisibleLine, 0, position.startY, position.startX, position.endY, position.endX)
+        prefresh(pad, firstVisibleLine, 0, 0, 0, endY, endX)
         //call doupdate with pnoutrefresh
 
         when {
@@ -183,12 +159,9 @@ class LogLinesView : HasLifecycle {
         linesCount += count
 
         if (linesCount >= MAX_LOG_LINES) {
-            //state.overscroll = true
-
             state = state.copy(overscroll = true)
 
             linesCount = MAX_LOG_LINES - 1
-            //firstVisibleLine = linesCount - pageSize
         }
     }
 }

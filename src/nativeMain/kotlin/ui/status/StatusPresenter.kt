@@ -20,7 +20,6 @@ class StatusPresenter(
     private val input: Input
 ) : HasLifecycle {
 
-    //views can come and go, when input disappears
     private lateinit var view: StatusView
 
     override suspend fun start() {

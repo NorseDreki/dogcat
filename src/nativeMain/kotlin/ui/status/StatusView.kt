@@ -14,6 +14,7 @@ import ui.Strings
 import ui.Strings.ALL_APPS
 import ui.Strings.AUTOSCROLL
 import ui.Strings.INPUT_FILTER_PREFIX
+import ui.Strings.LOG_LEVEL_PREFIX
 import ui.Strings.NO_AUTOSCROLL
 import ui.Strings.SEPARATOR
 import kotlin.properties.Delegates
@@ -47,8 +48,6 @@ class StatusView : HasLifecycle {
     }
 
     private fun updateView(n: State) {
-        //Logger.d("UPDATE VIEW: $n")
-
         updateBackground()
         updateDevice(n.deviceLabel, n.isDeviceOnline)
         updatePackageName(n.packageName)
@@ -59,8 +58,10 @@ class StatusView : HasLifecycle {
 
         //do not return if alreadey in place
         if (state.isCursorHeld) {
-            //Logger.d("STATUS VIEW -- RETURN CURSOR")
-            wmove(stdscr, state.cursorReturnLocation!!.second, state.cursorReturnLocation!!.first)
+            val x = state.cursorReturnLocation!!.first
+            val y = state.cursorReturnLocation!!.second
+
+            wmove(stdscr, y, x)
             curs_set(1)
             wrefresh(stdscr)
         }
@@ -69,6 +70,7 @@ class StatusView : HasLifecycle {
     private fun updateBackground() {
         val sx = getmaxx(stdscr)
         wmove(window, 0, 0)
+
         wattron(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
         waddstr(window, " ".repeat(sx))
         wattroff(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
@@ -92,7 +94,9 @@ class StatusView : HasLifecycle {
                 MinLogLevel::class -> {
                     wattron(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
 
-                    val s = "${Strings.LOG_LEVEL_PREFIX}${(it.value as MinLogLevel).logLevel.readable.uppercase()}"
+                    val logLevelAllCap = (it.value as MinLogLevel).logLevel.label.uppercase()
+
+                    val s = "$LOG_LEVEL_PREFIX$logLevelAllCap"
                     mvwprintw(window, 0, 0, s)
 
                     wattroff(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))

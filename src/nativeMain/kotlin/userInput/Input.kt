@@ -18,6 +18,7 @@ import userInput.Keymap.Actions.INPUT_FILTER_BY_SUBSTRING
 import kotlin.coroutines.coroutineContext
 
 interface Input : HasLifecycle {
+
     val keypresses: Flow<Int>
 
     val strings: Flow<String>
@@ -39,15 +40,13 @@ class DefaultInput(
     @OptIn(ExperimentalForeignApi::class)
     override suspend fun start() {
 
-
         CoroutineScope(coroutineContext)
             .launch {
-                appState.setInputFilterLocation(INPUT_FILTER_PREFIX.length, getmaxy(stdscr) - 1)
-                val x = appState.state.value.inputFilterLocation.first
-                val y = appState.state.value.inputFilterLocation.second
+                val x = INPUT_FILTER_PREFIX.length
+                val y = getmaxy(stdscr) - 1
 
+                appState.setInputFilterLocation(x, y)
                 var cursorPosition = x
-
                 mvwprintw(stdscr, y, 0, INPUT_FILTER_PREFIX)
 
                 while (isActive) {
@@ -68,7 +67,6 @@ class DefaultInput(
 
                         wmove(stdscr, y, cursorPosition)
                         curs_set(1)
-
                         wrefresh(stdscr)
 
                         continue
@@ -77,30 +75,24 @@ class DefaultInput(
                     // limit max input
                     if (inputMode) {
                         when (key) {
-
                             KEY_LEFT -> {
                                 if (cursorPosition - x > 0) cursorPosition--
                             }
-
                             KEY_RIGHT -> {
                                 if (cursorPosition - x < inputBuffer.length) cursorPosition++
                             }
-
                             KEY_BACKSPACE, 127/*, KEY_DELETE*/ -> {
                                 if (cursorPosition - x > 0) {
                                     inputBuffer.deleteAt(cursorPosition - x - 1)
                                     cursorPosition--
 
-                                    //DEVICE on the right is blinking
                                     mvdelch(y, cursorPosition)
                                 }
                             }
-
                             '\n'.code -> {
                                 val input = inputBuffer.toString()
                                 inputBuffer.clear()
                                 cursorPosition = x
-                                //do not just disable, maybe log lines want it back
                                 curs_set(0)
 
                                 inputMode = false
@@ -108,7 +100,6 @@ class DefaultInput(
 
                                 stringsSubject.emit(input)
                             }
-
                             //add ESC support
 
                             else -> {

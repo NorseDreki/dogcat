@@ -25,12 +25,11 @@ class LogLinesPresenter(
     private val input: Input,
 ) : HasLifecycle {
 
-    //views can come and go, when input disappears
     private lateinit var view: LogLinesView
 
     override suspend fun start() {
         view = LogLinesView()
-        //view.start()
+        view.start()
 
         val scope = CoroutineScope(coroutineContext)
 
