@@ -45,7 +45,7 @@ class DefaultInput(
                 val x = INPUT_FILTER_PREFIX.length
                 val y = getmaxy(stdscr) - 1
 
-                appState.setInputFilterLocation(x, y)
+                appState.setUserInputLocation(x, y)
                 var cursorPosition = x
                 mvwprintw(stdscr, y, 0, INPUT_FILTER_PREFIX)
 
@@ -81,7 +81,7 @@ class DefaultInput(
                             KEY_RIGHT -> {
                                 if (cursorPosition - x < inputBuffer.length) cursorPosition++
                             }
-                            KEY_BACKSPACE, 127/*, KEY_DELETE*/ -> {
+                            KEY_BACKSPACE, 127 -> {
                                 if (cursorPosition - x > 0) {
                                     inputBuffer.deleteAt(cursorPosition - x - 1)
                                     cursorPosition--
@@ -100,7 +100,12 @@ class DefaultInput(
 
                                 stringsSubject.emit(input)
                             }
-                            //add ESC support
+                            27 -> { // ESCAPE
+                                mvwprintw(stdscr, y, x, " ".repeat(inputBuffer.length))
+
+                                inputBuffer.clear()
+                                cursorPosition = x
+                            }
 
                             else -> {
                                 val char = key.toChar()
@@ -114,7 +119,7 @@ class DefaultInput(
                             }
                         }
                         wmove(stdscr, y, cursorPosition)
-                        appState.setInputFilterLocation(cursorPosition, y)
+                        appState.setUserInputLocation(cursorPosition, y)
 
                     } else {
                         Logger.d("${context()} Process key $key")
