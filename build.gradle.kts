@@ -60,53 +60,32 @@ kotlin {
         }
     }
 
-//    applyDefaultHierarchyTemplate()
-
+    applyDefaultHierarchyTemplate()
 
     sourceSets {
         val commonMain by getting {
             dependencies {
-                //extract version numbers to TOML
-                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-                api("org.kodein.di:kodein-di:7.20.2")
+                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+                api("org.kodein.di:kodein-di:7.21.2")
             }
         }
 
-        val nativeMain by creating {
+        val nativeMain by getting {
             dependencies {
                 implementation("com.kgit2:kommand:2.0.1")
                 implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.6")
             }
         }
-        val nativeTest by creating {
+        val nativeTest by getting {
             dependencies {
-                //or api()??
                 implementation(kotlin("test"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
 
                 implementation("io.kotest:kotest-assertions-core:5.6.2")
                 implementation("app.cash.turbine:turbine:1.0.0")
                 implementation("io.mockative:mockative:1.4.1")
-                implementation("org.kodein.di:kodein-di:7.20.2")
-
-                /*implementation(kotlin("test-common"))
-                implementation(kotlin("test-annotations-common"))
-                implementation(Libs.kotest("assertions-core"))*/
+                implementation("org.kodein.di:kodein-di:7.21.2")
             }
         }
-
-        /*val commonTest by getting {
-            dependencies {
-                api(kotlin("test"))
-                api("io.kotest:kotest-assertions-core:4.5.0")
-            }
-        }
-
-        val commonTest by getting {
-            dependencies {
-                implementation(libs.kotest.framework.engine)
-                implementation(libs.kotest.assertions.core)
-            }
-        }*/
     }
 }

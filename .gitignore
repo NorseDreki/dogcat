@@ -11,4 +11,4 @@ build/
 .DS_Store
 
 # to figure out a better placement for this guy
-/src/commonMain/kotlin/BuildConfig.kt
+/src/nativeMain/kotlin/com/norsedreki/dogcat/app/BuildConfig.kt
