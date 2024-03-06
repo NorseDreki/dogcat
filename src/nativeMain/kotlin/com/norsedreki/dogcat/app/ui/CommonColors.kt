@@ -1,4 +1,4 @@
-package ui
+package com.norsedreki.dogcat.app.ui
 
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*

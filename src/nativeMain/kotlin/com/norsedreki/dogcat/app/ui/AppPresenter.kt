@@ -1,6 +1,6 @@
-package ui
+package com.norsedreki.dogcat.app.ui
 
-import AppState
+import com.norsedreki.dogcat.app.AppState
 import com.norsedreki.dogcat.Command.*
 import com.norsedreki.dogcat.Command.Start.*
 import com.norsedreki.dogcat.Dogcat
@@ -14,12 +14,11 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
-import ui.logLines.LogLinesPresenter
-import ui.status.StatusPresenter
-import userInput.AppArguments
-import userInput.Input
-import userInput.Keymap
-import userInput.Keymap.Actions.*
+import com.norsedreki.dogcat.app.ui.logLines.LogLinesPresenter
+import com.norsedreki.dogcat.app.ui.status.StatusPresenter
+import com.norsedreki.dogcat.app.AppArguments
+import com.norsedreki.dogcat.app.Keymap
+import com.norsedreki.dogcat.app.Keymap.Actions.*
 import kotlin.coroutines.coroutineContext
 
 class AppPresenter(

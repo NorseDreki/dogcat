@@ -1,6 +1,6 @@
-package di
+package com.norsedreki.dogcat.app.di
 
-import AdbShell
+import com.norsedreki.dogcat.app.AdbShell
 import com.norsedreki.dogcat.*
 import com.norsedreki.dogcat.state.LogFiltersState
 import com.norsedreki.dogcat.state.DefaultLogFiltersState

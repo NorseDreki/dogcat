@@ -1,5 +1,7 @@
-import AppConfig.COMMAND_TIMEOUT_MILLIS
-import AppConfig.DEVICE_POLLING_PERIOD_MILLIS
+package com.norsedreki.dogcat.app
+
+import com.norsedreki.dogcat.app.AppConfig.COMMAND_TIMEOUT_MILLIS
+import com.norsedreki.dogcat.app.AppConfig.DEVICE_POLLING_PERIOD_MILLIS
 import com.kgit2.kommand.exception.KommandException
 import com.kgit2.kommand.process.Child
 import com.kgit2.kommand.process.Command

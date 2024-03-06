@@ -1,3 +1,5 @@
+package com.norsedreki.dogcat.app
+
 object AppConfig {
 
     const val INPUT_KEY_DELAY_MILLIS = 30L

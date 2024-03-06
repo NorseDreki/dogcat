@@ -1,15 +1,16 @@
-import AppConfig.EXIT_CODE_ERROR
+package com.norsedreki.dogcat.app
+
+import com.norsedreki.dogcat.app.AppConfig.EXIT_CODE_ERROR
 import com.norsedreki.logger.Logger
 import com.norsedreki.logger.context
-import di.AppModule
+import com.norsedreki.dogcat.app.di.AppModule
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import platform.posix.exit
-import userInput.AppArguments.ValidationException
-import userInput.Keymap
-import userInput.Keymap.Actions.QUIT
+import com.norsedreki.dogcat.app.AppArguments.ValidationException
+import com.norsedreki.dogcat.app.Keymap.Actions.QUIT
 
 @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
 fun main(args: Array<String>) {

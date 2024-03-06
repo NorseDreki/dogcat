@@ -1,4 +1,6 @@
-import AppConfig.APP_LOG_FILENAME
+package com.norsedreki.dogcat.app
+
+import com.norsedreki.dogcat.app.AppConfig.APP_LOG_FILENAME
 import com.norsedreki.logger.CanLog
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi

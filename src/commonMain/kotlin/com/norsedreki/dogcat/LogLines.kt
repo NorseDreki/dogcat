@@ -1,6 +1,5 @@
 package com.norsedreki.dogcat
 
-import com.norsedreki.bufferedTransform
 import com.norsedreki.dogcat.DogcatConfig.MAX_LOG_LINES
 import com.norsedreki.dogcat.LogFilter.*
 import com.norsedreki.dogcat.state.LogFiltersState

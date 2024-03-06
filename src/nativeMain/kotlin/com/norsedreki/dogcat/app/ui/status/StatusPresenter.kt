@@ -1,6 +1,6 @@
-package ui.status
+package com.norsedreki.dogcat.app.ui.status
 
-import AppState
+import com.norsedreki.dogcat.app.AppState
 import com.norsedreki.dogcat.Command.FilterBy
 import com.norsedreki.dogcat.Dogcat
 import com.norsedreki.dogcat.LogFilter.ByPackage
@@ -10,8 +10,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import ui.HasLifecycle
-import userInput.Input
+import com.norsedreki.dogcat.app.ui.HasLifecycle
+import com.norsedreki.dogcat.app.ui.Input
 import kotlin.coroutines.coroutineContext
 
 class StatusPresenter(

@@ -1,6 +1,6 @@
-package userInput
+package com.norsedreki.dogcat.app
 
-import userInput.Keymap.Actions.*
+import com.norsedreki.dogcat.app.Keymap.Actions.*
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
 

@@ -1,4 +1,4 @@
-package com.norsedreki
+package com.norsedreki.dogcat
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow

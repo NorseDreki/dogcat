@@ -25,7 +25,7 @@ kotlin {
     nativeTarget.apply {
         binaries {
             executable {
-                entryPoint = "main"
+                entryPoint = "com.norsedreki.dogcat.app.main"
             }
         }
         compilations["main"].cinterops {
@@ -36,12 +36,14 @@ kotlin {
 
     val generateBuildConfig by tasks.registering {
         doLast {
-            val file = file("src/commonMain/kotlin/BuildConfig.kt")
+            val file = file("src/nativeMain/kotlin/com/norsedreki/dogcat/app/BuildConfig.kt")
             val isDebug = System.getenv("DEBUG")?.toBoolean() ?: false
 
             file.writeText(
                 """
                 // This file is generated. Refer to build.gradle.kts to see how.
+                package com.norsedreki.dogcat.app
+                
                 object BuildConfig {
                     const val DEBUG = $isDebug
                 }

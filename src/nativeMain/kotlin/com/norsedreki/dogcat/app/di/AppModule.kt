@@ -1,22 +1,18 @@
-package di
+package com.norsedreki.dogcat.app.di
 
-import AppState
-import BuildConfig
-import FileLogger
-import InternalAppState
-import di.DogcatModule.dogcatModule
-import kotlinx.cli.ArgParser
+import com.norsedreki.dogcat.app.*
+import com.norsedreki.dogcat.app.di.DogcatModule.dogcatModule
+import com.norsedreki.dogcat.app.ui.AppPresenter
+import com.norsedreki.dogcat.app.ui.DefaultInput
+import com.norsedreki.dogcat.app.ui.Input
+import com.norsedreki.dogcat.app.ui.logLines.LogLinesPresenter
+import com.norsedreki.dogcat.app.ui.status.StatusPresenter
 import com.norsedreki.logger.CanLog
 import com.norsedreki.logger.NoOpLogger
+import kotlinx.cli.ArgParser
 import org.kodein.di.DI
 import org.kodein.di.bindSingleton
 import org.kodein.di.instance
-import ui.AppPresenter
-import ui.logLines.LogLinesPresenter
-import ui.status.StatusPresenter
-import userInput.AppArguments
-import userInput.DefaultInput
-import userInput.Input
 
 class AppModule {
 

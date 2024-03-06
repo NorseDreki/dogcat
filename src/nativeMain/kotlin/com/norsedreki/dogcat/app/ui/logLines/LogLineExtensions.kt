@@ -1,6 +1,6 @@
-package ui.logLines
+package com.norsedreki.dogcat.app.ui.logLines
 
-import AppConfig.LOG_LEVEL_WIDTH
+import com.norsedreki.dogcat.app.AppConfig.LOG_LEVEL_WIDTH
 import com.norsedreki.dogcat.Brief
 import com.norsedreki.dogcat.LogLevel.*
 import com.norsedreki.dogcat.LogLine
@@ -8,7 +8,7 @@ import com.norsedreki.dogcat.Unparseable
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.yield
 import ncurses.*
-import ui.CommonColors.*
+import com.norsedreki.dogcat.app.ui.CommonColors.*
 import kotlin.math.min
 
 @OptIn(ExperimentalForeignApi::class)

@@ -1,7 +1,7 @@
-package userInput
+package com.norsedreki.dogcat.app
 
-import AppConfig.DEFAULT_TAG_WIDTH
-import AppConfig.MAX_TAG_WIDTH
+import com.norsedreki.dogcat.app.AppConfig.DEFAULT_TAG_WIDTH
+import com.norsedreki.dogcat.app.AppConfig.MAX_TAG_WIDTH
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.optional

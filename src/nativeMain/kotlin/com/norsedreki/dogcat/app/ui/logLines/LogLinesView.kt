@@ -1,13 +1,13 @@
-package ui.logLines
+package com.norsedreki.dogcat.app.ui.logLines
 
-import AppConfig.DEFAULT_TAG_WIDTH
-import AppConfig.LOG_LINES_VIEW_BOTTOM_MARGIN
+import com.norsedreki.dogcat.app.AppConfig.DEFAULT_TAG_WIDTH
+import com.norsedreki.dogcat.app.AppConfig.LOG_LINES_VIEW_BOTTOM_MARGIN
 import com.norsedreki.dogcat.DogcatConfig.MAX_LOG_LINES
 import com.norsedreki.logger.Logger
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
-import ui.HasLifecycle
+import com.norsedreki.dogcat.app.ui.HasLifecycle
 import kotlin.math.min
 
 @OptIn(ExperimentalForeignApi::class)

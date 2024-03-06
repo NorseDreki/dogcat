@@ -1,7 +1,7 @@
-package userInput
+package com.norsedreki.dogcat.app.ui
 
-import AppConfig.INPUT_KEY_DELAY_MILLIS
-import AppState
+import com.norsedreki.dogcat.app.AppConfig.INPUT_KEY_DELAY_MILLIS
+import com.norsedreki.dogcat.app.AppState
 import com.norsedreki.logger.Logger
 import com.norsedreki.logger.context
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -12,9 +12,9 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import ncurses.*
-import ui.HasLifecycle
-import ui.Strings.INPUT_FILTER_PREFIX
-import userInput.Keymap.Actions.INPUT_FILTER_BY_SUBSTRING
+import com.norsedreki.dogcat.app.ui.Strings.INPUT_FILTER_PREFIX
+import com.norsedreki.dogcat.app.Keymap
+import com.norsedreki.dogcat.app.Keymap.Actions.INPUT_FILTER_BY_SUBSTRING
 import kotlin.coroutines.coroutineContext
 
 interface Input : HasLifecycle {

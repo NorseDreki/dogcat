@@ -1,21 +1,21 @@
-package ui.status
+package com.norsedreki.dogcat.app.ui.status
 
-import AppConfig.STATUS_VIEW_AUTOSCROLL_LEFT_MARGIN
-import AppConfig.STATUS_VIEW_BOTTOM_MARGIN
+import com.norsedreki.dogcat.app.AppConfig.STATUS_VIEW_AUTOSCROLL_LEFT_MARGIN
+import com.norsedreki.dogcat.app.AppConfig.STATUS_VIEW_BOTTOM_MARGIN
 import com.norsedreki.dogcat.LogFilter.*
 import com.norsedreki.dogcat.state.LogFilters
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
-import ui.CommonColors.BLACK_ON_WHITE
-import ui.CommonColors.RED_ON_WHITE
-import ui.HasLifecycle
-import ui.Strings.ALL_APPS
-import ui.Strings.AUTOSCROLL
-import ui.Strings.INPUT_FILTER_PREFIX
-import ui.Strings.LOG_LEVEL_PREFIX
-import ui.Strings.NO_AUTOSCROLL
-import ui.Strings.SEPARATOR
+import com.norsedreki.dogcat.app.ui.CommonColors.BLACK_ON_WHITE
+import com.norsedreki.dogcat.app.ui.CommonColors.RED_ON_WHITE
+import com.norsedreki.dogcat.app.ui.HasLifecycle
+import com.norsedreki.dogcat.app.ui.Strings.ALL_APPS
+import com.norsedreki.dogcat.app.ui.Strings.AUTOSCROLL
+import com.norsedreki.dogcat.app.ui.Strings.INPUT_FILTER_PREFIX
+import com.norsedreki.dogcat.app.ui.Strings.LOG_LEVEL_PREFIX
+import com.norsedreki.dogcat.app.ui.Strings.NO_AUTOSCROLL
+import com.norsedreki.dogcat.app.ui.Strings.SEPARATOR
 import kotlin.properties.Delegates
 
 @OptIn(ExperimentalForeignApi::class)

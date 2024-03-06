@@ -1,6 +1,6 @@
-package ui
+package com.norsedreki.dogcat.app.ui
 
-import AppConfig.DEFAULT_LOCALE
+import com.norsedreki.dogcat.app.AppConfig.DEFAULT_LOCALE
 import com.norsedreki.dogcat.DogcatException
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*

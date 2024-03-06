@@ -1,3 +1,5 @@
+package com.norsedreki.dogcat.app
+
 import com.norsedreki.dogcat.LogFilter.ByPackage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

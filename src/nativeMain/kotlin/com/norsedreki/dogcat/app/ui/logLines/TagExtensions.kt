@@ -1,6 +1,6 @@
-package ui.logLines
+package com.norsedreki.dogcat.app.ui.logLines
 
-import AppConfig.TAG_COLOR_PAIR_OFFSET
+import com.norsedreki.dogcat.app.AppConfig.TAG_COLOR_PAIR_OFFSET
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
 

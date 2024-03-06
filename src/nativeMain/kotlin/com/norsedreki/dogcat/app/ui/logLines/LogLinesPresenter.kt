@@ -1,7 +1,7 @@
-package ui.logLines
+package com.norsedreki.dogcat.app.ui.logLines
 
-import AppConfig.DEFAULT_TAG_WIDTH
-import AppState
+import com.norsedreki.dogcat.app.AppConfig.DEFAULT_TAG_WIDTH
+import com.norsedreki.dogcat.app.AppState
 import com.norsedreki.dogcat.Dogcat
 import com.norsedreki.dogcat.state.DogcatState.Active
 import com.norsedreki.dogcat.state.DogcatState.Inactive
@@ -11,11 +11,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import ui.HasLifecycle
-import userInput.AppArguments
-import userInput.Input
-import userInput.Keymap
-import userInput.Keymap.Actions.*
+import com.norsedreki.dogcat.app.ui.HasLifecycle
+import com.norsedreki.dogcat.app.AppArguments
+import com.norsedreki.dogcat.app.ui.Input
+import com.norsedreki.dogcat.app.Keymap
+import com.norsedreki.dogcat.app.Keymap.Actions.*
 import kotlin.coroutines.coroutineContext
 
 class LogLinesPresenter(
