@@ -1,4 +1,4 @@
-package com.norsedreki.dogcat.app.ui
+package com.norsedreki.dogcat.app.ui.app
 
 import com.norsedreki.dogcat.app.AppState
 import com.norsedreki.dogcat.Command.*
@@ -19,6 +19,8 @@ import com.norsedreki.dogcat.app.ui.status.StatusPresenter
 import com.norsedreki.dogcat.app.AppArguments
 import com.norsedreki.dogcat.app.Keymap
 import com.norsedreki.dogcat.app.Keymap.Actions.*
+import com.norsedreki.dogcat.app.ui.HasLifecycle
+import com.norsedreki.dogcat.app.ui.Input
 import kotlin.coroutines.coroutineContext
 
 class AppPresenter(

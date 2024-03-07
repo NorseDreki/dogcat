@@ -1,7 +1,9 @@
-package com.norsedreki.dogcat.app.ui
+package com.norsedreki.dogcat.app.ui.app
 
 import com.norsedreki.dogcat.app.AppConfig.DEFAULT_LOCALE
 import com.norsedreki.dogcat.DogcatException
+import com.norsedreki.dogcat.app.ui.CommonColors
+import com.norsedreki.dogcat.app.ui.HasLifecycle
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.*
 import platform.posix.LC_ALL

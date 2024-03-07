@@ -2,7 +2,7 @@ package com.norsedreki.dogcat.app.di
 
 import com.norsedreki.dogcat.app.*
 import com.norsedreki.dogcat.app.di.DogcatModule.dogcatModule
-import com.norsedreki.dogcat.app.ui.AppPresenter
+import com.norsedreki.dogcat.app.ui.app.AppPresenter
 import com.norsedreki.dogcat.app.ui.DefaultInput
 import com.norsedreki.dogcat.app.ui.Input
 import com.norsedreki.dogcat.app.ui.logLines.LogLinesPresenter

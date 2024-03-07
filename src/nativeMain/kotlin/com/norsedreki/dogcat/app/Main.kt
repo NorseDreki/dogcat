@@ -1,16 +1,16 @@
 package com.norsedreki.dogcat.app
 
+import com.norsedreki.dogcat.app.AppArguments.ValidationException
 import com.norsedreki.dogcat.app.AppConfig.EXIT_CODE_ERROR
+import com.norsedreki.dogcat.app.Keymap.Actions.QUIT
+import com.norsedreki.dogcat.app.di.AppModule
 import com.norsedreki.logger.Logger
 import com.norsedreki.logger.context
-import com.norsedreki.dogcat.app.di.AppModule
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import platform.posix.exit
-import com.norsedreki.dogcat.app.AppArguments.ValidationException
-import com.norsedreki.dogcat.app.Keymap.Actions.QUIT
 
 @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
 fun main(args: Array<String>) {
@@ -24,7 +24,6 @@ fun main(args: Array<String>) {
     } catch (e: ValidationException) {
         Logger.d("Application arguments validation failed: ${e.message}")
 
-        println(e.message)
         exit(exitCode)
     }
 
@@ -34,7 +33,15 @@ fun main(args: Array<String>) {
         runBlocking {
             appModule.appPresenter.stop()
         }
-        println(e.message)
+
+        val causeMessage = e.cause?.message
+        val cause = ", cause: $causeMessage"
+
+        val message =
+            if (causeMessage != null) e.message + cause
+            else e.message
+
+        println(message)
     }
 
     val ui = newSingleThreadContext("UI")

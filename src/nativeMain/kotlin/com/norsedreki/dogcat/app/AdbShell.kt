@@ -32,7 +32,7 @@ class AdbShell(
         return flow {
             Logger.d("${context()} Starting ADB Logcat")
 
-            val logcat = callWithTimeout("Could not start ADB Logcat") {
+            val logcat = callWithTimeout("Failed to start ADB Logcat to get log lines") {
                 Command("adb")
                     .args(
                         listOf("-s", adbDevice, "logcat", "-v", "brief", appId, minLogLevel)
@@ -83,7 +83,9 @@ class AdbShell(
     override fun isDeviceOnline(): Flow<Boolean> = flow {
         repeat(Int.MAX_VALUE) {
 
-            val name = callWithTimeout("123") {
+            val name = callWithTimeout("Failed to get running status of device, " +
+                    "make sure an emulator or a phone is connected") {
+
                 Command("adb")
                     .args(
                         listOf("-s", adbDevice, "emu", "avd", "status")
@@ -95,17 +97,7 @@ class AdbShell(
                     ?.first()
             }
 
-            //maybe catch and ignore exceptions, or ignore some part
-
-            /*➜  tools adb -s emulator-5554 emu avd name
-                error: could not connect to TCP port 5554: Connection refused
-            ➜  tools adb -s emulator-5555 emu avd name
-                error: could not connect to TCP port 5555: Connection refused
-            ➜  tools adb -s emulator-555512 emu avd name
-                error: could not connect to TCP port 555512: Connection refused*/
-
             val running = name?.contains("running") ?: false
-
             emit(running)
 
             delay(DEVICE_POLLING_PERIOD_MILLIS)
@@ -117,7 +109,7 @@ class AdbShell(
         val appIdContext =
             """Packages:\R\s+Package\s+\[$packageName]\s+\(.*\):\R\s+(?:appId|userId)=(\d*)""".toRegex()
 
-        val output = callWithTimeout("123") {
+        val output = callWithTimeout("Failed to start ADB to get a dump of installed applications") {
             Command("adb")
                 .args(
                     listOf("-s", adbDevice, "shell", "dumpsys", "package")
@@ -137,13 +129,14 @@ class AdbShell(
         }
 
         return appId
-            ?: throw DogcatException("App ID is not found for the package '$packageName'. Package is not installed on device.")
+            ?: throw DogcatException("App ID is not found for the package '$packageName'. " +
+                    "Looks like this package is not installed on device.")
     }
 
     override suspend fun foregroundPackageName(): String {
         val packageNamePattern = """^ +ResumedActivity: +ActivityRecord\{[^ ]* [^ ]* ([^ ^/]*).*$""".toRegex()
 
-        val child = callWithTimeout("Could not get a dump of running activities") {
+        val child = callWithTimeout("Failed to start ADB to get a dump of running activities") {
             Command("adb")
                 .args(
                     listOf("-s", adbDevice, "shell", "dumpsys", "activity", "activities")
@@ -152,7 +145,8 @@ class AdbShell(
                 .spawn()
         }
         var packageName: String? = null
-        val stdoutReader = child.bufferedStdout() ?: throw DogcatException("!!!!!!!!")
+        val stdoutReader = child.bufferedStdout()
+            ?: throw DogcatException("Error in a dependent library, could not get STDOUT of ADB Logcat")
 
         while (coroutineContext.isActive) {
             val line = stdoutReader.readLine() ?: break
@@ -167,11 +161,12 @@ class AdbShell(
         }
         child.shutdownSafely()
 
-        return packageName ?: throw DogcatException("Didn't find running process")
+        return packageName ?: throw DogcatException("Failed to find foreground activity, " +
+                "consider running without '--current' argument instead")
     }
 
     override suspend fun deviceName(): String {
-        val name = callWithTimeout("Couldn't get label for $adbDevice") {
+        val name = callWithTimeout("Failed to start ADB to get a name for '$adbDevice'") {
             Command("adb")
                 .args(
                     listOf("-s", adbDevice, "emu", "avd", "name")
@@ -183,8 +178,6 @@ class AdbShell(
                 ?.first()
         }
 
-        Logger.d("deviceName $name $adbDevice")
-
         val result =
             if (!name.isNullOrEmpty()) name
             else adbDevice
@@ -193,7 +186,7 @@ class AdbShell(
     }
 
     override suspend fun clearLogLines() {
-        val exitCode = callWithTimeout("Could not clear logcat") {
+        val exitCode = callWithTimeout("Failed to start ADB and clear logs") {
             Command("adb")
                 .args(
                     listOf("-s", adbDevice, "logcat", "-c")
@@ -202,14 +195,14 @@ class AdbShell(
         }
 
         if (exitCode != 0) {
-            throw DogcatException("Could not clear logcat, exit code: $exitCode")
+            throw DogcatException("Failed to clear logs of Logcat, exit code: $exitCode")
         }
 
-        Logger.d("${context()} Exit code for 'adb logcat -c': ${exitCode}")
+        Logger.d("${context()} Exit code for 'adb logcat -c': $exitCode")
     }
 
     override suspend fun firstRunningDevice(): String {
-        val output = callWithTimeout("Could not get first running device") {
+        val output = callWithTimeout("Failed to start ADB to get a list of running devices") {
             Command("adb")
                 .args(
                     listOf("devices")
@@ -229,13 +222,15 @@ class AdbShell(
                         null
                     }
                 }
-        } ?: throw DogcatException("ADB returned no running devices")
+        } ?: throw DogcatException("Looks like no device is running, consider starting an emulator or connecting a phone")
 
         return device
     }
 
     override suspend fun validateShellOrThrow() {
-        val m = "Android Debug Bridge (ADB), a part of Android"
+        val m = "Android Debug Bridge (ADB), a part of Android SDK, is not found. Please install Android SDK " +
+                "and make sure to add its installation location to the \$PATH environment variable"
+
         val returnStatus = callWithTimeout(m) {
             val status = Command("adb")
                 .args(
@@ -251,7 +246,7 @@ class AdbShell(
         }
 
         if (returnStatus != 0) {
-            throw DogcatException("Android Debug Bridge (ADB) is found but returned an error code $returnStatus.")
+            throw DogcatException("Android Debug Bridge (ADB) is found but returned an error: $returnStatus.")
         }
     }
 
