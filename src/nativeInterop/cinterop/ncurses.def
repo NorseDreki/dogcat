@@ -6,7 +6,7 @@ linkerOpts.osx = -L/usr/local/opt/ncurses/lib -lncurses
 #libraryPaths = /usr/local/opt/ncurses/lib/
 #staticLibraries = libncurses.a
 
-compilerOpts.linux = -I/usr/include
+compilerOpts.linux = -I/usr/include -I/usr/include/x86_64-linux-gnu
 linkerOpts.linux = -L/usr/lib/x86_64-linux-gnu -lncurses -ltinfo --allow-shlib-undefined
 
 #compilerOpts.linux = -I/usr/include -I/usr/include/ncurses -I/usr/include/x86_64-linux-gnu
