@@ -62,6 +62,8 @@ kotlin {
 
     applyDefaultHierarchyTemplate()
 
+    //# ADD VERSION to help output!!
+
     sourceSets {
         val commonMain by getting {
             dependencies {

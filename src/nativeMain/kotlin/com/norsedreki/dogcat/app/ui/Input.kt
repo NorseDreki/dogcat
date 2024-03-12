@@ -133,7 +133,7 @@ class DefaultInput(
                 if (char in ' '..'~') {
                     inputBuffer.insert(cursorPosition - inputX, char)
 
-                    mvaddch(inputY, cursorPosition, key.toUInt())
+                    //mvaddch(inputY, cursorPosition, key.toUInt())
 
                     cursorPosition++
                 }
