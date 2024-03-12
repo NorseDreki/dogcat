@@ -7,7 +7,7 @@ linkerOpts.osx = -L/usr/local/opt/ncurses/lib -lncurses
 #staticLibraries = libncurses.a
 
 compilerOpts.linux = -I/usr/include -I/usr/include/x86_64-linux-gnu
-linkerOpts.linux = -L/usr/lib/x86_64-linux-gnu -lncurses -ltinfo --allow-shlib-undefined -dy --stats --trace --unresolved-symbols ignore-all
+linkerOpts.linux = -L/usr/lib/x86_64-linux-gnu -lncurses -ltinfo --allow-shlib-undefined -dy --stats --verbose --unresolved-symbols=ignore-all
 #--verbose
 #--unresolved-symbols ignore-all,report-all,ignore-in-object-files,ignore-in-shared-libs
 
