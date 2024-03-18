@@ -11,21 +11,72 @@ description: |
 #icon: htop.png
 #license: GPL-2.0
 
+license: "Apache-2.0"
 compression: lzo
 grade: stable # must be 'stable' to release into candidate/stable channels
-confinement: strict # use 'strict' once you have the right plugs and slots
+confinement: devmode # use 'strict' once you have the right plugs and slots
+#source-code: https://github.com/gohugoio/hugo.git
+#website: https://gohugo.io/
+
 
 architectures:
   - build-on: amd64
   - build-on: arm64
 
+#plugs:
+#  etc-foo:
+#    interface: system-files
+#    read:
+#      - /etc/foo
+
+
+#plugs:
+#  adb-support:
+#  process-control:
+#  network-bind:
+#  network:
+#  adb:
+#    interface: content
+#    target: $SNAP/usr/bin
+
+plugs:
+  usr-lib:
+    interface: system-files
+    read:
+      - /usr/lib/android-sdk/platform-tools
+
+#layout:
+#  /usr/bin:
+#    bind: $SNAP/usr/bin
+
+#environment:
+#  PATH: $SNAP/usr/bin
+
 apps:
   dogcat:
     command: dogcat.kexe
+    plugs:
+      - usr-lib
+      - adb-support
+      - process-control
+      - network
     environment:
       LANG: C.UTF-8
       LANGUAGE: C.UTF-8
       LC_ALL: C.UTF-8
+      PATH: $SNAP/usr/lib/android-sdk/platform-tools:$PATH
+      LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/usr/lib/x86_64-linux-gnu/android/
+
+  #adb:
+  #  command: usr/lib/x86_64-linux-gnu/android/adb
+  #  environment:
+  #    LD_LIBRARY_PATH: "$LD_LIBRARY_PATH:$SNAP/usr/x86_64-linux-gnu/android/"
+
+  #check:
+  #  command: /bin/adb devices
+
+  #adb:
+   # command: usr/bin/adb
 
 parts:
   dogcat:
@@ -45,6 +96,10 @@ parts:
       - libncurses-dev
     stage-packages:
       - libncurses6
+      #- android-libadb
+      #- android-sdk-platform-tools-common
+      #- android-libbase
+      - adb
     # 'organize:' stanza doesn't work, files are not renamed and not placed into target dirs
     # 'stage:' stanza doesn't work, files do exist under $SNAPCRAFT_PART_INSTALL but not copied to $SNAPCRAFT_STAGE
     # Thus, files need to be manually copied across snap steps.
