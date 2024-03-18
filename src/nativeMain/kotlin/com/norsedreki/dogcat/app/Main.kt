@@ -22,9 +22,25 @@ fun main(args: Array<String>) {
     try {
         appModule.appArguments.validate(args)
     } catch (e: ValidationException) {
-        Logger.d("Application arguments validation failed: ${e.message}")
+        println(e.message)
+
+        Logger.d("Arguments validation failed: ${e.message}")
 
         exit(exitCode)
+    }
+
+    if (appModule.appArguments.version == true) {
+        val c = '\u2026'
+
+        val m = """
+            ${c}Dogcat version ${BuildConfig.VERSION}
+            
+            A terminal-based Android Logcat reader with sane colouring
+            https://github.com/NorseDreki/dogcat
+        """.trimIndent()
+
+        println(m)
+        exit(0)
     }
 
     val handler = CoroutineExceptionHandler { _, e ->

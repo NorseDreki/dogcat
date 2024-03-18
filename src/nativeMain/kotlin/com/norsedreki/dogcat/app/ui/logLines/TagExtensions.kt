@@ -19,6 +19,7 @@ private fun LogLinesView.procrustes(tag: String) =
 
         tag.take(state.tagWidth / 2 - excess) +
                 Typography.ellipsis +
+                //"." +
                 tag.takeLast(state.tagWidth / 2)
     } else {
         tag.trim().padStart(state.tagWidth)

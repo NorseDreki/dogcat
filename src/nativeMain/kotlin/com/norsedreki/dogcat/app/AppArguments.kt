@@ -28,7 +28,7 @@ class AppArguments(
     val lineNumbers by parser.option(
         ArgType.Boolean,
         shortName = "ln",
-        description = "Show line numbers for log lines, embedded into message body,"
+        description = "Show line numbers for log lines, embedded into message body."
     )
 
     val tagWidth by parser.option(
@@ -36,6 +36,12 @@ class AppArguments(
         shortName = "tw",
         description = "Specify width for displaying log tags. Values between 1 and $MAX_TAG_WIDTH are accepted. " +
                 "Default value is $DEFAULT_TAG_WIDTH."
+    )
+
+    val version by parser.option(
+        ArgType.Boolean,
+        shortName = "v",
+        description = "Show version of this app."
     )
 
     fun validate(args: Array<String>) {

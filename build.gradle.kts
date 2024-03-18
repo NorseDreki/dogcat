@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.norsedreki"
-version = "0.1"
+version = "0.9-RC"
 
 repositories {
     mavenCentral()
@@ -46,6 +46,7 @@ kotlin {
                 
                 object BuildConfig {
                     const val DEBUG = $isDebug
+                    const val VERSION = "${project.version}"
                 }
                 """.trimIndent()
             )
@@ -62,11 +63,10 @@ kotlin {
 
     applyDefaultHierarchyTemplate()
 
-    //# ADD VERSION to help output!!
-
     sourceSets {
         val commonMain by getting {
             dependencies {
+                //https://developer.android.com/build/migrate-to-catalogs
                 api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
                 api("org.kodein.di:kodein-di:7.21.2")
             }
