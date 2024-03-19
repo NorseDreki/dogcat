@@ -44,6 +44,12 @@ class AppArguments(
         description = "Show version of this app."
     )
 
+    val printKeymap by parser.option(
+        ArgType.Boolean,
+        shortName = "pk",
+        description = "Show key bindings for the app."
+    )
+
     fun validate(args: Array<String>) {
         parser.parse(args)
 

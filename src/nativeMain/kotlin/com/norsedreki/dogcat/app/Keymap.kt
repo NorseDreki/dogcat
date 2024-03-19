@@ -13,7 +13,7 @@ object Keymap {
 
         'f'.code to INPUT_FILTER_BY_SUBSTRING,
 
-        'a'.code to HOME,
+        'e'.code to HOME,
         KEY_HOME to HOME,
         'd'.code to END,
         KEY_END to END,

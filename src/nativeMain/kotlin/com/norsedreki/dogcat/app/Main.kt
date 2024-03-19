@@ -34,13 +34,23 @@ fun main(args: Array<String>) {
         val c = '\u2026'
 
         val m = """
-            ${c}Dogcat version ${BuildConfig.VERSION}
+            ${c}Dogcat version ${BuildConfig.VERSION} by Alex Dmitriev ()
             
             A terminal-based Android Logcat reader with sane colouring
             https://github.com/NorseDreki/dogcat
         """.trimIndent()
 
         println(m)
+        exit(0)
+    }
+
+    if (appModule.appArguments.printKeymap == true) {
+        Keymap.bindings
+            .entries
+            .forEach {
+                println("${it.value.name} -- '${Char(it.key)}'")
+            }
+
         exit(0)
     }
 
