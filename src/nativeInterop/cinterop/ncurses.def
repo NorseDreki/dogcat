@@ -2,7 +2,7 @@ headers = ncurses.h
 headerFilter = ncurses.h
 
 compilerOpts.osx = -I/usr/local/opt/ncurses/include
-linkerOpts.osx = -L/usr/local/opt/ncurses/lib -lncurses
+linkerOpts.osx = -L/usr/local/opt/ncurses/lib -lncursesw
 #libraryPaths = /usr/local/opt/ncurses/lib/
 #staticLibraries = libncurses.a
 

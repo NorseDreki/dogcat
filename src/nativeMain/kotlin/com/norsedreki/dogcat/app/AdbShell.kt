@@ -1,13 +1,13 @@
 package com.norsedreki.dogcat.app
 
-import com.norsedreki.dogcat.app.AppConfig.COMMAND_TIMEOUT_MILLIS
-import com.norsedreki.dogcat.app.AppConfig.DEVICE_POLLING_PERIOD_MILLIS
 import com.kgit2.kommand.exception.KommandException
 import com.kgit2.kommand.process.Child
 import com.kgit2.kommand.process.Command
 import com.kgit2.kommand.process.Stdio.Pipe
 import com.norsedreki.dogcat.DogcatException
 import com.norsedreki.dogcat.Shell
+import com.norsedreki.dogcat.app.AppConfig.COMMAND_TIMEOUT_MILLIS
+import com.norsedreki.dogcat.app.AppConfig.DEVICE_POLLING_PERIOD_MILLIS
 import com.norsedreki.logger.Logger
 import com.norsedreki.logger.context
 import kotlinx.coroutines.*
@@ -83,8 +83,18 @@ class AdbShell(
     override fun isDeviceOnline(): Flow<Boolean> = flow {
         repeat(Int.MAX_VALUE) {
 
-            val name = callWithTimeout("Failed to get running status of device, " +
-                    "make sure an emulator or a phone is connected") {
+            try {
+                firstRunningDevice()
+                emit(true)
+
+            } catch (e: DogcatException) {
+                emit(false)
+            }
+
+            /*val name = callWithTimeout(
+                "Failed to get running status of device, " +
+                        "make sure an emulator or a device is connected"
+            ) {
 
                 Command("adb")
                     .args(
@@ -98,7 +108,7 @@ class AdbShell(
             }
 
             val running = name?.contains("running") ?: false
-            emit(running)
+            emit(running)*/
 
             delay(DEVICE_POLLING_PERIOD_MILLIS)
         }
@@ -129,8 +139,10 @@ class AdbShell(
         }
 
         return appId
-            ?: throw DogcatException("App ID is not found for the package '$packageName'. " +
-                    "Looks like this package is not installed on device.")
+            ?: throw DogcatException(
+                "App ID is not found for the package '$packageName'. " +
+                        "Looks like this package is not installed on device."
+            )
     }
 
     override suspend fun foregroundPackageName(): String {
@@ -161,8 +173,10 @@ class AdbShell(
         }
         child.shutdownSafely()
 
-        return packageName ?: throw DogcatException("Failed to find foreground activity, " +
-                "consider running without '--current' argument instead")
+        return packageName ?: throw DogcatException(
+            "Failed to find foreground activity, " +
+                    "consider running without '--current' argument instead"
+        )
     }
 
     override suspend fun deviceName(): String {
@@ -215,14 +229,19 @@ class AdbShell(
                 .firstNotNullOfOrNull {
                     val parts = it.split("\t")
 
-                    if (parts.size == 2 && parts[1] == "device") {
-                        // This is a running and healthy device
-                        parts[0]
-                    } else {
-                        null
+                    when {
+                        parts.size < 2 -> null
+                        parts[1] == "device" -> parts[0]
+                        parts[1] == "unauthorized" ->
+                            throw DogcatException("Pending authorization, please refer to your device screen and grant a request for USB debugging")
+
+                        parts[1] == "offline" ->
+                            throw DogcatException("Device is detected, but is in offline state")
+
+                        else -> null
                     }
                 }
-        } ?: throw DogcatException("Looks like no device is running, consider starting an emulator or connecting a phone")
+        } ?: throw DogcatException("Device is not running or offline, consider starting an emulator or connecting a phone")
 
         return device
     }

@@ -10,9 +10,9 @@ object AppConfig {
 
     const val APP_LOG_FILENAME = "debug.log"
 
-    const val COMMAND_TIMEOUT_MILLIS = 3000L
+    const val COMMAND_TIMEOUT_MILLIS = 5000L
 
-    const val DEVICE_POLLING_PERIOD_MILLIS = 1000L
+    const val DEVICE_POLLING_PERIOD_MILLIS = 1500L
 
     const val TAG_COLOR_PAIR_OFFSET = 100
 
