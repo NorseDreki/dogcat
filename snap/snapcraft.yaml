@@ -1,6 +1,6 @@
 name: dogcat # you probably want to 'snapcraft register <name>'
 base: core22
-version: '1.0'
+version: '0.9-RC'
 summary: Single-line elevator pitch for your amazing snap # 79 char long summary
 description: |
   This is my-snap's description. You have a paragraph or two to tell the
@@ -14,69 +14,23 @@ description: |
 license: "Apache-2.0"
 compression: lzo
 grade: stable # must be 'stable' to release into candidate/stable channels
-confinement: devmode # use 'strict' once you have the right plugs and slots
+confinement: strict # use 'strict' once you have the right plugs and slots
 #source-code: https://github.com/gohugoio/hugo.git
 #website: https://gohugo.io/
-
 
 architectures:
   - build-on: amd64
   - build-on: arm64
 
-#plugs:
-#  etc-foo:
-#    interface: system-files
-#    read:
-#      - /etc/foo
-
-
-#plugs:
-#  adb-support:
-#  process-control:
-#  network-bind:
-#  network:
-#  adb:
-#    interface: content
-#    target: $SNAP/usr/bin
-
-plugs:
-  usr-lib:
-    interface: system-files
-    read:
-      - /usr/lib/android-sdk/platform-tools
-
-#layout:
-#  /usr/bin:
-#    bind: $SNAP/usr/bin
-
-#environment:
-#  PATH: $SNAP/usr/bin
-
 apps:
   dogcat:
     command: dogcat.kexe
     plugs:
-      - usr-lib
       - adb-support
       - process-control
-      - network
     environment:
-      LANG: C.UTF-8
-      LANGUAGE: C.UTF-8
-      LC_ALL: C.UTF-8
       PATH: $SNAP/usr/lib/android-sdk/platform-tools:$PATH
-      LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/usr/lib/x86_64-linux-gnu/android/
-
-  #adb:
-  #  command: usr/lib/x86_64-linux-gnu/android/adb
-  #  environment:
-  #    LD_LIBRARY_PATH: "$LD_LIBRARY_PATH:$SNAP/usr/x86_64-linux-gnu/android/"
-
-  #check:
-  #  command: /bin/adb devices
-
-  #adb:
-   # command: usr/bin/adb
+      LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/android/
 
 parts:
   dogcat:
@@ -84,10 +38,22 @@ parts:
     source: https://github.com/NorseDreki/dogcat
     source-type: git
     source-branch: main
+    override-pull: |
+      ls
+      snapcraftctl pull
     # Having 'mv' as a separate command after './gradlew' would ignore that 'mv' command
     override-build: |
-      ./gradlew linkReleaseExecutableNativeLinuxX64 \
-      && mv build/bin/nativeLinuxX64/releaseExecutable/dogcat.kexe $SNAPCRAFT_STAGE
+      echo $CRAFT_ARCH_BUILD_FOR
+      if [[ "$CRAFT_ARCH_BUILD_FOR" == "amd64" ]]
+      then
+        ./gradlew linkReleaseExecutableNativeLinuxX64 -Djava.net.useSystemProxies=true \
+        && mv build/bin/nativeLinuxX64/releaseExecutable/dogcat.kexe $SNAPCRAFT_STAGE
+      fi
+      if [[ "$CRAFT_ARCH_BUILD_FOR" == "arm64" ]]
+      then
+        ./gradlew linkReleaseExecutableNativeLinuxArm64 -Djava.net.useSystemProxies=true \
+        && mv build/bin/nativeLinuxArm64/releaseExecutable/dogcat.kexe $SNAPCRAFT_STAGE
+      fi
     override-stage: |
       craftctl default
       mv dogcat.kexe $SNAPCRAFT_PRIME
@@ -95,10 +61,7 @@ parts:
       - openjdk-17-jre-headless
       - libncurses-dev
     stage-packages:
-      - libncurses6
-      #- android-libadb
-      #- android-sdk-platform-tools-common
-      #- android-libbase
+      - libncursesw6
       - adb
     # 'organize:' stanza doesn't work, files are not renamed and not placed into target dirs
     # 'stage:' stanza doesn't work, files do exist under $SNAPCRAFT_PART_INSTALL but not copied to $SNAPCRAFT_STAGE
