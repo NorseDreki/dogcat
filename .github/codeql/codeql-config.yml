@@ -1,0 +1,9 @@
+name: "CodeQL config"
+paths-ignore:
+  - dist
+#paths:
+#    - src
+#queries:
+#    - uses: github/codeql-action/init@v1
+#disable-default-queries: true
+#disable-default-packs: true
