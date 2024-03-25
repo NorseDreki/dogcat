@@ -1,32 +1,34 @@
 ## Description
 
-Please include a summary of the change and which issue is fixed. Please also include relevant motivation and context. List any dependencies that are required for this change.
+Please provide a summary of the changes made and include the relevant context and motivation. Mention any dependencies that are required for this change.
 
-Fixes # (issue)
+Resolves # (issue)
 
-## Type of change
+## Type of Change
 
-Please delete options that are not relevant.
+Please delete options that are not relevant and add any that are missing.
 
 - [ ] Bug fix (non-breaking change which fixes an issue)
 - [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] This change requires a documentation update
+- [ ] Refactoring (non-breaking change)
+- [ ] Breaking change (fix or feature that would cause existing functionality to change)
 
-## How Has This Been Tested?
+## Testing
 
-Please describe the tests that you ran to verify your changes. Provide instructions so we can reproduce. Please also list any relevant details for your test configuration
+Please describe the tests that you ran to verify your changes. Provide instructions so we can reproduce. Also, detail any relevant test configuration.
 
 - [ ] Test A
 - [ ] Test B
 
-## Checklist:
+## Checklist
+
+If you're unsure about any of these, don't hesitate to ask. We're here to help!
 
 - [ ] My code follows the style guidelines of this project
 - [ ] I have performed a self-review of my own code
-- [ ] I have commented my code, particularly in hard-to-understand areas
+- [ ] I have commented on my code, particularly in hard-to-understand areas
 - [ ] I have made corresponding changes to the documentation
 - [ ] My changes generate no new warnings
 - [ ] I have added tests that prove my fix is effective or that my feature works
 - [ ] New and existing unit tests pass locally with my changes
-- [ ] Any dependent changes have been merged and published in downstream modules
+- [ ] I have read the [contributing guidelines](https://github.com/NorseDreki/dogcat/blob/main/.github/CONTRIBUTING.md)
