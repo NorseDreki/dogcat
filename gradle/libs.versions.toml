@@ -1,0 +1,23 @@
+[versions]
+kotlin = "1.9.22"
+coroutines = "1.8.0"
+kodein = "7.21.2"
+kommand = "2.0.1"
+kotlinx-cli = "0.3.6"
+kotest-assertions-core = "5.6.2"
+turbine = "1.0.0"
+mockative = "1.4.1"
+
+[plugins]
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+
+[libraries]
+coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kodeinDi = { module = "org.kodein.di:kodein-di", version.ref = "kodein" }
+kommand = { module = "com.kgit2:kommand", version.ref = "kommand" }
+kotlinx-cli = { module = "org.jetbrains.kotlinx:kotlinx-cli", version.ref = "kotlinx-cli" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+kotestAssertionsCore = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest-assertions-core" }
+turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
+mockative = { module = "io.mockative:mockative", version.ref = "mockative" }

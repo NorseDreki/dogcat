@@ -1,5 +1,5 @@
 plugins {
-    kotlin("multiplatform") version "1.9.22"
+    alias(libs.plugins.kotlin.multiplatform)
 }
 
 group = "com.norsedreki"
@@ -41,14 +41,14 @@ kotlin {
 
             file.writeText(
                 """
-                // This file is generated. Refer to build.gradle.kts to see how.
-                package com.norsedreki.dogcat.app
-                
-                object BuildConfig {
-                    const val DEBUG = $isDebug
-                    const val VERSION = "${project.version}"
-                }
-                """.trimIndent()
+                    // This file is generated. Refer to build.gradle.kts to see how.
+                    package com.norsedreki.dogcat.app
+
+                    object BuildConfig {
+                        const val DEBUG = $isDebug
+                        const val VERSION = "${project.version}"
+                    }
+                """.trimIndent(),
             )
         }
     }
@@ -66,27 +66,26 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                //https://developer.android.com/build/migrate-to-catalogs
-                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
-                api("org.kodein.di:kodein-di:7.21.2")
+                api(libs.coroutines.core)
+                api(libs.kodeinDi)
             }
         }
 
         val nativeMain by getting {
             dependencies {
-                implementation("com.kgit2:kommand:2.0.1")
-                implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.6")
+                implementation(libs.kommand)
+                implementation(libs.kotlinx.cli)
             }
         }
+
         val nativeTest by getting {
             dependencies {
-                implementation(kotlin("test"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
-
-                implementation("io.kotest:kotest-assertions-core:5.6.2")
-                implementation("app.cash.turbine:turbine:1.0.0")
-                implementation("io.mockative:mockative:1.4.1")
-                implementation("org.kodein.di:kodein-di:7.21.2")
+                implementation(libs.kotlin.test)
+                implementation(libs.coroutines.test)
+                implementation(libs.kotestAssertionsCore)
+                implementation(libs.turbine)
+                implementation(libs.mockative)
+                implementation(libs.kodeinDi)
             }
         }
     }
