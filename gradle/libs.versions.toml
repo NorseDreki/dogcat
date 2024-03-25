@@ -4,7 +4,7 @@ coroutines = "1.8.0"
 kodein = "7.21.2"
 kommand = "2.0.1"
 kotlinx-cli = "0.3.6"
-kotest-assertions-core = "5.6.2"
+kotest-assertions-core = "5.8.1"
 turbine = "1.0.0"
 mockative = "1.4.1"
 
