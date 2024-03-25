@@ -1,14 +1,16 @@
 .gradle
 build/
+/reports
+local.properties
 
 .idea/*
 !.idea/runConfigurations/
 !.idea/codeStyles/
+!.idea/copyright
 *.iws
 *.iml
 *.ipr
 
 .DS_Store
 
-# to figure out a better placement for this guy
 /src/nativeMain/kotlin/com/norsedreki/dogcat/app/BuildConfig.kt

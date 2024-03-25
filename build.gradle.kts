@@ -28,6 +28,7 @@ kotlin {
                 entryPoint = "com.norsedreki.dogcat.app.main"
             }
         }
+
         compilations["main"].cinterops {
             val ncurses by creating {
             }
