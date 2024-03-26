@@ -1,14 +1,30 @@
+/*
+ * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.norsedreki.dogcat.app.ui.logLines
 
+import com.norsedreki.dogcat.DogcatConfig.MAX_LOG_LINES
 import com.norsedreki.dogcat.app.AppConfig.DEFAULT_TAG_WIDTH
 import com.norsedreki.dogcat.app.AppConfig.LOG_LINES_VIEW_BOTTOM_MARGIN
-import com.norsedreki.dogcat.DogcatConfig.MAX_LOG_LINES
+import com.norsedreki.dogcat.app.ui.HasLifecycle
 import com.norsedreki.logger.Logger
+import kotlin.math.min
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
-import ncurses.*
-import com.norsedreki.dogcat.app.ui.HasLifecycle
-import kotlin.math.min
+import ncurses.WINDOW
+import ncurses.curs_set
+import ncurses.delwin
+import ncurses.getmaxx
+import ncurses.getmaxy
+import ncurses.newpad
+import ncurses.prefresh
+import ncurses.scrollok
+import ncurses.stdscr
+import ncurses.wclear
+import ncurses.wmove
+import ncurses.wrefresh
 
 @OptIn(ExperimentalForeignApi::class)
 class LogLinesView : HasLifecycle {
@@ -50,7 +66,7 @@ class LogLinesView : HasLifecycle {
 
     /**
      * A solution instead of per-line page up / page down movements would be to use 'clearok(pad, true)' marking
-     * the pad as ready for refresh. However, this solution for some reason make the Status View blink, and that is
+     * the pad as ready for refresh. However, this solution for some reason makes the Status View blink, and that is
      * not acceptable. Hence, retreating for the per-line movement workaround.
      *
      * Leaving for reference:
@@ -130,7 +146,7 @@ class LogLinesView : HasLifecycle {
             curs_set(0)
         }
 
-        //call doupdate with pnoutrefresh
+        // call doupdate with pnoutrefresh
         prefresh(pad, firstVisibleLine, 0, 0, 0, endY, endX)
 
         when {

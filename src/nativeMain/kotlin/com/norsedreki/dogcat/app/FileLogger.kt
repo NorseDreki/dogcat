@@ -1,10 +1,19 @@
+/*
+ * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.norsedreki.dogcat.app
 
 import com.norsedreki.dogcat.app.AppConfig.APP_LOG_FILENAME
 import com.norsedreki.logger.CanLog
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
-import platform.posix.*
+import platform.posix.FILE
+import platform.posix.fclose
+import platform.posix.fflush
+import platform.posix.fopen
+import platform.posix.fprintf
 
 @OptIn(ExperimentalForeignApi::class)
 class FileLogger : CanLog {

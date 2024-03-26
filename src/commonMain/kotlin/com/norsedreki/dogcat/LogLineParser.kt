@@ -1,9 +1,14 @@
+/*
+ * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.norsedreki.dogcat
 
 import com.norsedreki.logger.Logger
 
 interface LogLineParser {
-    fun parse(line: String) : LogLine
+    fun parse(line: String): LogLine
 }
 
 class LogLineBriefParser : LogLineParser {
@@ -20,7 +25,7 @@ class LogLineBriefParser : LogLineParser {
                 LogLevel.valueOf(level),
                 tag,
                 owner,
-                message
+                message,
             )
         } else {
             Logger.d("[LogLineParser] Unparseable log line: '$line'")

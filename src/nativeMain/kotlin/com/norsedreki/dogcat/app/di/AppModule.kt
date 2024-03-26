@@ -1,10 +1,19 @@
+/*
+ * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.norsedreki.dogcat.app.di
 
-import com.norsedreki.dogcat.app.*
+import com.norsedreki.dogcat.app.AppArguments
+import com.norsedreki.dogcat.app.AppState
+import com.norsedreki.dogcat.app.BuildConfig
+import com.norsedreki.dogcat.app.FileLogger
+import com.norsedreki.dogcat.app.InternalAppState
 import com.norsedreki.dogcat.app.di.DogcatModule.dogcatModule
-import com.norsedreki.dogcat.app.ui.app.AppPresenter
 import com.norsedreki.dogcat.app.ui.DefaultInput
 import com.norsedreki.dogcat.app.ui.Input
+import com.norsedreki.dogcat.app.ui.app.AppPresenter
 import com.norsedreki.dogcat.app.ui.logLines.LogLinesPresenter
 import com.norsedreki.dogcat.app.ui.status.StatusPresenter
 import com.norsedreki.logger.CanLog
@@ -34,14 +43,14 @@ class AppModule {
                 instance(),
                 instance(),
                 instance(),
-                instance()
+                instance(),
             )
         }
         bindSingleton<StatusPresenter> {
             StatusPresenter(
                 instance(),
                 instance(),
-                instance()
+                instance(),
             )
         }
         bindSingleton<LogLinesPresenter> {
@@ -49,7 +58,7 @@ class AppModule {
                 instance(),
                 instance(),
                 instance(),
-                instance()
+                instance(),
             )
         }
     }

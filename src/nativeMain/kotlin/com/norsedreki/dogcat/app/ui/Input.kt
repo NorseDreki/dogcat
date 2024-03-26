@@ -1,9 +1,18 @@
+/*
+ * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.norsedreki.dogcat.app.ui
 
 import com.norsedreki.dogcat.app.AppConfig.INPUT_KEY_DELAY_MILLIS
 import com.norsedreki.dogcat.app.AppState
+import com.norsedreki.dogcat.app.Keymap
+import com.norsedreki.dogcat.app.Keymap.Actions.INPUT_FILTER_BY_SUBSTRING
+import com.norsedreki.dogcat.app.ui.Strings.INPUT_FILTER_PREFIX
 import com.norsedreki.logger.Logger
 import com.norsedreki.logger.context
+import kotlin.coroutines.coroutineContext
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -11,11 +20,20 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import ncurses.*
-import com.norsedreki.dogcat.app.ui.Strings.INPUT_FILTER_PREFIX
-import com.norsedreki.dogcat.app.Keymap
-import com.norsedreki.dogcat.app.Keymap.Actions.INPUT_FILTER_BY_SUBSTRING
-import kotlin.coroutines.coroutineContext
+import ncurses.ERR
+import ncurses.KEY_BACKSPACE
+import ncurses.KEY_LEFT
+import ncurses.KEY_RIGHT
+import ncurses.curs_set
+import ncurses.getmaxy
+import ncurses.mvaddch
+import ncurses.mvdelch
+import ncurses.mvwprintw
+import ncurses.stdscr
+import ncurses.wclrtoeol
+import ncurses.wgetch
+import ncurses.wmove
+import ncurses.wrefresh
 
 interface Input : HasLifecycle {
 
@@ -25,7 +43,7 @@ interface Input : HasLifecycle {
 }
 
 class DefaultInput(
-    private val appState: AppState
+    private val appState: AppState,
 ) : Input {
 
     private val keypressesSubject = MutableSharedFlow<Int>()
@@ -90,7 +108,6 @@ class DefaultInput(
     @OptIn(ExperimentalForeignApi::class)
     private suspend fun processKeyInInputMode(key: Int) {
         when (key) {
-
             KEY_LEFT -> {
                 if (cursorPosition - inputX > 0) cursorPosition--
             }
@@ -145,6 +162,6 @@ class DefaultInput(
     }
 
     override suspend fun stop() {
-        //will be stopped by CancellationException
+        // will be stopped by CancellationException
     }
 }

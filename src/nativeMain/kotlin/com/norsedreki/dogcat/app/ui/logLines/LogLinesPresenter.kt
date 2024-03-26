@@ -1,22 +1,36 @@
+/*
+ * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.norsedreki.dogcat.app.ui.logLines
 
+import com.norsedreki.dogcat.Dogcat
+import com.norsedreki.dogcat.app.AppArguments
 import com.norsedreki.dogcat.app.AppConfig.DEFAULT_TAG_WIDTH
 import com.norsedreki.dogcat.app.AppState
-import com.norsedreki.dogcat.Dogcat
+import com.norsedreki.dogcat.app.Keymap
+import com.norsedreki.dogcat.app.Keymap.Actions.END
+import com.norsedreki.dogcat.app.Keymap.Actions.HOME
+import com.norsedreki.dogcat.app.Keymap.Actions.LINE_DOWN
+import com.norsedreki.dogcat.app.Keymap.Actions.LINE_UP
+import com.norsedreki.dogcat.app.Keymap.Actions.PAGE_DOWN
+import com.norsedreki.dogcat.app.Keymap.Actions.PAGE_UP
+import com.norsedreki.dogcat.app.ui.HasLifecycle
+import com.norsedreki.dogcat.app.ui.Input
 import com.norsedreki.dogcat.state.DogcatState.Active
 import com.norsedreki.dogcat.state.DogcatState.Inactive
 import com.norsedreki.logger.Logger
 import com.norsedreki.logger.context
+import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import com.norsedreki.dogcat.app.ui.HasLifecycle
-import com.norsedreki.dogcat.app.AppArguments
-import com.norsedreki.dogcat.app.ui.Input
-import com.norsedreki.dogcat.app.Keymap
-import com.norsedreki.dogcat.app.Keymap.Actions.*
-import kotlin.coroutines.coroutineContext
 
 class LogLinesPresenter(
     private val dogcat: Dogcat,
@@ -72,7 +86,7 @@ class LogLinesPresenter(
                     showLineNumbers = appArguments.lineNumbers ?: false,
                     tagWidth = appArguments.tagWidth ?: DEFAULT_TAG_WIDTH,
                     isCursorHeld = it.isCursorHeld,
-                    cursorReturnLocation = it.userInputLocation
+                    cursorReturnLocation = it.userInputLocation,
                 )
             }
     }
@@ -87,7 +101,7 @@ class LogLinesPresenter(
                         Logger.d("${context()} Start capturing log lines")
 
                         view.state = view.state.copy(
-                            overscroll = false
+                            overscroll = false,
                         )
 
                         it.lines
@@ -100,8 +114,7 @@ class LogLinesPresenter(
                         emptyFlow()
                     }
                 }
-            }
-            .buffer(0)
+            }.buffer(0)
             .collect {
                 view.printLogLine(it)
             }

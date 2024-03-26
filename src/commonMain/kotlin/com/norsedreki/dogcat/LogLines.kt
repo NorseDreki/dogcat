@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.norsedreki.dogcat
 
 import com.norsedreki.dogcat.DogcatConfig.MAX_LOG_LINES
@@ -5,9 +10,24 @@ import com.norsedreki.dogcat.LogFilter.*
 import com.norsedreki.dogcat.state.LogFiltersState
 import com.norsedreki.logger.Logger
 import com.norsedreki.logger.context
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
 import kotlin.coroutines.coroutineContext
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.withIndex
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class LogLines(
@@ -37,25 +57,20 @@ class LogLines(
         return filtersState.state
             .flatMapConcat {
                 it.values.asFlow()
-            }
-            .filterIsInstance<Substring>()
+            }.filterIsInstance<Substring>()
             .flatMapLatest { filter ->
                 sharedLines.filter {
                     it.contains(filter.substring, ignoreCase = true)
                 }
-            }
-            .map {
+            }.map {
                 lineParser.parse(it)
-            }
-            .bufferedTransform(
+            }.bufferedTransform(
                 shouldEmptyBuffer(),
-                transformItem()
-            )
-            .withIndex()
+                transformItem(),
+            ).withIndex()
             .onCompletion {
                 Logger.d("${context()} COMPLETION (3): Full log lines pipeline")
-            }
-            .flowOn(dispatcherCpu)
+            }.flowOn(dispatcherCpu)
     }
 
     fun stop() {
@@ -64,47 +79,51 @@ class LogLines(
         }
     }
 
-    private fun transformItem() = { buffer: List<LogLine>, item: LogLine ->
-        when (item) {
-            is Brief -> {
-                if (buffer.isEmpty()) {
-                    item
-                } else {
-                    // Do not display tag if it's the same as in previous item
-                    Brief(item.level, "", item.owner, item.message)
-                }
-            }
-
-            is Unparseable -> item
-        }
-    }
-
-    private fun shouldEmptyBuffer() = { buffer: List<LogLine>, item: LogLine ->
-        when (item) {
-            is Brief -> {
-                when {
-                    buffer.isNotEmpty() -> {
-                        // All items in buffer have same tags, otherwise buffer is drained
-                        val anyPreviousItem = buffer[0]
-
-                        val doesTagOfPreviousItemMatchCurrent =
-                            (anyPreviousItem as? Brief)?.tag?.contains(item.tag) ?: false
-
-                        when {
-                            // Don't drain buffer since each item has the same tag
-                            doesTagOfPreviousItemMatchCurrent -> false
-                            // Drain buffer since there is a new tag
-                            else -> true
-                        }
+    private fun transformItem() =
+        { buffer: List<LogLine>, item: LogLine ->
+            when (item) {
+                is Brief -> {
+                    if (buffer.isEmpty()) {
+                        item
+                    } else {
+                        // Do not display tag if it's the same as in previous item
+                        Brief(item.level, "", item.owner, item.message)
                     }
-
-                    else -> false
                 }
+
+                is Unparseable -> item
             }
-            // We don't group 'Unparseable' since it doesn't have tag
-            is Unparseable -> false
         }
-    }
+
+    private fun shouldEmptyBuffer() =
+        { buffer: List<LogLine>, item: LogLine ->
+            when (item) {
+                is Brief -> {
+                    when {
+                        buffer.isNotEmpty() -> {
+                            // All items in buffer have same tags, otherwise buffer is drained
+                            val anyPreviousItem = buffer[0]
+
+                            val doesTagOfPreviousItemMatchCurrent =
+                                (anyPreviousItem as? Brief)?.tag?.contains(item.tag) ?: false
+
+                            when {
+                                // Don't drain buffer since each item has the same tag
+                                doesTagOfPreviousItemMatchCurrent -> false
+
+                                // Drain buffer since there is a new tag
+                                else -> true
+                            }
+                        }
+
+                        else -> false
+                    }
+                }
+
+                // We don't group 'Unparseable' since it doesn't have a tag
+                is Unparseable -> false
+            }
+        }
 
     private fun createSharedLines(): Flow<String> {
         val filters = filtersState.state.value
@@ -125,10 +144,8 @@ class LogLines(
                 scope,
                 SharingStarted.Lazily,
                 MAX_LOG_LINES,
-            )
-            .onCompletion {
-                Logger.d(
-                    "${context()} COMPLETION (2): ADB logcat log lines shared by 'shareIn'")
+            ).onCompletion {
+                Logger.d("${context()} COMPLETION (2): ADB logcat log lines shared by 'shareIn'")
             }
     }
 }

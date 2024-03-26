@@ -1,23 +1,32 @@
+/*
+ * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.norsedreki.dogcat.app.ui.status
 
-import com.norsedreki.dogcat.app.AppState
 import com.norsedreki.dogcat.Command.FilterBy
 import com.norsedreki.dogcat.Dogcat
 import com.norsedreki.dogcat.LogFilter.ByPackage
 import com.norsedreki.dogcat.LogFilter.Substring
-import com.norsedreki.dogcat.state.DogcatState.Active
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
+import com.norsedreki.dogcat.app.AppState
 import com.norsedreki.dogcat.app.ui.HasLifecycle
 import com.norsedreki.dogcat.app.ui.Input
+import com.norsedreki.dogcat.state.DogcatState.Active
 import kotlin.coroutines.coroutineContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.launch
 
 class StatusPresenter(
     private val dogcat: Dogcat,
     private val appState: AppState,
-    private val input: Input
+    private val input: Input,
 ) : HasLifecycle {
 
     private lateinit var view: StatusView
@@ -65,7 +74,7 @@ class StatusPresenter(
                     filters = filters,
                     autoscroll = appState.state.value.autoscroll,
                     deviceLabel = it.device.label,
-                    isDeviceOnline = it.device.isOnline.first()
+                    isDeviceOnline = it.device.isOnline.first(),
                 )
             }
     }
@@ -92,7 +101,7 @@ class StatusPresenter(
                     packageName = packageName,
                     autoscroll = it.autoscroll,
                     isCursorHeld = it.isCursorHeld,
-                    cursorReturnLocation = it.userInputLocation
+                    cursorReturnLocation = it.userInputLocation,
                 )
             }
     }

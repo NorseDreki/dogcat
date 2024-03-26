@@ -1,12 +1,45 @@
+/*
+ * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.norsedreki.dogcat.app.ui.app
 
-import com.norsedreki.dogcat.app.AppState
-import com.norsedreki.dogcat.Command.*
-import com.norsedreki.dogcat.Command.Start.*
+import com.norsedreki.dogcat.Command.ClearLogs
+import com.norsedreki.dogcat.Command.FilterBy
+import com.norsedreki.dogcat.Command.ResetFilter
+import com.norsedreki.dogcat.Command.Start.PickAllApps
+import com.norsedreki.dogcat.Command.Start.PickAppPackage
+import com.norsedreki.dogcat.Command.Start.PickForegroundApp
+import com.norsedreki.dogcat.Command.Stop
 import com.norsedreki.dogcat.Dogcat
-import com.norsedreki.dogcat.LogFilter.*
-import com.norsedreki.dogcat.LogLevel.*
+import com.norsedreki.dogcat.LogFilter.ByPackage
+import com.norsedreki.dogcat.LogFilter.MinLogLevel
+import com.norsedreki.dogcat.LogFilter.Substring
+import com.norsedreki.dogcat.LogLevel.D
+import com.norsedreki.dogcat.LogLevel.E
+import com.norsedreki.dogcat.LogLevel.I
+import com.norsedreki.dogcat.LogLevel.V
+import com.norsedreki.dogcat.LogLevel.W
+import com.norsedreki.dogcat.app.AppArguments
+import com.norsedreki.dogcat.app.AppState
+import com.norsedreki.dogcat.app.Keymap
+import com.norsedreki.dogcat.app.Keymap.Actions.AUTOSCROLL
+import com.norsedreki.dogcat.app.Keymap.Actions.CLEAR_LOGS
+import com.norsedreki.dogcat.app.Keymap.Actions.MIN_LOG_LEVEL_D
+import com.norsedreki.dogcat.app.Keymap.Actions.MIN_LOG_LEVEL_E
+import com.norsedreki.dogcat.app.Keymap.Actions.MIN_LOG_LEVEL_I
+import com.norsedreki.dogcat.app.Keymap.Actions.MIN_LOG_LEVEL_V
+import com.norsedreki.dogcat.app.Keymap.Actions.MIN_LOG_LEVEL_W
+import com.norsedreki.dogcat.app.Keymap.Actions.RESET_FILTER_BY_MIN_LOG_LEVEL
+import com.norsedreki.dogcat.app.Keymap.Actions.RESET_FILTER_BY_SUBSTRING
+import com.norsedreki.dogcat.app.Keymap.Actions.TOGGLE_FILTER_BY_PACKAGE
+import com.norsedreki.dogcat.app.ui.HasLifecycle
+import com.norsedreki.dogcat.app.ui.Input
+import com.norsedreki.dogcat.app.ui.logLines.LogLinesPresenter
+import com.norsedreki.dogcat.app.ui.status.StatusPresenter
 import com.norsedreki.dogcat.state.DogcatState.Active
+import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -14,14 +47,6 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
-import com.norsedreki.dogcat.app.ui.logLines.LogLinesPresenter
-import com.norsedreki.dogcat.app.ui.status.StatusPresenter
-import com.norsedreki.dogcat.app.AppArguments
-import com.norsedreki.dogcat.app.Keymap
-import com.norsedreki.dogcat.app.Keymap.Actions.*
-import com.norsedreki.dogcat.app.ui.HasLifecycle
-import com.norsedreki.dogcat.app.ui.Input
-import kotlin.coroutines.coroutineContext
 
 class AppPresenter(
     private val dogcat: Dogcat,
@@ -88,15 +113,13 @@ class AppPresenter(
                 } else {
                     emptyFlow()
                 }
-            }
-            .collect {
+            }.collect {
                 dispatchKeyCode(it)
             }
     }
 
     private suspend fun dispatchKeyCode(keyCode: Int) {
         when (Keymap.bindings[keyCode]) {
-
             AUTOSCROLL -> {
                 val currentAutoscroll = appState.state.value.autoscroll
                 appState.autoscroll(!currentAutoscroll)
@@ -112,7 +135,6 @@ class AppPresenter(
                 if (packageFilter.second) {
                     appState.filterByPackage(packageFilter.first, false)
                     dogcat(ResetFilter(ByPackage::class))
-
                 } else if (packageFilter.first != null) {
                     val packageName = packageFilter.first!!.packageName
                     val appId = packageFilter.first!!.appId

@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.norsedreki.dogcat
 
 import com.norsedreki.dogcat.Command.*
@@ -11,21 +16,28 @@ import com.norsedreki.dogcat.state.DogcatState.Inactive
 import com.norsedreki.dogcat.state.LogFiltersState
 import com.norsedreki.logger.Logger
 import com.norsedreki.logger.context
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.flow.SharingStarted.Companion.Lazily
-import kotlinx.coroutines.launch
 import kotlin.coroutines.coroutineContext
 import kotlin.test.fail
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted.Companion.Lazily
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.runningFold
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.launch
 
 class Dogcat(
     private val logLines: LogLines,
     private val filters: LogFiltersState,
-    private val shell: Shell
+    private val shell: Shell,
 ) {
     private val stateSubject = MutableStateFlow<DogcatState>(Inactive)
 
-    val state = stateSubject.asStateFlow()
+    val state = stateSubject
+        .asStateFlow()
         .onCompletion {
             Logger.d("${context()} (5) COMPLETION, state")
         }
@@ -115,7 +127,6 @@ class Dogcat(
     private suspend fun collectDeviceOnline() {
         if (this::isDeviceOnline.isInitialized) {
             fail("Calling a 'Start' command is allowed only once")
-
         }
 
         val scope = CoroutineScope(coroutineContext)
@@ -131,8 +142,7 @@ class Dogcat(
                         captureLogLines()
                     }
                     value
-                }
-                .collect()
+                }.collect()
         }
     }
 
@@ -143,16 +153,14 @@ class Dogcat(
 
         val device = Device(
             shell.deviceName(),
-            isDeviceOnline
+            isDeviceOnline,
         )
 
         val active = Active(
             filterLines
                 .onCompletion { Logger.d("${context()} COMPLETION (4): Capturing input filterLines $it") },
-
             filters.state,
-
-            device
+            device,
         )
 
         stateSubject.emit(active)

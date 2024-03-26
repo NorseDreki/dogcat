@@ -1,28 +1,42 @@
+/*
+ * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.norsedreki.dogcat.app.ui.logLines
 
-import com.norsedreki.dogcat.app.AppConfig.LOG_LEVEL_WIDTH
 import com.norsedreki.dogcat.Brief
-import com.norsedreki.dogcat.LogLevel.*
+import com.norsedreki.dogcat.LogLevel.E
+import com.norsedreki.dogcat.LogLevel.F
+import com.norsedreki.dogcat.LogLevel.I
+import com.norsedreki.dogcat.LogLevel.W
 import com.norsedreki.dogcat.LogLine
 import com.norsedreki.dogcat.Unparseable
+import com.norsedreki.dogcat.app.AppConfig.LOG_LEVEL_WIDTH
+import com.norsedreki.dogcat.app.ui.CommonColors.BLACK_ON_RED
+import com.norsedreki.dogcat.app.ui.CommonColors.BLACK_ON_WHITE
+import com.norsedreki.dogcat.app.ui.CommonColors.BLACK_ON_YELLOW
+import com.norsedreki.dogcat.app.ui.CommonColors.RED_ON_BG
+import com.norsedreki.dogcat.app.ui.CommonColors.YELLOW_ON_BG
+import kotlin.math.min
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.yield
-import ncurses.*
-import com.norsedreki.dogcat.app.ui.CommonColors.*
-import kotlin.math.min
+import ncurses.A_BOLD
+import ncurses.COLOR_PAIR
+import ncurses.waddstr
+import ncurses.wattroff
+import ncurses.wattron
 
 @OptIn(ExperimentalForeignApi::class)
-suspend fun LogLinesView.printLogLine(
-    logLine: IndexedValue<LogLine>,
-) {
+suspend fun LogLinesView.printLogLine(logLine: IndexedValue<LogLine>) {
     if (logLine.value is Unparseable) {
-        // pad tag area
+        // pad tag area 1
         printTag("")
 
         // pad level area
         waddstr(pad, " ".repeat(LOG_LEVEL_WIDTH))
 
-        // display unparseable log line in place of message
+        // display unparseable log line in place of a message
         val line = (logLine.value as Unparseable).line
         waddstr(pad, line + "\n")
 
@@ -39,34 +53,35 @@ suspend fun LogLinesView.printLogLine(
 
 private fun LogLinesView.refreshPrintedLine(numLinesOnScreen: Int) {
     if (state.autoscroll) {
-
         val isOverscrollWithinLastPage =
             state.overscroll && linesCount - firstVisibleLine <= pageSize
 
         if (linesCount < pageSize || isOverscrollWithinLastPage) {
             refresh()
         } else {
-            lineDown(numLinesOnScreen) //batch calls in order not to draw each line
+            lineDown(numLinesOnScreen) // batch calls in order not to draw each line
         }
     } else {
         if (state.overscroll) {
-            if (firstVisibleLine >= numLinesOnScreen)
+            if (firstVisibleLine >= numLinesOnScreen) {
                 firstVisibleLine -= numLinesOnScreen
+            }
         }
         refresh()
     }
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private fun LogLinesView.printBriefLogLine(
-    logLine: IndexedValue<LogLine>
-): Int {
+private fun LogLinesView.printBriefLogLine(logLine: IndexedValue<LogLine>): Int {
     val briefLogLine = logLine.value as Brief
     printTag(briefLogLine.tag)
 
     val message =
-        if (state.showLineNumbers) "-${logLine.index}- ${briefLogLine.message}"
-        else briefLogLine.message
+        if (state.showLineNumbers) {
+            "-${logLine.index}- ${briefLogLine.message}"
+        } else {
+            briefLogLine.message
+        }
 
     val wrappedMessageAndCount = wrapLine(message)
     val wrappedMessage = wrappedMessageAndCount.first
@@ -80,7 +95,7 @@ private fun LogLinesView.printBriefLogLine(
                 level.name,
                 BLACK_ON_YELLOW.colorPairCode,
                 wrappedMessage,
-                COLOR_PAIR(YELLOW_ON_BG.colorPairCode)
+                COLOR_PAIR(YELLOW_ON_BG.colorPairCode),
             )
         }
 
@@ -89,7 +104,7 @@ private fun LogLinesView.printBriefLogLine(
                 level.name,
                 BLACK_ON_RED.colorPairCode,
                 wrappedMessage,
-                COLOR_PAIR(RED_ON_BG.colorPairCode)
+                COLOR_PAIR(RED_ON_BG.colorPairCode),
             )
         }
 
@@ -128,10 +143,7 @@ private fun LogLinesView.printLevelAndMessage(
 /**
  * @return A pair of wrapped line (with correctly placed EOL) and number of screen lines it takes.
  */
-private fun LogLinesView.wrapLine(
-    inputLine: String
-): Pair<String, Int> {
-
+private fun LogLinesView.wrapLine(inputLine: String): Pair<String, Int> {
     val escapeRegex = """[\t\n\r\\b\f\v\a\e]""".toRegex()
     val line = inputLine.replace(escapeRegex, " ")
 

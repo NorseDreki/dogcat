@@ -1,12 +1,15 @@
+/*
+ * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.norsedreki.dogcat.app.ui.status
 
+import com.norsedreki.dogcat.LogFilter.ByPackage
+import com.norsedreki.dogcat.LogFilter.MinLogLevel
+import com.norsedreki.dogcat.LogFilter.Substring
 import com.norsedreki.dogcat.app.AppConfig.STATUS_VIEW_AUTOSCROLL_LEFT_MARGIN
 import com.norsedreki.dogcat.app.AppConfig.STATUS_VIEW_BOTTOM_MARGIN
-import com.norsedreki.dogcat.LogFilter.*
-import com.norsedreki.dogcat.state.LogFilters
-import kotlinx.cinterop.CPointer
-import kotlinx.cinterop.ExperimentalForeignApi
-import ncurses.*
 import com.norsedreki.dogcat.app.ui.CommonColors.BLACK_ON_WHITE
 import com.norsedreki.dogcat.app.ui.CommonColors.RED_ON_WHITE
 import com.norsedreki.dogcat.app.ui.HasLifecycle
@@ -16,7 +19,26 @@ import com.norsedreki.dogcat.app.ui.Strings.INPUT_FILTER_PREFIX
 import com.norsedreki.dogcat.app.ui.Strings.LOG_LEVEL_PREFIX
 import com.norsedreki.dogcat.app.ui.Strings.NO_AUTOSCROLL
 import com.norsedreki.dogcat.app.ui.Strings.SEPARATOR
+import com.norsedreki.dogcat.state.LogFilters
 import kotlin.properties.Delegates
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.ExperimentalForeignApi
+import ncurses.A_BOLD
+import ncurses.COLOR_PAIR
+import ncurses.WINDOW
+import ncurses.curs_set
+import ncurses.delwin
+import ncurses.getmaxx
+import ncurses.getmaxy
+import ncurses.mvwprintw
+import ncurses.newwin
+import ncurses.stdscr
+import ncurses.waddstr
+import ncurses.wattroff
+import ncurses.wattron
+import ncurses.wclrtoeol
+import ncurses.wmove
+import ncurses.wrefresh
 
 @OptIn(ExperimentalForeignApi::class)
 class StatusView : HasLifecycle {
@@ -28,7 +50,7 @@ class StatusView : HasLifecycle {
         val isDeviceOnline: Boolean = false,
         val autoscroll: Boolean = false,
         val isCursorHeld: Boolean = false,
-        val cursorReturnLocation: Pair<Int, Int>? = null
+        val cursorReturnLocation: Pair<Int, Int>? = null,
     )
 
     var state: State by Delegates.observable(State()) { _, _, newValue ->
@@ -117,12 +139,18 @@ class StatusView : HasLifecycle {
         wattroff(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
     }
 
-    private fun updateDevice(device: String, running: Boolean) {
+    private fun updateDevice(
+        device: String,
+        running: Boolean,
+    ) {
         curs_set(0)
 
         val colorPairCode =
-            if (running) BLACK_ON_WHITE.colorPairCode
-            else RED_ON_WHITE.colorPairCode
+            if (running) {
+                BLACK_ON_WHITE.colorPairCode
+            } else {
+                RED_ON_WHITE.colorPairCode
+            }
 
         wattron(window, COLOR_PAIR(colorPairCode))
         if (!running) {
@@ -141,8 +169,11 @@ class StatusView : HasLifecycle {
         wattron(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
 
         val packageLabel =
-            if (packageName.isNotEmpty()) "$packageName$SEPARATOR"
-            else "$ALL_APPS$SEPARATOR"
+            if (packageName.isNotEmpty()) {
+                "$packageName$SEPARATOR"
+            } else {
+                "$ALL_APPS$SEPARATOR"
+            }
 
         val x = getmaxx(window) - packageLabel.length - 1 - state.deviceLabel.length
         mvwprintw(window, 0, x, packageLabel)
