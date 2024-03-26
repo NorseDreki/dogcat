@@ -5,8 +5,14 @@
 
 package com.norsedreki.dogcat
 
-import com.norsedreki.dogcat.Command.*
-import com.norsedreki.dogcat.Command.Start.*
+import com.norsedreki.dogcat.Command.ClearLogs
+import com.norsedreki.dogcat.Command.FilterBy
+import com.norsedreki.dogcat.Command.ResetFilter
+import com.norsedreki.dogcat.Command.Start
+import com.norsedreki.dogcat.Command.Start.PickAllApps
+import com.norsedreki.dogcat.Command.Start.PickAppPackage
+import com.norsedreki.dogcat.Command.Start.PickForegroundApp
+import com.norsedreki.dogcat.Command.Stop
 import com.norsedreki.dogcat.LogFilter.ByPackage
 import com.norsedreki.dogcat.LogFilter.Substring
 import com.norsedreki.dogcat.state.Device

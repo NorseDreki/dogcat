@@ -6,7 +6,9 @@
 package com.norsedreki.dogcat
 
 import com.norsedreki.dogcat.DogcatConfig.MAX_LOG_LINES
-import com.norsedreki.dogcat.LogFilter.*
+import com.norsedreki.dogcat.LogFilter.ByPackage
+import com.norsedreki.dogcat.LogFilter.MinLogLevel
+import com.norsedreki.dogcat.LogFilter.Substring
 import com.norsedreki.dogcat.state.LogFiltersState
 import com.norsedreki.logger.Logger
 import com.norsedreki.logger.context

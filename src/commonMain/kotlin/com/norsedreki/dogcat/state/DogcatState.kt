@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.norsedreki.dogcat.state
 
 import com.norsedreki.dogcat.LogLine
@@ -16,5 +21,5 @@ sealed interface DogcatState {
 
 data class Device(
     val label: String,
-    val isOnline: Flow<Boolean>
+    val isOnline: Flow<Boolean>,
 )
