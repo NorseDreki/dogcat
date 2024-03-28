@@ -40,7 +40,12 @@ jobs:
           build-mode: manual
           tools: latest
           queries: +security-experimental
-      - run: ./gradlew assemble
+
+      - name: Build with Gradle
+        run: ./gradlew clean assemble
+        env:
+          GRADLE_OPTS: -Dorg.gradle.daemon=false -Dkotlin.incremental=false -Dorg.gradle.jvmargs="-Xmx4g -Xms512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8 -XX:MaxMetaspaceSize=1024m"
+  
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
