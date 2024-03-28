@@ -2,7 +2,9 @@ name: detekt2
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   validate:
