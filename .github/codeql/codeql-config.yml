@@ -7,6 +7,8 @@ queries:
   # that the suites exist in the codeql bundle.
   - uses: security-extended
   - uses: security-and-quality
+paths:
+  - src
 paths-ignore:
   - tests
   - lib
