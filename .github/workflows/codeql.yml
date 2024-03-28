@@ -29,11 +29,10 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          setup: false
           config-file: ./.github/codeql/codeql-config.yml
           languages: "kotlin"
           tools: latest
-          queries: security-extended
+          queries: +security-experimental
 
       - name: Setup Java
         uses: actions/setup-java@v4
