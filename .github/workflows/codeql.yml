@@ -31,9 +31,9 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          #setup: false
+          setup: false
           config-file: ./.github/codeql/codeql-config.yml
-          languages: "java"
+          languages: "java-kotlin"
           tools: latest
           queries: +security-and-quality
 
@@ -44,7 +44,7 @@ jobs:
           java-version: 17
 
       - name: Build with Gradle
-        run: ./gradlew assemble
+        run: ./gradlew clean assemble
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
