@@ -30,7 +30,8 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           config-file: ./.github/codeql/codeql-config.yml
-          languages: "kotlin"
+          languages: kotlin
+          build-mode: manual
           tools: latest
           queries: +security-experimental
 
