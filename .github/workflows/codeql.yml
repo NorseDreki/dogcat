@@ -26,6 +26,12 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
@@ -34,15 +40,7 @@ jobs:
           build-mode: manual
           tools: latest
           queries: +security-experimental
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-
-      - name: Build with Gradle
-        run: ./gradlew clean assemble
+      - run: ./gradlew assemble
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
