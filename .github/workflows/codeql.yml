@@ -33,9 +33,9 @@ jobs:
         with:
           setup: false
           config-file: ./.github/codeql/codeql-config.yml
-          languages: "java-kotlin"
+          languages: "kotlin"
           tools: latest
-          queries: +security-and-quality
+          queries: security-and-quality
 
       - name: Setup Java
         uses: actions/setup-java@v3
