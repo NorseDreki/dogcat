@@ -10,3 +10,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: natiginfo/action-detekt-all@1.23.5
+        with:
+          args: --report md:build/reports/detekt/detekt.md
+      - name: Upload Detekt report
+        uses: actions/upload-artifact@v2
+        with:
+          name: detekt-report
+          path: build/reports/detekt/detekt.md
