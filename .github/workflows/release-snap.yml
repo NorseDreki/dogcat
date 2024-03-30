@@ -1,0 +1,30 @@
+name: Build and Release Snap
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Build snap
+        id: snapcraft
+        uses: snapcore/action-build@v1
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: snap
+          path: ${{ steps.snapcraft.outputs.snap }}
+
+      - name: Publish snap
+        uses: snapcore/action-publish@v1
+        with:
+          store_login: ${{ secrets.STORE_LOGIN }}
+          snap: ${{ steps.snapcraft.outputs.snap }}
+          release: edge
