@@ -58,7 +58,10 @@ jobs:
             # mandatory
             -Dsonar.projectKey="NorseDreki_dogcat"
             -Dsonar.organization="norsedreki"
-            -Dsonar.sources="src/commonMain"
+            -Dsonar.language="kotlin"
+            -Dsonar.inclusions="**/*.kt"
+            #-Dsonar.sources="src/commonMain"
+
             # Comma-separated paths to directories containing main source files.
             #-Dsonar.sources= # optional, default is project base directory
             # When you need the analysis to take place in a directory other than the one from which it was launched
