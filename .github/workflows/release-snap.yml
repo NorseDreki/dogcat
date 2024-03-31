@@ -35,6 +35,12 @@ jobs:
       - name: Publish snap
         uses: snapcore/action-publish@v1
         with:
-          store_login: ${{ secrets.STORE_LOGIN }}
+          store_login: ${{ secrets.SNAP_LOGIN }}
           snap: ${{ steps.snapcraft.outputs.snap }}
-          release: edge
+          release: candidate
+
+      - name: Test the package
+        run: |
+          sudo snap install dogcat --channel=candidate
+          dogcat -v
+          sudo snap uninstall dogcat
