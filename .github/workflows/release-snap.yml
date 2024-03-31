@@ -20,9 +20,10 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+            ~/.konan/cache
+          key: ${{ runner.os }}-gradle-konan-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
-            ${{ runner.os }}-gradle-
+            ${{ runner.os }}-gradle-konan-
 
       - name: Build snap
         id: snapcraft
@@ -32,7 +33,7 @@ jobs:
         run: |
           sudo snap install dogcat --channel=candidate
           dogcat -v
-          sudo snap uninstall dogcat
+          sudo snap remove dogcat
 
       #    - name: Test the package
       #      run: |
