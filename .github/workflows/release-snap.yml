@@ -3,8 +3,6 @@ name: Build and Release Snap
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
@@ -20,7 +18,7 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-            ~/.konan/cache
+            ~/.konan
           key: ${{ runner.os }}-gradle-konan-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-konan-
@@ -28,18 +26,6 @@ jobs:
       - name: Build snap
         id: snapcraft
         uses: snapcore/action-build@v1
-
-      - name: Test the package
-        run: |
-          sudo snap install dogcat --channel=candidate
-          dogcat -v
-          sudo snap remove dogcat
-
-      #    - name: Test the package
-      #      run: |
-      #        sudo snap install --dangerous --classic ${{ steps.snapcraft.outputs.snap }}
-      #        dvc version
-      #        sudo snap remove dvc
 
       - uses: actions/upload-artifact@v4
         with:
@@ -55,3 +41,12 @@ jobs:
           release: candidate
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAP_LOGIN }}
+
+      - name: Test the package
+        run: |
+          sudo snap install dogcat --channel=candidate
+          if ! dogcat -v | grep -q "0.9"; then
+            echo "Substring not found in dogcat output"
+            exit 1
+          fi
+          sudo snap remove dogcat
