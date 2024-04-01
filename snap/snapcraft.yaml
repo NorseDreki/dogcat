@@ -39,7 +39,7 @@ parts:
     # When building with 'snapcraft remote-build', internet is accessed through the proxy
     # Having 'mv' as a separate command after './gradlew' would ignore that 'mv' command
     override-build: |
-      if [ -n "$https_proxy" ]; then
+      if [ -n "${https_proxy:-}" ]; then
           echo $https_proxy
           https_proxy_host=$(echo $https_proxy | cut -d'/' -f3 | cut -d':' -f1)
           https_proxy_port=$(echo $https_proxy | cut -d'/' -f3 | cut -d':' -f2)
