@@ -1,22 +1,20 @@
-name: dogcat # you probably want to 'snapcraft register <name>'
+name: dogcat
 base: core22
 version: '0.9-RC'
-summary: Single-line elevator pitch for your amazing snap # 79 char long summary
+summary: Terminal-based Android Logcat reader with a sane colour scheme
 description: |
   This is my-snap's description. You have a paragraph or two to tell the
   most important story about your snap. Keep it under 100 words though,
   we live in tweetspace and your description wants to look good in the snap
   store.
 
-#icon: htop.png
-#license: GPL-2.0
-
+#icon: dogcat.png
 license: "Apache-2.0"
 compression: lzo
-grade: stable # must be 'stable' to release into candidate/stable channels
-confinement: strict # use 'strict' once you have the right plugs and slots
-#source-code: https://github.com/gohugoio/hugo.git
-#website: https://gohugo.io/
+grade: stable
+confinement: strict
+source-code: https://github.com/NorseDreki/dogcat.git
+website: https://github.com/NorseDreki/dogcat/
 
 architectures:
   - build-on: amd64
@@ -38,20 +36,22 @@ parts:
     source: https://github.com/NorseDreki/dogcat
     source-type: git
     source-branch: main
-    override-pull: |
-      ls
-      snapcraftctl pull
+    # When building with 'snapcraft remote-build', internet is accessed through the proxy
     # Having 'mv' as a separate command after './gradlew' would ignore that 'mv' command
     override-build: |
-      echo $CRAFT_ARCH_BUILD_FOR
+      https_proxy_host=$(echo $https_proxy | cut -d'/' -f3 | cut -d':' -f1)
+      https_proxy_port=$(echo $https_proxy | cut -d'/' -f3 | cut -d':' -f2)
+      gradle_opts="-Dhttps.proxyHost=$https_proxy_host -Dhttps.proxyPort=$https_proxy_port"
+      echo $gradle_opts
+      
       if [[ "$CRAFT_ARCH_BUILD_FOR" == "amd64" ]]
       then
-        ./gradlew linkReleaseExecutableNativeLinuxX64 -Djava.net.useSystemProxies=true \
+        ./gradlew $gradle_opts linkReleaseExecutableNativeLinuxX64 \
         && mv build/bin/nativeLinuxX64/releaseExecutable/dogcat.kexe $SNAPCRAFT_STAGE
       fi
       if [[ "$CRAFT_ARCH_BUILD_FOR" == "arm64" ]]
       then
-        ./gradlew linkReleaseExecutableNativeLinuxArm64 -Djava.net.useSystemProxies=true \
+        ./gradlew $gradle_opts linkReleaseExecutableNativeLinuxArm64 \
         && mv build/bin/nativeLinuxArm64/releaseExecutable/dogcat.kexe $SNAPCRAFT_STAGE
       fi
     override-stage: |
