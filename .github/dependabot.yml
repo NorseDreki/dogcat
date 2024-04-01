@@ -4,14 +4,32 @@ updates:
     directory: "/"
     reviewers:
       - NorseDreki
-    labels:
-      - dependencies
-      - dependabot
     schedule:
-      interval: "daily"
+      interval: "weekly"
     commit-message:
       prefix: "chore(deps):"
-  - package-ecosystem: 'github-actions'
-    directory: '/'
+    open-pull-requests-limit: 5
+    groups:
+      minor:
+        update-types:
+          - "minor"
+      patch:
+        update-types:
+          - "patch"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    reviewers:
+      - NorseDreki
     schedule:
-      interval: 'daily'
+      interval: "weekly"
+    commit-message:
+      prefix: "chore(deps):"
+    open-pull-requests-limit: 5
+    groups:
+      minor:
+        update-types:
+          - "minor"
+      patch:
+        update-types:
+          - "patch"
