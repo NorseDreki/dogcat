@@ -1,0 +1,32 @@
+name: Scan with Detekt
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      # required for all workflows
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: natiginfo/action-detekt-all@1.23.5
+        with:
+          args: --report sarif:build/reports/detekt/detekt.sarif
+        continue-on-error: true
+
+      # Make sure we always run this upload task,
+      # because the previous step may fail if there are findings.
+      - name: Upload SARIF to GitHub using the upload-sarif action
+        uses: github/codeql-action/upload-sarif@v3
+        if: success() || failure()
+        with:
+          sarif_file: build/reports/detekt/detekt.sarif
+          # Optional category for the results
+          # Used to differentiate multiple results for one commit
+          category: detekt
