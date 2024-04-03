@@ -29,10 +29,7 @@
 name: SonarCloud analysis
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  # Only manual run for now as this integration is not stable
   workflow_dispatch:
 
 permissions:
