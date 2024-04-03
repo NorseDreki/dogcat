@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-FileCopyrightText: Copyright (C) 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -25,43 +25,44 @@ import org.kodein.di.instance
 
 class AppModule {
 
-    private val appModule = DI.Module("app") {
-        bindSingleton<CanLog> {
-            if (BuildConfig.DEBUG) {
-                FileLogger()
-            } else {
-                NoOpLogger()
+    private val appModule =
+        DI.Module("app") {
+            bindSingleton<CanLog> {
+                if (BuildConfig.DEBUG) {
+                    FileLogger()
+                } else {
+                    NoOpLogger()
+                }
+            }
+            bindSingleton<AppArguments> { AppArguments(ArgParser("dogcat")) }
+            bindSingleton<AppState> { InternalAppState() }
+            bindSingleton<Input> { DefaultInput(instance()) }
+            bindSingleton<AppPresenter> {
+                AppPresenter(
+                    instance(),
+                    instance(),
+                    instance(),
+                    instance(),
+                    instance(),
+                    instance(),
+                )
+            }
+            bindSingleton<StatusPresenter> {
+                StatusPresenter(
+                    instance(),
+                    instance(),
+                    instance(),
+                )
+            }
+            bindSingleton<LogLinesPresenter> {
+                LogLinesPresenter(
+                    instance(),
+                    instance(),
+                    instance(),
+                    instance(),
+                )
             }
         }
-        bindSingleton<AppArguments> { AppArguments(ArgParser("dogcat")) }
-        bindSingleton<AppState> { InternalAppState() }
-        bindSingleton<Input> { DefaultInput(instance()) }
-        bindSingleton<AppPresenter> {
-            AppPresenter(
-                instance(),
-                instance(),
-                instance(),
-                instance(),
-                instance(),
-                instance(),
-            )
-        }
-        bindSingleton<StatusPresenter> {
-            StatusPresenter(
-                instance(),
-                instance(),
-                instance(),
-            )
-        }
-        bindSingleton<LogLinesPresenter> {
-            LogLinesPresenter(
-                instance(),
-                instance(),
-                instance(),
-                instance(),
-            )
-        }
-    }
 
     private val serviceLocator = DI {
         import(dogcatModule)

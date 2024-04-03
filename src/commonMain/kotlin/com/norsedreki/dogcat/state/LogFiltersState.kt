@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-FileCopyrightText: Copyright (C) 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -44,11 +44,12 @@ class DefaultLogFiltersState : LogFiltersState {
     override suspend fun reset(filterClass: KClass<out LogFilter>) {
         val default = defaultFilters[filterClass]
 
-        val next = if (default != null) {
-            stateSubject.value + (filterClass to default)
-        } else {
-            stateSubject.value - filterClass
-        }
+        val next =
+            if (default != null) {
+                stateSubject.value + (filterClass to default)
+            } else {
+                stateSubject.value - filterClass
+            }
 
         stateSubject.emit(next)
     }

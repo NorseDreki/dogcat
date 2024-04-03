@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-FileCopyrightText: Copyright (C) 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -35,7 +35,7 @@ class LogLinesView : HasLifecycle {
         val showLineNumbers: Boolean = false,
         val tagWidth: Int = DEFAULT_TAG_WIDTH,
         val isCursorHeld: Boolean = false,
-        val cursorReturnLocation: Pair<Int, Int>? = null,
+        val cursorReturnLocation: Pair<Int, Int>? = null
     )
 
     var state = State()
@@ -65,18 +65,17 @@ class LogLinesView : HasLifecycle {
     }
 
     /**
-     * A solution instead of per-line page up / page down movements would be to use 'clearok(pad, true)' marking
-     * the pad as ready for refresh. However, this solution for some reason makes the Status View blink, and that is
-     * not acceptable. Hence, retreating for the per-line movement workaround.
+     * A solution instead of per-line page up / page down movements would be to use 'clearok(pad,
+     * true)' marking the pad as ready for refresh. However, this solution for some reason makes the
+     * Status View blink, and that is not acceptable. Hence, retreating for the per-line movement
+     * workaround.
      *
-     * Leaving for reference:
-     *         firstVisibleLine -= num
+     * Leaving for reference: firstVisibleLine -= num
      *
      *         clearok(pad, true)
      *         refresh()
      *         clearok(pad, false)
      */
-
     fun pageUp() {
         val num = min(pageSize, firstVisibleLine)
 
@@ -158,11 +157,9 @@ class LogLinesView : HasLifecycle {
                 curs_set(1)
                 wrefresh(stdscr)
             }
-
             !notSeeingLastLine -> {
                 curs_set(1)
             }
-
             else -> {
                 curs_set(0)
             }

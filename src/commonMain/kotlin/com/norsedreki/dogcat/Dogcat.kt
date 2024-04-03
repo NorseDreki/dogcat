@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-FileCopyrightText: Copyright (C) 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -38,15 +38,12 @@ import kotlinx.coroutines.launch
 class Dogcat(
     private val logLines: LogLines,
     private val filters: LogFiltersState,
-    private val shell: Shell,
+    private val shell: Shell
 ) {
     private val stateSubject = MutableStateFlow<DogcatState>(Inactive)
 
-    val state = stateSubject
-        .asStateFlow()
-        .onCompletion {
-            Logger.d("${context()} (5) COMPLETION, state")
-        }
+    val state =
+        stateSubject.asStateFlow().onCompletion { Logger.d("${context()} (5) COMPLETION, state") }
 
     private lateinit var isDeviceOnline: Flow<Boolean>
 
@@ -57,14 +54,12 @@ class Dogcat(
             is Start -> {
                 start(command)
             }
-
             ClearLogs -> {
                 stateSubject.emit(Inactive)
 
                 shell.clearLogLines()
                 captureLogLines()
             }
-
             is FilterBy -> {
                 stateSubject.emit(Inactive)
 
@@ -76,7 +71,6 @@ class Dogcat(
                     captureLogLines()
                 }
             }
-
             is ResetFilter -> {
                 stateSubject.emit(Inactive)
 
@@ -88,7 +82,6 @@ class Dogcat(
                     captureLogLines()
                 }
             }
-
             Stop -> {
                 stateSubject.emit(Inactive)
 
@@ -110,7 +103,6 @@ class Dogcat(
 
                 Logger.d("${context()} Start with foreground app '$packageName', app ID '$appId'")
             }
-
             is PickAppPackage -> {
                 stateSubject.emit(Inactive)
 
@@ -121,7 +113,6 @@ class Dogcat(
 
                 Logger.d("Start with package name '$packageName', app ID '$appId'")
             }
-
             is PickAllApps -> {
                 Logger.d("${context()} Start with no package filters")
             }
@@ -148,7 +139,8 @@ class Dogcat(
                         captureLogLines()
                     }
                     value
-                }.collect()
+                }
+                .collect()
         }
     }
 
@@ -157,17 +149,20 @@ class Dogcat(
 
         val filterLines = logLines.capture(restartSource)
 
-        val device = Device(
-            shell.deviceName(),
-            isDeviceOnline,
-        )
+        val device =
+            Device(
+                shell.deviceName(),
+                isDeviceOnline,
+            )
 
-        val active = Active(
-            filterLines
-                .onCompletion { Logger.d("${context()} COMPLETION (4): Capturing input filterLines $it") },
-            filters.state,
-            device,
-        )
+        val active =
+            Active(
+                filterLines.onCompletion {
+                    Logger.d("${context()} COMPLETION (4): Capturing input filterLines $it")
+                },
+                filters.state,
+                device,
+            )
 
         stateSubject.emit(active)
     }

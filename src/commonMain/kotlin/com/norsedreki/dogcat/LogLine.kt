@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-FileCopyrightText: Copyright (C) 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -14,17 +14,13 @@ data class Brief(
     val message: String,
 ) : LogLine
 
-data class Unparseable(
-    val line: String,
-) : LogLine
+data class Unparseable(val line: String) : LogLine
 
-enum class LogLevel(
-    val label: String,
-) {
+enum class LogLevel(val label: String) {
     V("Verbose"),
     D("Debug"),
     I("Info"),
     W("Warning"),
     E("Error"),
-    F("Fatal"),
+    F("Fatal")
 }

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-FileCopyrightText: Copyright (C) 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 class StatusPresenter(
     private val dogcat: Dogcat,
     private val appState: AppState,
-    private val input: Input,
+    private val input: Input
 ) : HasLifecycle {
 
     private lateinit var view: StatusView
@@ -37,18 +37,10 @@ class StatusPresenter(
 
         val scope = CoroutineScope(coroutineContext)
 
-        scope.launch {
-            collectDogcatState()
-        }
-        scope.launch {
-            collectUserStringInput()
-        }
-        scope.launch {
-            collectAppState()
-        }
-        scope.launch {
-            collectDeviceStatus()
-        }
+        scope.launch { collectDogcatState() }
+        scope.launch { collectUserStringInput() }
+        scope.launch { collectAppState() }
+        scope.launch { collectDeviceStatus() }
     }
 
     override suspend fun stop() {
@@ -59,62 +51,53 @@ class StatusPresenter(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun collectDogcatState() {
-        dogcat
-            .state
+        dogcat.state
             .filterIsInstance<Active>()
             .mapLatest { it }
             .collect {
                 val filters = it.filters.first()
 
-                filters[ByPackage::class]?.let {
-                    appState.filterByPackage(it as ByPackage, true)
-                }
+                filters[ByPackage::class]?.let { appState.filterByPackage(it as ByPackage, true) }
 
-                view.state = view.state.copy(
-                    filters = filters,
-                    autoscroll = appState.state.value.autoscroll,
-                    deviceLabel = it.device.label,
-                    isDeviceOnline = it.device.isOnline.first(),
-                )
+                view.state =
+                    view.state.copy(
+                        filters = filters,
+                        autoscroll = appState.state.value.autoscroll,
+                        deviceLabel = it.device.label,
+                        isDeviceOnline = it.device.isOnline.first()
+                    )
             }
     }
 
     private suspend fun collectUserStringInput() {
-        input.strings
-            .collect {
-                dogcat(FilterBy(Substring(it)))
-            }
+        input.strings.collect { dogcat(FilterBy(Substring(it))) }
     }
 
     private suspend fun collectAppState() {
-        appState
-            .state
-            .collect {
-                val packageName =
-                    if (it.packageFilter.second) {
-                        it.packageFilter.first!!.packageName
-                    } else {
-                        ""
-                    }
+        appState.state.collect {
+            val packageName =
+                if (it.packageFilter.second) {
+                    it.packageFilter.first!!.packageName
+                } else {
+                    ""
+                }
 
-                view.state = view.state.copy(
+            view.state =
+                view.state.copy(
                     packageName = packageName,
                     autoscroll = it.autoscroll,
                     isCursorHeld = it.isCursorHeld,
-                    cursorReturnLocation = it.userInputLocation,
+                    cursorReturnLocation = it.userInputLocation
                 )
-            }
+        }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun collectDeviceStatus() {
-        dogcat
-            .state
+        dogcat.state
             .filterIsInstance<Active>()
             .flatMapLatest { it.device.isOnline }
             .distinctUntilChanged()
-            .collect {
-                view.state = view.state.copy(isDeviceOnline = it)
-            }
+            .collect { view.state = view.state.copy(isDeviceOnline = it) }
     }
 }

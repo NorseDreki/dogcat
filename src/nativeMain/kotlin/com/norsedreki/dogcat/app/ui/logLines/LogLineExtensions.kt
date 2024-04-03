@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-FileCopyrightText: Copyright (C) 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -98,8 +98,8 @@ private fun LogLinesView.printBriefLogLine(logLine: IndexedValue<LogLine>): Int 
                 COLOR_PAIR(YELLOW_ON_BG.colorPairCode),
             )
         }
-
-        E, F -> {
+        E,
+        F -> {
             printLevelAndMessage(
                 level.name,
                 BLACK_ON_RED.colorPairCode,
@@ -107,11 +107,14 @@ private fun LogLinesView.printBriefLogLine(logLine: IndexedValue<LogLine>): Int 
                 COLOR_PAIR(RED_ON_BG.colorPairCode),
             )
         }
-
         I -> {
-            printLevelAndMessage(level.name, BLACK_ON_WHITE.colorPairCode, wrappedMessage, A_BOLD.toInt())
+            printLevelAndMessage(
+                level.name,
+                BLACK_ON_WHITE.colorPairCode,
+                wrappedMessage,
+                A_BOLD.toInt()
+            )
         }
-
         else -> {
             printLevelAndMessage(level.name, BLACK_ON_WHITE.colorPairCode, wrappedMessage, 0)
         }
@@ -125,7 +128,7 @@ private fun LogLinesView.printLevelAndMessage(
     level: String,
     levelColorPair: Int,
     message: String,
-    messageColorPair: Int,
+    messageColorPair: Int
 ) {
     waddstr(pad, " ")
 

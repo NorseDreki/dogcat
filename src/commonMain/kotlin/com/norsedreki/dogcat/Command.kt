@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-FileCopyrightText: Copyright (C) 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -13,18 +13,12 @@ sealed interface Command {
 
         data object PickForegroundApp : Start
 
-        data class PickAppPackage(
-            val packageName: String,
-        ) : Start
+        data class PickAppPackage(val packageName: String) : Start
     }
 
-    data class FilterBy(
-        val filter: LogFilter,
-    ) : Command
+    data class FilterBy(val filter: LogFilter) : Command
 
-    data class ResetFilter(
-        val filterClass: KClass<out LogFilter>,
-    ) : Command
+    data class ResetFilter(val filterClass: KClass<out LogFilter>) : Command
 
     data object ClearLogs : Command
 

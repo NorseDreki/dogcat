@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-FileCopyrightText: Copyright (C) 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -9,10 +9,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface Shell {
 
-    fun logLines(
-        minLogLevel: String,
-        appId: String,
-    ): Flow<String>
+    fun logLines(minLogLevel: String, appId: String): Flow<String>
 
     fun isDeviceOnline(): Flow<Boolean>
 

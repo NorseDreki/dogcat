@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: Copyright (C) 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import dogcat.LogLinesSource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*

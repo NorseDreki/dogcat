@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-FileCopyrightText: Copyright (C) 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -21,24 +21,25 @@ import org.kodein.di.instance
 
 object DogcatModule {
 
-    internal val dogcatModule = DI.Module("dogcat") {
-        bindSingleton<LogFiltersState> { DefaultLogFiltersState() }
-        bindSingleton<LogLineParser> { LogLineBriefParser() }
-        bindSingleton<LogLines> {
-            LogLines(
-                instance(),
-                instance(),
-                instance(),
-                Dispatchers.Default,
-            )
+    internal val dogcatModule =
+        DI.Module("dogcat") {
+            bindSingleton<LogFiltersState> { DefaultLogFiltersState() }
+            bindSingleton<LogLineParser> { LogLineBriefParser() }
+            bindSingleton<LogLines> {
+                LogLines(
+                    instance(),
+                    instance(),
+                    instance(),
+                    Dispatchers.Default,
+                )
+            }
+            bindSingleton<Shell> { AdbShell(Dispatchers.IO) }
+            bindSingleton<Dogcat> {
+                Dogcat(
+                    instance(),
+                    instance(),
+                    instance(),
+                )
+            }
         }
-        bindSingleton<Shell> { AdbShell(Dispatchers.IO) }
-        bindSingleton<Dogcat> {
-            Dogcat(
-                instance(),
-                instance(),
-                instance(),
-            )
-        }
-    }
 }

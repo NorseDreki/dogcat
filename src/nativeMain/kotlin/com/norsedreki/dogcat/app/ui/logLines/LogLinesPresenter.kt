@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-FileCopyrightText: Copyright (C) 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -36,7 +36,7 @@ class LogLinesPresenter(
     private val dogcat: Dogcat,
     private val appArguments: AppArguments,
     private val appState: AppState,
-    private val input: Input,
+    private val input: Input
 ) : HasLifecycle {
 
     private lateinit var view: LogLinesView
@@ -47,18 +47,10 @@ class LogLinesPresenter(
 
         val scope = CoroutineScope(coroutineContext)
 
-        scope.launch {
-            collectAutoscroll()
-        }
-        scope.launch {
-            collectAppState()
-        }
-        scope.launch {
-            collectLogLines()
-        }
-        scope.launch {
-            collectKeypresses()
-        }
+        scope.launch { collectAutoscroll() }
+        scope.launch { collectAppState() }
+        scope.launch { collectLogLines() }
+        scope.launch { collectKeypresses() }
     }
 
     override suspend fun stop() {
@@ -79,34 +71,33 @@ class LogLinesPresenter(
     }
 
     private suspend fun collectAppState() {
-        appState.state
-            .collect {
-                view.state = view.state.copy(
+        appState.state.collect {
+            view.state =
+                view.state.copy(
                     autoscroll = it.autoscroll,
                     showLineNumbers = appArguments.lineNumbers ?: false,
                     tagWidth = appArguments.tagWidth ?: DEFAULT_TAG_WIDTH,
                     isCursorHeld = it.isCursorHeld,
                     cursorReturnLocation = it.userInputLocation,
                 )
-            }
+        }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun collectLogLines() {
-        dogcat
-            .state
+        dogcat.state
             .flatMapLatest {
                 when (it) {
                     is Active -> {
                         Logger.d("${context()} Start capturing log lines")
 
-                        view.state = view.state.copy(
-                            overscroll = false,
-                        )
+                        view.state =
+                            view.state.copy(
+                                overscroll = false,
+                            )
 
                         it.lines
                     }
-
                     Inactive -> {
                         Logger.d("${context()} Stop capturing log lines")
                         view.clear()
@@ -114,51 +105,42 @@ class LogLinesPresenter(
                         emptyFlow()
                     }
                 }
-            }.buffer(0)
-            .collect {
-                view.printLogLine(it)
             }
+            .buffer(0)
+            .collect { view.printLogLine(it) }
     }
 
     private suspend fun collectKeypresses() {
-        input
-            .keypresses
-            .collect {
-                when (Keymap.bindings[it]) {
-                    HOME -> {
-                        appState.autoscroll(false)
-                        view.home()
-                    }
-
-                    END -> {
-                        appState.autoscroll(true)
-                        view.end()
-                    }
-
-                    LINE_UP -> {
-                        appState.autoscroll(false)
-                        view.lineUp()
-                    }
-
-                    LINE_DOWN -> {
-                        appState.autoscroll(false)
-                        view.lineDown(1)
-                    }
-
-                    PAGE_DOWN -> {
-                        appState.autoscroll(false)
-                        view.pageDown()
-                    }
-
-                    PAGE_UP -> {
-                        appState.autoscroll(false)
-                        view.pageUp()
-                    }
-
-                    else -> {
-                        // Other keys are handled elsewhere
-                    }
+        input.keypresses.collect {
+            when (Keymap.bindings[it]) {
+                HOME -> {
+                    appState.autoscroll(false)
+                    view.home()
+                }
+                END -> {
+                    appState.autoscroll(true)
+                    view.end()
+                }
+                LINE_UP -> {
+                    appState.autoscroll(false)
+                    view.lineUp()
+                }
+                LINE_DOWN -> {
+                    appState.autoscroll(false)
+                    view.lineDown(1)
+                }
+                PAGE_DOWN -> {
+                    appState.autoscroll(false)
+                    view.pageDown()
+                }
+                PAGE_UP -> {
+                    appState.autoscroll(false)
+                    view.pageUp()
+                }
+                else -> {
+                    // Other keys are handled elsewhere
                 }
             }
+        }
     }
 }

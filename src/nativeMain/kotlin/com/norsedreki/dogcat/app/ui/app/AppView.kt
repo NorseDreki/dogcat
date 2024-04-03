@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-FileCopyrightText: Copyright (C) 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -33,7 +33,8 @@ class AppView : HasLifecycle {
         keypad(stdscr, true)
         noecho()
 
-        // The nodelay option causes getch to be a non-blocking call. If no input is ready, getch returns ERR.
+        // The nodelay option causes getch to be a non-blocking call. If no input is ready, getch
+        // returns ERR.
         // If disabled (bf is FALSE), getch waits until a key is pressed
         nodelay(stdscr, true)
         // cbreak or raw, to make wgetch read unbuffered data, i.e., not waiting for '\n'.

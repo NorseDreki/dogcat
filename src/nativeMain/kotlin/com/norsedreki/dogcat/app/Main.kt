@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-FileCopyrightText: Copyright (C) 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -51,18 +51,15 @@ fun main(args: Array<String>) {
 
             A terminal-based Android Logcat reader with sane colouring
             https://github.com/NorseDreki/dogcat
-            """.trimIndent()
+            """
+                .trimIndent()
 
         println(m)
         exit(0)
     }
 
     if (appModule.appArguments.printKeymap == true) {
-        Keymap.bindings
-            .entries
-            .forEach {
-                println("${it.value.name} -- '${Char(it.key)}'")
-            }
+        Keymap.bindings.entries.forEach { println("${it.value.name} -- '${Char(it.key)}'") }
 
         exit(0)
     }
@@ -70,9 +67,7 @@ fun main(args: Array<String>) {
     val handler = CoroutineExceptionHandler { _, e ->
         Logger.d("Exception in top-level handler: ${e.message}")
 
-        runBlocking {
-            appModule.appPresenter.stop()
-        }
+        runBlocking { appModule.appPresenter.stop() }
 
         val causeMessage = e.cause?.message
         val cause = ", cause: $causeMessage"
@@ -95,18 +90,17 @@ fun main(args: Array<String>) {
                 appModule.appPresenter.start()
                 appModule.input.start()
 
-                appModule.input
-                    .keypresses
-                    .filter {
-                        Keymap.bindings[it] == QUIT
-                    }.onEach {
+                appModule.input.keypresses
+                    .filter { Keymap.bindings[it] == QUIT }
+                    .onEach {
                         Logger.d("${context()} User quits the application")
 
                         appModule.appPresenter.stop()
                         coroutineContext.cancelChildren()
 
                         exitCode = 0
-                    }.launchIn(this@launch)
+                    }
+                    .launchIn(this@launch)
             }
         appJob.join()
     }

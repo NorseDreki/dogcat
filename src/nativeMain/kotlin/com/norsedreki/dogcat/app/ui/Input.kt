@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-FileCopyrightText: Copyright (C) 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -42,9 +42,7 @@ interface Input : HasLifecycle {
     val strings: Flow<String>
 }
 
-class DefaultInput(
-    private val appState: AppState,
-) : Input {
+class DefaultInput(private val appState: AppState) : Input {
 
     private val keypressesSubject = MutableSharedFlow<Int>()
     override val keypresses = keypressesSubject
@@ -57,39 +55,37 @@ class DefaultInput(
 
     private val inputX = INPUT_FILTER_PREFIX.length
 
-    @OptIn(ExperimentalForeignApi::class)
-    private val inputY by lazy { getmaxy(stdscr) - 1 }
+    @OptIn(ExperimentalForeignApi::class) private val inputY by lazy { getmaxy(stdscr) - 1 }
 
     private var cursorPosition = inputX
 
     @OptIn(ExperimentalForeignApi::class)
     override suspend fun start() {
-        CoroutineScope(coroutineContext)
-            .launch {
-                appState.setUserInputLocation(inputX, inputY)
-                mvwprintw(stdscr, inputY, 0, INPUT_FILTER_PREFIX)
+        CoroutineScope(coroutineContext).launch {
+            appState.setUserInputLocation(inputX, inputY)
+            mvwprintw(stdscr, inputY, 0, INPUT_FILTER_PREFIX)
 
-                while (isActive) {
-                    val key = wgetch(stdscr)
+            while (isActive) {
+                val key = wgetch(stdscr)
 
-                    if (key == ERR) {
-                        delay(INPUT_KEY_DELAY_MILLIS)
-                        continue
-                    }
+                if (key == ERR) {
+                    delay(INPUT_KEY_DELAY_MILLIS)
+                    continue
+                }
 
-                    if (Keymap.bindings[key] == INPUT_FILTER_BY_SUBSTRING && !inputMode) {
-                        enterInputMode()
-                        continue
-                    }
+                if (Keymap.bindings[key] == INPUT_FILTER_BY_SUBSTRING && !inputMode) {
+                    enterInputMode()
+                    continue
+                }
 
-                    if (inputMode) {
-                        processKeyInInputMode(key)
-                    } else {
-                        Logger.d("${context()} Process key $key")
-                        keypressesSubject.emit(key)
-                    }
+                if (inputMode) {
+                    processKeyInInputMode(key)
+                } else {
+                    Logger.d("${context()} Process key $key")
+                    keypressesSubject.emit(key)
                 }
             }
+        }
     }
 
     @OptIn(ExperimentalForeignApi::class)
@@ -111,12 +107,11 @@ class DefaultInput(
             KEY_LEFT -> {
                 if (cursorPosition - inputX > 0) cursorPosition--
             }
-
             KEY_RIGHT -> {
                 if (cursorPosition - inputX < inputBuffer.length) cursorPosition++
             }
-
-            KEY_BACKSPACE, 127 -> {
+            KEY_BACKSPACE,
+            127 -> {
                 if (cursorPosition - inputX > 0) {
                     inputBuffer.deleteAt(cursorPosition - inputX - 1)
                     cursorPosition--
@@ -124,7 +119,6 @@ class DefaultInput(
                     mvdelch(inputY, cursorPosition)
                 }
             }
-
             '\n'.code -> {
                 val input = inputBuffer.toString()
                 inputBuffer.clear()
@@ -136,14 +130,12 @@ class DefaultInput(
 
                 stringsSubject.emit(input)
             }
-
             27 -> { // ESCAPE
                 mvwprintw(stdscr, inputY, inputX, " ".repeat(inputBuffer.length))
 
                 inputBuffer.clear()
                 cursorPosition = inputX
             }
-
             else -> {
                 val char = key.toChar()
 

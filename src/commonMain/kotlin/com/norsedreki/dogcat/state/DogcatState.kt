@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-FileCopyrightText: Copyright (C) 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -13,13 +13,10 @@ sealed interface DogcatState {
     data class Active(
         val lines: Flow<IndexedValue<LogLine>>,
         val filters: Flow<LogFilters>,
-        val device: Device,
+        val device: Device
     ) : DogcatState
 
     data object Inactive : DogcatState
 }
 
-data class Device(
-    val label: String,
-    val isOnline: Flow<Boolean>,
-)
+data class Device(val label: String, val isOnline: Flow<Boolean>)

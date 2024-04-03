@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-FileCopyrightText: Copyright (C) 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -19,8 +19,9 @@ import platform.posix.fprintf
 class FileLogger : CanLog {
 
     // I/O is not cool for field initializers, but would be OK when debugging
-    private val file: CPointer<FILE> = fopen(APP_LOG_FILENAME, "w")
-        ?: throw RuntimeException("Was not able to open log file for writing.")
+    private val file: CPointer<FILE> =
+        fopen(APP_LOG_FILENAME, "w")
+            ?: throw RuntimeException("Was not able to open log file for writing.")
 
     override fun d(line: String) {
         fprintf(file, "$line\n")

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-FileCopyrightText: Copyright (C) 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -54,7 +54,7 @@ class AppPresenter(
     private val appState: AppState,
     private val input: Input,
     private val logLinesPresenter: LogLinesPresenter,
-    private val statusPresenter: StatusPresenter,
+    private val statusPresenter: StatusPresenter
 ) : HasLifecycle {
 
     private lateinit var view: AppView
@@ -66,13 +66,11 @@ class AppPresenter(
 
                 dogcat(PickAppPackage(appArguments.packageName!!))
             }
-
             appArguments.current == true -> {
                 println("Resolving foreground app...")
 
                 dogcat(PickForegroundApp)
             }
-
             else -> dogcat(PickAllApps)
         }
 
@@ -84,9 +82,7 @@ class AppPresenter(
 
         val scope = CoroutineScope(coroutineContext)
 
-        scope.launch {
-            collectKeypresses()
-        }
+        scope.launch { collectKeypresses() }
     }
 
     override suspend fun stop() {
@@ -102,8 +98,7 @@ class AppPresenter(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun collectKeypresses() {
-        dogcat
-            .state
+        dogcat.state
             .filterIsInstance<Active>()
             .flatMapLatest { it.device.isOnline }
             .distinctUntilChanged()
@@ -113,9 +108,8 @@ class AppPresenter(
                 } else {
                     emptyFlow()
                 }
-            }.collect {
-                dispatchKeyCode(it)
             }
+            .collect { dispatchKeyCode(it) }
     }
 
     private suspend fun dispatchKeyCode(keyCode: Int) {
@@ -124,11 +118,9 @@ class AppPresenter(
                 val currentAutoscroll = appState.state.value.autoscroll
                 appState.autoscroll(!currentAutoscroll)
             }
-
             CLEAR_LOGS -> {
                 dogcat(ClearLogs)
             }
-
             TOGGLE_FILTER_BY_PACKAGE -> {
                 val packageFilter = appState.state.value.packageFilter
 
@@ -144,35 +136,27 @@ class AppPresenter(
                     appState.filterByPackage(packageFilter.first, true)
                 }
             }
-
             RESET_FILTER_BY_SUBSTRING -> {
                 dogcat(ResetFilter(Substring::class))
             }
-
             RESET_FILTER_BY_MIN_LOG_LEVEL -> {
                 dogcat(ResetFilter(MinLogLevel::class))
             }
-
             MIN_LOG_LEVEL_V -> {
                 dogcat(FilterBy(MinLogLevel(V)))
             }
-
             MIN_LOG_LEVEL_D -> {
                 dogcat(FilterBy(MinLogLevel(D)))
             }
-
             MIN_LOG_LEVEL_I -> {
                 dogcat(FilterBy(MinLogLevel(I)))
             }
-
             MIN_LOG_LEVEL_W -> {
                 dogcat(FilterBy(MinLogLevel(W)))
             }
-
             MIN_LOG_LEVEL_E -> {
                 dogcat(FilterBy(MinLogLevel(E)))
             }
-
             else -> {
                 // Other keys are handled elsewhere
             }

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-FileCopyrightText: Copyright (C) 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -50,12 +50,10 @@ class StatusView : HasLifecycle {
         val isDeviceOnline: Boolean = false,
         val autoscroll: Boolean = false,
         val isCursorHeld: Boolean = false,
-        val cursorReturnLocation: Pair<Int, Int>? = null,
+        val cursorReturnLocation: Pair<Int, Int>? = null
     )
 
-    var state: State by Delegates.observable(State()) { _, _, newValue ->
-        updateView(newValue)
-    }
+    var state: State by Delegates.observable(State()) { _, _, newValue -> updateView(newValue) }
 
     private lateinit var window: CPointer<WINDOW>
 
@@ -110,7 +108,6 @@ class StatusView : HasLifecycle {
                         wattron(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
                     }
                 }
-
                 MinLogLevel::class -> {
                     wattron(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
 
@@ -121,7 +118,6 @@ class StatusView : HasLifecycle {
 
                     wattroff(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
                 }
-
                 ByPackage::class -> {
                     val packageName = (it.value as ByPackage).packageName
                     updatePackageName(packageName)
@@ -139,10 +135,7 @@ class StatusView : HasLifecycle {
         wattroff(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
     }
 
-    private fun updateDevice(
-        device: String,
-        running: Boolean,
-    ) {
+    private fun updateDevice(device: String, running: Boolean) {
         curs_set(0)
 
         val colorPairCode =

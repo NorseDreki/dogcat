@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-FileCopyrightText: Copyright (C) 2024 Alex Dmitriev <mr.alex.dmitriev@icloud.com>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -11,52 +11,58 @@ import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.optional
 
-class AppArguments(
-    private val parser: ArgParser,
-) {
+class AppArguments(private val parser: ArgParser) {
 
     class ValidationException(
         override val message: String,
     ) : RuntimeException(message)
 
-    val packageName by parser
-        .argument(
-            ArgType.String,
-            "package name",
-            "Show logs for a particular application specified by this package name. " +
-                "Example: 'com.google.android.apps.messaging'.",
-        ).optional()
+    val packageName by
+        parser
+            .argument(
+                ArgType.String,
+                "package name",
+                "Show logs for a particular application specified by this package name. " +
+                    "Example: 'com.google.android.apps.messaging'.",
+            )
+            .optional()
 
-    val current by parser.option(
-        ArgType.Boolean,
-        shortName = "c",
-        description = "Show logs for an application currently running in foreground.",
-    )
+    val current by
+        parser.option(
+            ArgType.Boolean,
+            shortName = "c",
+            description = "Show logs for an application currently running in foreground.",
+        )
 
-    val lineNumbers by parser.option(
-        ArgType.Boolean,
-        shortName = "ln",
-        description = "Show line numbers for log lines, embedded into message body.",
-    )
+    val lineNumbers by
+        parser.option(
+            ArgType.Boolean,
+            shortName = "ln",
+            description = "Show line numbers for log lines, embedded into message body.",
+        )
 
-    val tagWidth by parser.option(
-        ArgType.Int,
-        shortName = "tw",
-        description = "Specify width for displaying log tags. Values between 1 and $MAX_TAG_WIDTH are accepted. " +
-            "Default value is $DEFAULT_TAG_WIDTH.",
-    )
+    val tagWidth by
+        parser.option(
+            ArgType.Int,
+            shortName = "tw",
+            description =
+                "Specify width for displaying log tags. Values between 1 and $MAX_TAG_WIDTH are accepted. " +
+                    "Default value is $DEFAULT_TAG_WIDTH.",
+        )
 
-    val version by parser.option(
-        ArgType.Boolean,
-        shortName = "v",
-        description = "Show version of this app.",
-    )
+    val version by
+        parser.option(
+            ArgType.Boolean,
+            shortName = "v",
+            description = "Show version of this app.",
+        )
 
-    val printKeymap by parser.option(
-        ArgType.Boolean,
-        shortName = "pk",
-        description = "Show key bindings for the app.",
-    )
+    val printKeymap by
+        parser.option(
+            ArgType.Boolean,
+            shortName = "pk",
+            description = "Show key bindings for the app.",
+        )
 
     fun validate(args: Array<String>) {
         parser.parse(args)
@@ -70,7 +76,9 @@ class AppArguments(
 
         tagWidth?.let {
             if (tagWidth !in 1..MAX_TAG_WIDTH) {
-                throw ValidationException("Tag width should be a value between 1 and $MAX_TAG_WIDTH.")
+                throw ValidationException(
+                    "Tag width should be a value between 1 and $MAX_TAG_WIDTH."
+                )
             }
         }
     }
