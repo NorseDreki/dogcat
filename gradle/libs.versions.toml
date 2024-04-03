@@ -4,12 +4,15 @@ coroutines = "1.8.0"
 kodein = "7.21.2"
 kommand = "2.0.1"
 kotlinx-cli = "0.3.6"
+spotless = "6.25.0"
+ktfmt = "0.47"
 kotest-assertions-core = "5.6.2"
 turbine = "1.0.0"
 mockative = "1.4.1"
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 
 [libraries]
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
