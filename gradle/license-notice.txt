@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (C) $YEAR Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-FileCopyrightText: Copyright (c) $YEAR, Alex Dmitriev <mr.alex.dmitriev@icloud.com>
  * SPDX-License-Identifier: Apache-2.0
  */
 

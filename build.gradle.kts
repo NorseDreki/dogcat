@@ -8,6 +8,7 @@ import com.diffplug.spotless.LineEnding
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.spotless)
+    alias(libs.plugins.detekt)
 }
 
 group = "com.norsedreki"
@@ -36,13 +37,13 @@ spotless {
         trimTrailingWhitespace()
         endWithNewline()
     }
+}
 
-    format("misc") {
-        target("**/*.json", "**/*.yaml", "**/*.yml", "**/*.toml")
-
-        indentWithSpaces(2)
-        trimTrailingWhitespace()
-        endWithNewline()
+detekt {
+    reports {
+        input.setFrom(files("src"))
+        html.enabled = true
+        sarif.enabled = true
     }
 }
 
