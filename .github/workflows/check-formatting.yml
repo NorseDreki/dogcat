@@ -29,16 +29,27 @@ jobs:
           github-token: ${{ secrets.PAT }}
           script: |
             const fs = require('fs');
+            const { stripIndent } = require('common-tags');
             const issue_number = context.payload.pull_request.number;
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             const spotless_status = fs.readFileSync('spotless-status.txt', 'utf8').trim();
             const spotless_output = fs.readFileSync('spotless-output.txt', 'utf8').trim();
             if (spotless_status === 'failed') {
+              const body = stripIndent`
+                Spotless check ${spotless_status}.
+                <details>
+                <summary>Click to expand output</summary>
+
+                \`\`\`
+                ${spotless_output}
+                \`\`\`
+                </details>
+                `;
               await github.rest.issues.createComment({
-                owner: owner,
-                repo: repo,
-                issue_number: issue_number,
-                body: `Spotless check ${spotless_status} with the following output:\n\n\`\`\`\n${spotless_output}\n\`\`\``
-              });
-            }
+              owner: owner,
+              repo: repo,
+              issue_number: issue_number,
+              body: body
+            });
+          }
