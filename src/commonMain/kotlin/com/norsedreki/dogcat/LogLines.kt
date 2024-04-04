@@ -42,6 +42,8 @@ class LogLines(
     private lateinit var sharedLines: Flow<String>
 
     suspend fun capture(restartSource: Boolean = true): Flow<IndexedValue<LogLine>> {
+        // Dummy dummy whoa
+
         if (restartSource) {
             if (this::scope.isInitialized) {
                 Logger.d("${context()} Cancel coroutine scope for log lines collection")

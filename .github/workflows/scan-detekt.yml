@@ -1,10 +1,8 @@
 name: Scan with Detekt
 
 on:
-  push:
-    branches: [ main ]
+  workflow_dispatch:
   pull_request:
-    branches: [ main ]
 
 jobs:
   validate:
@@ -15,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: natiginfo/action-detekt-all@1.23.5
+      - uses: natiginfo/action-detekt-all@1.23.6
         with:
           args: --report sarif:build/reports/detekt/detekt.sarif
         continue-on-error: true
