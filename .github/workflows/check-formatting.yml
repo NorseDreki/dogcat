@@ -19,4 +19,24 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v3
 
-      - run: ./gradlew spotlessCheck
+      - id: spotless
+        run: |
+          OUTPUT=$(./gradlew spotlessCheck) || echo "::set-output name=SPOTLESS_STATUS::failed"
+
+      - name: Comment PR
+        if: steps.spotless.outputs.SPOTLESS_STATUS == 'failed'
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const issue_number = context.payload.pull_request.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const detekt_output = `${{ steps.spotless.outputs.OUTPUT }}`;
+            await github.rest.issues.createComment({
+              owner: owner,
+              repo: repo,
+              issue_number: issue_number,
+              body: `Spotless check failed with the following output:\n\n\`\`\`\n${output}\n\`\`\``
+            });
+
