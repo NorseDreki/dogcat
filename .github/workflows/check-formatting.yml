@@ -21,14 +21,15 @@ jobs:
 
       - id: spotless
         run: |
-          OUTPUT=$(./gradlew spotlessCheck) || echo "::set-output name=SPOTLESS_STATUS::failed"
+          ./gradlew spotlessCheck > spotless-output.txt 2>&1 || echo "::set-output name=SPOTLESS_STATUS::failed"
+          OUTPUT=$(cat spotless-output.txt)
           echo "::set-output name=OUTPUT::$OUTPUT"
 
       - name: Comment PR
         if: steps.spotless.outputs.SPOTLESS_STATUS == 'failed'
         uses: actions/github-script@v5
         with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
+          github-token: ${{ secrets.PAT }}
           script: |
             const issue_number = context.payload.pull_request.number;
             const owner = context.repo.owner;
