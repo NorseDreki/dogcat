@@ -1,7 +1,8 @@
 name: Scan with Detekt
 
 on:
-  pull_request:
+  workflow_dispatch:
+  #pull_request:
 
 jobs:
   validate:
