@@ -19,14 +19,19 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v3
 
-      - id: spotless
-        run: |
-          ./gradlew spotlessCheck > spotless-output.txt 2>&1 || echo "::set-output name=SPOTLESS_STATUS::failed"
-          OUTPUT=$(cat spotless-output.txt)
-          echo "::set-output name=OUTPUT::$OUTPUT"
+      - name: Run spotlessCheck and redirect output
+        run: ./gradlew spotlessCheck > spotless-output.txt 2>&1 || echo "failed" > spotless-status.txt
+        shell: bash
 
-      - name: Comment PR
-        if: steps.spotless.outputs.SPOTLESS_STATUS == 'failed'
+      - name: Use output
+        run: |
+          SPOTLESS_STATUS=$(cat spotless-status.txt)
+          SPOTLESS_OUTPUT=$(cat spotless-output.txt)
+          echo "SPOTLESS_STATUS=$SPOTLESS_STATUS" >> $GITHUB_ENV
+          echo "SPOTLESS_OUTPUT=$SPOTLESS_OUTPUT" >> $GITHUB_ENV
+
+      - name: Create comment
+        if: env.SPOTLESS_STATUS == 'failed'
         uses: actions/github-script@v5
         with:
           github-token: ${{ secrets.PAT }}
@@ -34,7 +39,8 @@ jobs:
             const issue_number = context.payload.pull_request.number;
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-            const spotless_output = `${{ steps.spotless.outputs.OUTPUT }}`;
+            const spotless_status = process.env.SPOTLESS_STATUS;
+            const spotless_output = process.env.SPOTLESS_OUTPUT;
             await github.rest.issues.createComment({
               owner: owner,
               repo: repo,
