@@ -22,6 +22,7 @@ jobs:
       - id: spotless
         run: |
           OUTPUT=$(./gradlew spotlessCheck) || echo "::set-output name=SPOTLESS_STATUS::failed"
+          echo "::set-output name=OUTPUT::$OUTPUT"
 
       - name: Comment PR
         if: steps.spotless.outputs.SPOTLESS_STATUS == 'failed'
@@ -32,11 +33,11 @@ jobs:
             const issue_number = context.payload.pull_request.number;
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-            const detekt_output = `${{ steps.spotless.outputs.OUTPUT }}`;
+            const spotless_output = `${{ steps.spotless.outputs.OUTPUT }}`;
             await github.rest.issues.createComment({
               owner: owner,
               repo: repo,
               issue_number: issue_number,
-              body: `Spotless check failed with the following output:\n\n\`\`\`\n${output}\n\`\`\``
+              body: `Spotless check failed with the following output:\n\n\`\`\`\n${spotless_output}\n\`\`\``
             });
 
