@@ -1,10 +1,7 @@
 name: Scan with Detekt
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
-    branches: [ main ]
 
 jobs:
   validate:
