@@ -1,34 +1,45 @@
-name: Feature request
-about: Sugget a new idea or an enhancement for existing features in Dogcat
-title: 'Feature Suggestion'
-labels: 'feature'
-assignees: ''
+name: Feature Request 🌟
+description: Suggest an idea or enhancement for this project
+title: "[Feature Request]: "
+labels: [ "feature", "triage" ]
+assignees: 'NorseDreki'
+
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to suggest a feature! Your contribution is appreciated. Please fill out the following information to help us understand your proposal better.
+
   - type: checkboxes
     attributes:
       label: Prerequisites
-      description: Please spend a few minutes to assist our maintainers in processing your request more efficiently.
+      description: Please assist us in processing your request more efficiently by checking the following boxes.
       options:
-        - label: I have [searched](https://github.com/NorseDreki/Dogcat/issues?utf8=%E2%9C%93&q=is%3Aissue) for duplicate or closed feature requests.
+        - label: I agree to follow this project's [Code of Conduct](https://github.com/NorseDreki/dogcat/blob/main/CODE_OF_CONDUCT.md)
           required: true
-        - label: I have read the [contributing guidelines](https://github.com/NorseDreki/Dogcat/blob/main/.github/CONTRIBUTING.md).
-          required: true
+
   - type: textarea
     id: proposal
     attributes:
       label: Proposal
       description: |
-        Please provide a detailed description of your proposal and potential implementation methods.
-        Mention any alternatives or options you've considered.
-        If applicable, attach screenshots or links.
-      validations:
-        required: true
+        Please provide a detailed description of your proposal and potential implementation methods. Mention any alternatives or options you've considered. If applicable, attach screenshots or links.
+    validations:
+      required: true
+
   - type: textarea
     id: motivation
     attributes:
-      label: Motivation and goal
+      label: Motivation and Goal
       description: |
         Please explain why this change could be beneficial and what problems it might solve.
-        Thank you for your time!
-      validations:
-        required: true
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context or screenshots about the feature request here.
+    validations:
+      required: false
