@@ -1,30 +1,28 @@
-# Security Policy
+# Dogcat Security Policy
 
-The Bootstrap team and community take security issues seriously. We appreciate your efforts to responsibly disclose your findings, and we will make every effort to acknowledge your contributions.
+The Dogcat team and our community take security issues very seriously. We value your effort in responsibly disclosing your findings, and we'll do our best to acknowledge your contribution.
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability within our application, please send an email to [security@example.com](mailto:security@example.com) with the word "SECURITY" in the subject line. We strive to respond promptly and will keep you updated throughout the process.
-
-Please refrain from publicly disclosing any potential security vulnerability without first informing us. This allows us to properly assess and coordinate the fix.
+If you discover a security vulnerability in Dogcat, please create a new [GitHub Security Advisory](https://github.com/NorseDreki/dogcat/security/advisories/new) in our repository. This allows us to work with you to understand and resolve the issue before any public disclosure.
 
 ### What to Include in Your Report
 
-To ensure efficient handling of your report, please include the following details:
+To help us handle your report effectively, please include:
 
 - A brief description of the potential vulnerability.
-- Steps to reproduce the issue, if possible. This should include any tools or scripts used.
+- Steps to reproduce the issue, if possible, including any tools or scripts used.
 - Any relevant logs or output.
 - Your contact information for further communication.
 
-We appreciate your efforts to responsibly disclose your findings, and we will make every effort to acknowledge your contributions.
+Your responsible disclosure is greatly appreciated, and we'll strive to acknowledge your contribution.
 
 ## Disclosure Policy
 
-Upon learning about a security issue, we will:
+Upon receiving a security report, we will:
 
-1. Confirm the problem and determine the affected versions.
-2. Fix the issue and prepare a new release.
-3. Release the new, fixed version and ensure all users are aware of the need to upgrade.
+1. Confirm the issue and identify the affected versions.
+2. Address the issue and prepare a new release.
+3. Release the updated version and ensure all users are aware of the need to upgrade.
 
-Thank you for helping to keep our application and its users safe!
+Thank you for helping to keep Dogcat and its users safe!
