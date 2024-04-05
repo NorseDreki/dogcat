@@ -19,4 +19,27 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v3
 
-      - run: ./gradlew spotlessCheck
+      - name: Run spotlessCheck and redirect output
+        run: ./gradlew spotlessCheck > spotless-output.txt 2>&1 || echo "failed" > spotless-status.txt
+        shell: bash
+
+      - name: Create comment
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.PAT }}
+          script: |
+            const fs = require('fs');
+            const issue_number = context.payload.pull_request.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const spotless_status = fs.readFileSync('spotless-status.txt', 'utf8').trim();
+            const spotless_output = fs.readFileSync('spotless-output.txt', 'utf8').trim();
+            if (spotless_status === 'failed') {
+              const body = `Spotless check ${spotless_status}.\n<details>\n<summary>Click to expand output</summary>\n\n\`\`\`\n${spotless_output}\n\`\`\`\n</details>`;
+              await github.rest.issues.createComment({
+                owner: owner,
+                repo: repo,
+                issue_number: issue_number,
+                body: body
+              });
+            }
