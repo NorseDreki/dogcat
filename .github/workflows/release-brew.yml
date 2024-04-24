@@ -1,0 +1,23 @@
+name: Release to Homebrew
+
+on:
+  push:
+    branches: [ "main" ]
+    tags:
+      - v*
+  workflow_dispatch:
+
+jobs:
+  bump:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Bump formulae
+        uses: dawidd6/action-homebrew-bump-formula@v3
+        with:
+          no_fork: true
+          token: ${{ secrets.PAT }}
+          tap: NorseDreki/tap
+          formula: dogcat
