@@ -22,4 +22,3 @@ jobs:
           token: ${{ secrets.PAT }}
           tap: NorseDreki/tap
           formula: dogcat
-          tag: 'v0.0.2'
