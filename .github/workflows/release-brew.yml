@@ -15,9 +15,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Bump formulae
+        if: startsWith(github.ref, 'refs/tags/')
         uses: dawidd6/action-homebrew-bump-formula@v3
         with:
           no_fork: true
           token: ${{ secrets.PAT }}
           tap: NorseDreki/tap
           formula: dogcat
+          tag: 'v0.0.1'
