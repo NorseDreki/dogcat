@@ -10,13 +10,15 @@ env:
   GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false -Dkotlin.incremental=false"
 
 jobs:
+  checkGradleWrapper:
+    uses: NorseDreki/dogcat/.github/workflows/check-gradle-wrapper.yml@main
+
   build:
+    needs: checkGradleWrapper
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
-
-      - uses: NorseDreki/dogcat/.github/workflows/check-gradle-wrapper.yml@main
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
@@ -29,10 +31,18 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: ffurrer2/extract-release-notes@v2
 
-      - uses: ./.github/workflows/release-brew.yml
+  releaseBrew:
+    needs: build
+    uses: NorseDreki/dogcat/.github/workflows/release-brew.yml@main
 
-      - uses: ./.github/workflows/release-snap.yml
+  releaseSnap:
+    needs: build
+    uses: NorseDreki/dogcat/.github/workflows/release-snap.yml@main
 
+  createRelease:
+    needs: [ build, releaseBrew, releaseSnap ]
+    runs-on: ubuntu-latest
+    steps:
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
