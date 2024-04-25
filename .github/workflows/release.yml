@@ -28,7 +28,6 @@ jobs:
 
       - name: Extract release notes
         id: release_notes
-        if: startsWith(github.ref, 'refs/tags/')
         uses: ffurrer2/extract-release-notes@v2
 
   releaseBrew:
@@ -38,19 +37,16 @@ jobs:
   releaseSnap:
     needs: build
     uses: NorseDreki/dogcat/.github/workflows/release-snap.yml@main
-    secrets:
-      snap: ${{ secrets.SNAP_LOGIN }}
+    secrets: inherit
 
   createRelease:
-    needs: [ build, releaseBrew, releaseSnap ]
+    needs: [ build ]
     runs-on: ubuntu-latest
     steps:
       - name: Create Release
-        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          body: ${{ steps.release_notes.outputs.release_notes }}
-          files: build/bin/**/**/dogcat.kexe
+          body: 'some body for release'
           draft: false
           prerelease: false
         env:

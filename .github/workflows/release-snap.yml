@@ -4,7 +4,7 @@ on:
   workflow_call:
     secrets:
       snap:
-        required: true
+        required: false
   workflow_dispatch:
 
 jobs:
@@ -51,7 +51,7 @@ jobs:
           snap: ${{ steps.snapcraft.outputs.snap }}
           release: candidate
         env:
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.snap }}
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAP_LOGIN }}
 
       - name: Test the package
         run: |
