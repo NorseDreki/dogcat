@@ -2,7 +2,7 @@ name: build and publish
 
 on:
   push:
-    branches: [ main ]
+    #branches: [ main ]
     tags:
       - '*'
 
@@ -40,14 +40,17 @@ jobs:
     secrets: inherit
 
   createRelease:
-    needs: [ build ]
+    needs: [ checkGradleWrapper ]
     runs-on: ubuntu-latest
     steps:
       - name: Create Release
         uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
         with:
-          body: 'some body for release'
+          body: 'some body for release лрпрп'
           draft: false
           prerelease: false
+          files: |
+            CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
