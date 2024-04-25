@@ -2,6 +2,7 @@ name: build and publish
 
 on:
   push:
+    branches: [ main ]
     tags:
       - '*'
 
@@ -15,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: ./.github/workflows/check-gradle-wrapper.yml
+      - uses: NorseDreki/dogcat/.github/workflows/check-gradle-wrapper.yml@main
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
