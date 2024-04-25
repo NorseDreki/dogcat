@@ -50,7 +50,5 @@ jobs:
           body: 'some body for release лрпрп'
           draft: false
           prerelease: false
-          files: |
-            CHANGELOG.md
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT }}
