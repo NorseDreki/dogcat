@@ -1,6 +1,7 @@
 name: Release to Homebrew
 
 on:
+  workflow_call:
   workflow_dispatch:
 
 jobs:
