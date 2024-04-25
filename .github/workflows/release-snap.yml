@@ -2,6 +2,9 @@ name: Build and Release Snap
 
 on:
   workflow_call:
+    secrets:
+      snap:
+        required: true
   workflow_dispatch:
 
 jobs:
@@ -48,7 +51,7 @@ jobs:
           snap: ${{ steps.snapcraft.outputs.snap }}
           release: candidate
         env:
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAP_LOGIN }}
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.snap }}
 
       - name: Test the package
         run: |

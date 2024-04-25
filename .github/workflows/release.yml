@@ -38,6 +38,8 @@ jobs:
   releaseSnap:
     needs: build
     uses: NorseDreki/dogcat/.github/workflows/release-snap.yml@main
+    secrets:
+      snap: ${{ secrets.SNAP_LOGIN }}
 
   createRelease:
     needs: [ build, releaseBrew, releaseSnap ]
