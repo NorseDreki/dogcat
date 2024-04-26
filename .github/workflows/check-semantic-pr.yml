@@ -1,4 +1,4 @@
-name: "Check PR title"
+name: "Check semantics of PR title and commits"
 
 on:
   pull_request_target:
@@ -9,12 +9,19 @@ on:
 
 permissions:
   pull-requests: read
+  contents: read  
 
 jobs:
-  main:
-    name: Check PR title
+  check-pr-title:
     runs-on: ubuntu-latest
     steps:
       - uses: amannn/action-semantic-pull-request@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  check-commit-message:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        
+      - uses: wagoid/commitlint-github-action@v6

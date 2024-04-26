@@ -1,8 +1,7 @@
-name: build and publish
+name: Release
 
 on:
   push:
-    #branches: [ main ]
     tags:
       - '*'
 
@@ -10,21 +9,13 @@ env:
   GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false -Dkotlin.incremental=false"
 
 jobs:
-  checkGradleWrapper:
+  check-gradle-wrapper:
     uses: NorseDreki/dogcat/.github/workflows/check-gradle-wrapper.yml@main
 
-  build:
-    needs: checkGradleWrapper
+  release-notes:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-
-      - name: Build with Gradle
-        run: ./gradlew assemble
 
       - name: Extract release notes
         id: release_notes
@@ -32,30 +23,41 @@ jobs:
         with:
           release_notes_file: RELEASE_NOTES.md
 
-  releaseBrew:
+      - name: Upload release notes
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: RELEASE_NOTES.md
+
+  build:
+    needs: check-gradle-wrapper
+    uses: NorseDreki/dogcat/.github/workflows/build.yml@main
+
+  release-brew:
     needs: build
     uses: NorseDreki/dogcat/.github/workflows/release-brew.yml@main
     secrets: inherit
 
-  releaseSnap:
+  release-snap:
     needs: build
     uses: NorseDreki/dogcat/.github/workflows/release-snap.yml@main
     secrets: inherit
 
   createRelease:
-    needs: [ checkGradleWrapper ]
+    needs: [ build, release-notes, release-brew, release-snap ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Download release notes
+        uses: actions/download-artifact@v4
+        with:
+          name: release-notes
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          body: 'some body for release лрпрп'
+          body_path: release-notes/RELEASE_NOTES.md
           draft: false
           prerelease: false
-          files: |
-            CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
