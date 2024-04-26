@@ -46,8 +46,8 @@ jobs:
     uses: NorseDreki/dogcat/.github/workflows/release-snap.yml@main
     secrets: inherit
 
-  createRelease:
-    needs: [ build, release-notes, release-brew, release-snap ]
+  create-release:
+    needs: [ build, release-notes ]
     runs-on: ubuntu-latest
     steps:
       - name: Download release notes
