@@ -29,14 +29,11 @@
 name: SonarCloud analysis
 
 on:
-  # Only manual run for now as this integration is not stable
-  push:
-    branches:
-      - main
+  # Only manual run for now as this integration is not scanning Kotlin files
   workflow_dispatch:
 
 permissions:
-  pull-requests: read # allows SonarCloud to decorate PRs with analysis results
+  pull-requests: read
 
 jobs:
   Analysis:
@@ -49,11 +46,11 @@ jobs:
         # uses: SonarSource/sonarcloud-github-action@de2e56b42aa84d0b1c5b622644ac17e505c9a049
         uses: SonarSource/sonarcloud-github-action@master
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}  # Needed to get PR information
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # Generate a token on Sonarcloud.io, add it to the secrets of this repo with the name SONAR_TOKEN (Settings > Secrets > Actions > add new repository secret)
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          # Additional arguments for the sonarcloud scanner
           args:
             -Dsonar.projectKey=NorseDreki_dogcat
             -Dsonar.organization=norsedreki
             -Dsonar.inclusions=**/*.kt
+            -Dsonar.language=kotlin
