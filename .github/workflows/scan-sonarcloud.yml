@@ -56,3 +56,4 @@ jobs:
           args:
             -Dsonar.projectKey=NorseDreki_dogcat
             -Dsonar.organization=norsedreki
+            -Dsonar.inclusions=**/*.kt
