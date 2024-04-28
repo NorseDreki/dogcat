@@ -56,5 +56,3 @@ jobs:
           args:
             -Dsonar.projectKey=NorseDreki_dogcat
             -Dsonar.organization=norsedreki
-            -Dsonar.language=kotlin
-            -Dsonar.inclusions=**/*.kt
