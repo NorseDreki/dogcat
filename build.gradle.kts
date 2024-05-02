@@ -3,8 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import com.diffplug.spotless.LineEnding
-
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.spotless)
@@ -19,7 +17,6 @@ repositories { mavenCentral() }
 
 spotless {
     charset("utf-8")
-    lineEndings = LineEnding.UNIX
 
     kotlin {
         target("**/*.kt", "**/*.gradle.kts")
@@ -32,7 +29,7 @@ spotless {
 
         ktfmt(libs.versions.ktfmt.get()).kotlinlangStyle()
 
-        toggleOffOn()
+        toggleOffOn("fmt:off", "fmt:on")
         indentWithSpaces(4)
         trimTrailingWhitespace()
         endWithNewline()
