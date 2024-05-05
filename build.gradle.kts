@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.spotless)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.sonar)
 }
 
 group = "com.norsedreki"
@@ -41,6 +42,16 @@ detekt {
         input.setFrom(files("src"))
         html.enabled = true
         sarif.enabled = true
+    }
+}
+
+sonar {
+    properties {
+        property("sonar.projectKey", "NorseDreki_dogcat")
+        property("sonar.organization", "norsedreki")
+        property("sonar.host.url", "https://sonarcloud.io")
+        property("sonar.inclusions", "**/*.kt")
+        property("sonar.language", "kotlin")
     }
 }
 
