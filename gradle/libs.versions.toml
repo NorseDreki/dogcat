@@ -8,8 +8,8 @@ spotless = "6.25.0"
 ktfmt = "0.47"
 detekt = "1.23.6"
 sonar = "5.0.0.4638"
-kotest-assertions-core = "5.6.2"
-turbine = "1.0.0"
+kotest-assertions-core = "5.8.1"
+turbine = "1.1.0"
 mockative = "1.4.1"
 
 [plugins]
