@@ -1,10 +1,13 @@
 # Dogcat Security Policy
 
-The Dogcat team and our community take security issues very seriously. We value your effort in responsibly disclosing your findings, and we'll do our best to acknowledge your contribution.
+The Dogcat team and our community take security issues very seriously. We value your effort in responsibly disclosing
+your findings, and we'll do our best to acknowledge your contribution.
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in Dogcat, please create a new [GitHub Security Advisory](https://github.com/NorseDreki/dogcat/security/advisories/new) in our repository. This allows us to work with you to understand and resolve the issue before any public disclosure.
+If you discover a security vulnerability in Dogcat, please create a
+new [GitHub Security Advisory](https://github.com/NorseDreki/dogcat/security/advisories/new) in our repository.
+This allows us to work with you to understand and resolve the issue before any public disclosure.
 
 ### What to Include in Your Report
 
@@ -25,4 +28,4 @@ Upon receiving a security report, we will:
 2. Address the issue and prepare a new release.
 3. Release the updated version and ensure all users are aware of the need to upgrade.
 
-Thank you for helping to keep Dogcat and its users safe!
+Thank you for helping to keep Dogcat and its users safe! 🙌
