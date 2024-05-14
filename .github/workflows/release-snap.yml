@@ -1,4 +1,4 @@
-name: Build and Release Snap
+name: Release to Snap store
 
 on:
   workflow_call:
