@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2024, Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-FileCopyrightText: Copyright (c) 2024, Alex Dmitriev <mr.alex.dmitriev@icloud.com> and contributors.
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -73,8 +73,9 @@ kotlin {
     nativeTarget.apply {
         binaries {
             executable {
-                // Do not format
+                // fmt:off
                 entryPoint = "com.norsedreki.dogcat.app.main"
+                // fmt:on
             }
         }
 
@@ -109,8 +110,9 @@ kotlin {
         val nativeTargetName = nativeTarget.name.replaceFirstChar { it.uppercaseChar() }
 
         "compileKotlin$nativeTargetName" {
-            // Do not format
+            // fmt:off
             dependsOn("generateBuildConfig")
+            // fmt:on
         }
     }
 

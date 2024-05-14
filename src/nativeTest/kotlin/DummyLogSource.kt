@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2024, Alex Dmitriev <mr.alex.dmitriev@icloud.com>
+ * SPDX-FileCopyrightText: Copyright (c) 2024, Alex Dmitriev <mr.alex.dmitriev@icloud.com> and contributors.
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -39,7 +39,7 @@ class DummyLogSource : LogLinesSource {
 
     override fun lines() = lines.asFlow()
 
-    suspend override fun clear(): Boolean {
+    override suspend fun clear(): Boolean {
         return true
     }
     /*flow {
