@@ -24,8 +24,8 @@ spotless {
         targetExclude("**/BuildConfig.kt")
 
         licenseHeaderFile(
-            rootProject.file("gradle/license-notice.txt"),
-            "^(package|@file|import|plugins|pluginManagement|class)"
+            rootProject.file("gradle/license-header.txt"),
+            "^(package|@file|import|plugins|pluginManagement|class)",
         )
 
         ktfmt(libs.versions.ktfmt.get()).kotlinlangStyle()

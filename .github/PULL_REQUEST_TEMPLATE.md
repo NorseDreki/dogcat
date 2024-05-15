@@ -1,16 +1,17 @@
 # Thanks for your contribution 🎉
 
-## Summary of changes
+## Summary of Changes
 
-Please provide a summary of the changes you've made, and don't forget to include the context and motivation behind them.
+Please provide a summary of the changes you've made, and remember to include the context and motivation behind them.
 If there are any dependencies required for this change, do mention them.
 
 Fixes #[issue number]
 
 ## Testing
 
-Please describe the tests you ran to verify your changes. Also, provide instructions so we can reproduce them. Don't
-forget to detail any relevant test configuration.
+Please describe the tests you ran to verify your changes.
+Also, provide instructions so we can reproduce them.
+Remember to detail any relevant test configuration.
 
 ## Checklist
 
