@@ -6,7 +6,7 @@ Binaries built for MacOS become available for installation via Homebrew package 
 
 To make this happen, please follow these steps:
 
-1. Bump `version` property in `build.gradle.kts` according
+1. Update the `VERSION_NAME` in `gradle.properties` to the release version, according
    to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 2. Update the [Changelog](CHANGELOG.md):
