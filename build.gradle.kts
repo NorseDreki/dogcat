@@ -10,9 +10,9 @@ plugins {
     alias(libs.plugins.sonar)
 }
 
-group = "com.norsedreki"
+group = project.property("GROUP") as String
 
-version = "0.9-RC"
+version = project.property("VERSION_NAME") as String
 
 repositories { mavenCentral() }
 
