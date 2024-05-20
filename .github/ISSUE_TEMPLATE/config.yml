@@ -1,1 +1,5 @@
 blank_issues_enabled: true
+contact_links:
+  - name: Start a discussion
+    url: https://github.com/NorseDreki/dogcat/discussions/new
+    about: You can ask for help or make your suggestion here!
