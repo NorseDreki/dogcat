@@ -42,7 +42,6 @@ fun main(args: Array<String>) {
     }
 
     if (appModule.appArguments.version == true) {
-        // val c = '\u2026'
         val c = '\u2026'
 
         val m =

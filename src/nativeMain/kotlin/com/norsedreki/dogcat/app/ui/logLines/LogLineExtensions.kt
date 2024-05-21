@@ -62,10 +62,8 @@ private fun LogLinesView.refreshPrintedLine(numLinesOnScreen: Int) {
             lineDown(numLinesOnScreen) // batch calls in order not to draw each line
         }
     } else {
-        if (state.overscroll) {
-            if (firstVisibleLine >= numLinesOnScreen) {
-                firstVisibleLine -= numLinesOnScreen
-            }
+        if (state.overscroll && firstVisibleLine >= numLinesOnScreen) {
+            firstVisibleLine -= numLinesOnScreen
         }
         refresh()
     }

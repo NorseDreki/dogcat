@@ -10,7 +10,7 @@ import com.norsedreki.dogcat.app.AppState
 import com.norsedreki.dogcat.app.BuildConfig
 import com.norsedreki.dogcat.app.FileLogger
 import com.norsedreki.dogcat.app.InternalAppState
-import com.norsedreki.dogcat.app.di.DogcatModule.dogcatModule
+import com.norsedreki.dogcat.app.di.DogcatModule.dogcat
 import com.norsedreki.dogcat.app.ui.DefaultInput
 import com.norsedreki.dogcat.app.ui.Input
 import com.norsedreki.dogcat.app.ui.app.AppPresenter
@@ -25,7 +25,7 @@ import org.kodein.di.instance
 
 class AppModule {
 
-    private val appModule =
+    private val app =
         DI.Module("app") {
             bindSingleton<CanLog> {
                 if (BuildConfig.DEBUG) {
@@ -65,8 +65,8 @@ class AppModule {
         }
 
     private val serviceLocator = DI {
-        import(dogcatModule)
-        import(appModule)
+        import(dogcat)
+        import(app)
     }
 
     val fileLogger: CanLog by serviceLocator.instance()

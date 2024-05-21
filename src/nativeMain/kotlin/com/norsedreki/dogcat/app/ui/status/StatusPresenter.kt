@@ -57,7 +57,9 @@ class StatusPresenter(
             .collect {
                 val filters = it.filters.first()
 
-                filters[ByPackage::class]?.let { appState.filterByPackage(it as ByPackage, true) }
+                filters[ByPackage::class]?.let { filter ->
+                    appState.filterByPackage(filter as ByPackage, true)
+                }
 
                 view.state =
                     view.state.copy(

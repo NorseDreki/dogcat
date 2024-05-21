@@ -7,17 +7,17 @@ package com.norsedreki.logger
 
 object Logger : CanLog {
 
-    private lateinit var logger: CanLog
+    private lateinit var canLog: CanLog
 
     fun set(l: CanLog) {
-        logger = l
+        canLog = l
     }
 
     override fun d(line: String) {
-        logger.d(line)
+        canLog.d(line)
     }
 
     override fun close() {
-        logger.close()
+        canLog.close()
     }
 }

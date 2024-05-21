@@ -21,7 +21,7 @@ import org.kodein.di.instance
 
 object DogcatModule {
 
-    internal val dogcatModule =
+    internal val dogcat =
         DI.Module("dogcat") {
             bindSingleton<LogFiltersState> { DefaultLogFiltersState() }
             bindSingleton<LogLineParser> { LogLineBriefParser() }

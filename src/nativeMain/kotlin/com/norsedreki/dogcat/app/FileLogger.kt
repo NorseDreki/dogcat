@@ -5,6 +5,7 @@
 
 package com.norsedreki.dogcat.app
 
+import com.norsedreki.dogcat.DogcatException
 import com.norsedreki.dogcat.app.AppConfig.APP_LOG_FILENAME
 import com.norsedreki.logger.CanLog
 import kotlinx.cinterop.CPointer
@@ -21,7 +22,7 @@ class FileLogger : CanLog {
     // I/O is not cool for field initializers, but would be OK when debugging
     private val file: CPointer<FILE> =
         fopen(APP_LOG_FILENAME, "w")
-            ?: throw RuntimeException("Was not able to open log file for writing.")
+            ?: throw DogcatException("Was not able to open log file for writing.")
 
     override fun d(line: String) {
         fprintf(file, "$line\n")
