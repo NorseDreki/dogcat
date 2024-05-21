@@ -7,7 +7,7 @@ package com.norsedreki.dogcat
 
 import com.norsedreki.logger.Logger
 
-interface LogLineParser {
+fun interface LogLineParser {
     fun parse(line: String): LogLine
 }
 

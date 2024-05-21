@@ -8,6 +8,7 @@ package com.norsedreki.dogcat.app
 import com.norsedreki.dogcat.app.Keymap.Actions.AUTOSCROLL
 import com.norsedreki.dogcat.app.Keymap.Actions.CLEAR_LOGS
 import com.norsedreki.dogcat.app.Keymap.Actions.END
+import com.norsedreki.dogcat.app.Keymap.Actions.HELP
 import com.norsedreki.dogcat.app.Keymap.Actions.HOME
 import com.norsedreki.dogcat.app.Keymap.Actions.INPUT_FILTER_BY_SUBSTRING
 import com.norsedreki.dogcat.app.Keymap.Actions.LINE_DOWN
@@ -34,6 +35,7 @@ object Keymap {
     @OptIn(ExperimentalForeignApi::class)
     val bindings =
         mapOf(
+            'h'.code to HELP,
             'r'.code to AUTOSCROLL,
             'q'.code to QUIT,
             'f'.code to INPUT_FILTER_BY_SUBSTRING,
@@ -55,10 +57,11 @@ object Keymap {
             '2'.code to MIN_LOG_LEVEL_D,
             '3'.code to MIN_LOG_LEVEL_I,
             '4'.code to MIN_LOG_LEVEL_W,
-            '5'.code to MIN_LOG_LEVEL_E
+            '5'.code to MIN_LOG_LEVEL_E,
         )
 
     enum class Actions {
+        HELP,
         AUTOSCROLL,
         CLEAR_LOGS,
         INPUT_FILTER_BY_SUBSTRING,

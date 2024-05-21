@@ -36,6 +36,7 @@ import com.norsedreki.dogcat.app.Keymap.Actions.RESET_FILTER_BY_SUBSTRING
 import com.norsedreki.dogcat.app.Keymap.Actions.TOGGLE_FILTER_BY_PACKAGE
 import com.norsedreki.dogcat.app.ui.HasLifecycle
 import com.norsedreki.dogcat.app.ui.Input
+import com.norsedreki.dogcat.app.ui.help.HelpPresenter
 import com.norsedreki.dogcat.app.ui.logLines.LogLinesPresenter
 import com.norsedreki.dogcat.app.ui.status.StatusPresenter
 import com.norsedreki.dogcat.state.DogcatState.Active
@@ -54,7 +55,8 @@ class AppPresenter(
     private val appState: AppState,
     private val input: Input,
     private val logLinesPresenter: LogLinesPresenter,
-    private val statusPresenter: StatusPresenter
+    private val statusPresenter: StatusPresenter,
+    private val helpPresenter: HelpPresenter
 ) : HasLifecycle {
 
     private lateinit var view: AppView
@@ -79,6 +81,7 @@ class AppPresenter(
 
         logLinesPresenter.start()
         statusPresenter.start()
+        helpPresenter.start()
 
         val scope = CoroutineScope(coroutineContext)
 
@@ -90,6 +93,7 @@ class AppPresenter(
 
         logLinesPresenter.stop()
         statusPresenter.stop()
+        helpPresenter.stop()
 
         if (this::view.isInitialized) {
             view.stop()

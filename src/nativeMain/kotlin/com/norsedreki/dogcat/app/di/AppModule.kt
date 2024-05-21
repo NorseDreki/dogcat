@@ -14,6 +14,7 @@ import com.norsedreki.dogcat.app.di.DogcatModule.dogcat
 import com.norsedreki.dogcat.app.ui.DefaultInput
 import com.norsedreki.dogcat.app.ui.Input
 import com.norsedreki.dogcat.app.ui.app.AppPresenter
+import com.norsedreki.dogcat.app.ui.help.HelpPresenter
 import com.norsedreki.dogcat.app.ui.logLines.LogLinesPresenter
 import com.norsedreki.dogcat.app.ui.status.StatusPresenter
 import com.norsedreki.logger.CanLog
@@ -45,6 +46,7 @@ class AppModule {
                     instance(),
                     instance(),
                     instance(),
+                    instance(),
                 )
             }
             bindSingleton<StatusPresenter> {
@@ -61,6 +63,9 @@ class AppModule {
                     instance(),
                     instance(),
                 )
+            }
+            bindSingleton<HelpPresenter> {
+                HelpPresenter()
             }
         }
 

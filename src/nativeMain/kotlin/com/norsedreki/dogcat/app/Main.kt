@@ -42,11 +42,9 @@ fun main(args: Array<String>) {
     }
 
     if (appModule.appArguments.version == true) {
-        val c = '\u2026'
-
         val m =
             """
-            ${c}Dogcat version ${BuildConfig.VERSION} by Alex Dmitriev ()
+            Dogcat version ${BuildConfig.VERSION} by Alex Dmitriev ()
 
             A terminal-based Android Logcat reader with sane colouring
             https://github.com/NorseDreki/dogcat
