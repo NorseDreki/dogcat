@@ -11,19 +11,20 @@ import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.optional
 
-class AppArguments(private val parser: ArgParser) {
+class AppArguments(
+    private val parser: ArgParser,
+) {
 
-    class ValidationException(
-        override val message: String,
-    ) : RuntimeException(message)
+    class ValidationException(override val message: String) : RuntimeException(message)
 
     val packageName by
         parser
             .argument(
                 ArgType.String,
-                "package name",
-                "Show logs for a particular application specified by this package name. " +
-                    "Example: 'com.google.android.apps.messaging'.",
+                fullName = "package name",
+                description =
+                "Display logs for a dedicated application, specified by its package name. " +
+                    "For example, 'com.google.android.apps.messaging'.",
             )
             .optional()
 
@@ -31,14 +32,14 @@ class AppArguments(private val parser: ArgParser) {
         parser.option(
             ArgType.Boolean,
             shortName = "c",
-            description = "Show logs for an application currently running in foreground.",
+            description = "Display logs for the application currently running in the foreground.",
         )
 
     val lineNumbers by
         parser.option(
             ArgType.Boolean,
             shortName = "ln",
-            description = "Show line numbers for log lines, embedded into message body.",
+            description = "Display line numbers for log lines, embedded within the message body.",
         )
 
     val tagWidth by
@@ -46,22 +47,15 @@ class AppArguments(private val parser: ArgParser) {
             ArgType.Int,
             shortName = "tw",
             description =
-                "Specify width for displaying log tags. Values between 1 and $MAX_TAG_WIDTH are accepted. " +
-                    "Default value is $DEFAULT_TAG_WIDTH.",
+            "Specify the width for displaying log tags. Accepts values " +
+                "between 1 and $MAX_TAG_WIDTH. Default value is $DEFAULT_TAG_WIDTH.",
         )
 
     val version by
         parser.option(
             ArgType.Boolean,
             shortName = "v",
-            description = "Show version of this app.",
-        )
-
-    val printKeymap by
-        parser.option(
-            ArgType.Boolean,
-            shortName = "pk",
-            description = "Show key bindings for the app.",
+            description = "Display the version of this application.",
         )
 
     fun validate(args: Array<String>) {
@@ -69,15 +63,14 @@ class AppArguments(private val parser: ArgParser) {
 
         if (packageName != null && current != null) {
             throw ValidationException(
-                "'Package name' and '--current' arguments are mutually exclusive and " +
-                    "can't be used at the same time.",
+                "The 'package name' and '--current' arguments cannot be used simultaneously.",
             )
         }
 
         tagWidth?.let {
             if (tagWidth !in 1..MAX_TAG_WIDTH) {
                 throw ValidationException(
-                    "Tag width should be a value between 1 and $MAX_TAG_WIDTH."
+                    "The tag width must be a value between 1 and $MAX_TAG_WIDTH.",
                 )
             }
         }
