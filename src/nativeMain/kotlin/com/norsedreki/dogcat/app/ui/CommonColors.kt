@@ -12,6 +12,7 @@ import ncurses.COLOR_RED
 import ncurses.COLOR_WHITE
 import ncurses.COLOR_YELLOW
 
+@Suppress("detekt.MagicNumber")
 @ExperimentalForeignApi
 enum class CommonColors(
     val colorPairCode: Int,

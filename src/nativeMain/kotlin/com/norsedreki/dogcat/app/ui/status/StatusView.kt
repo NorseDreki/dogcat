@@ -72,6 +72,7 @@ class StatusView : HasLifecycle {
         updatePackageName(state.packageName)
         updateFilters(state.filters)
         updateAutoscroll(state.autoscroll)
+        updateHelp()
 
         wrefresh(window)
 
@@ -133,6 +134,20 @@ class StatusView : HasLifecycle {
         mvwprintw(window, 0, STATUS_VIEW_AUTOSCROLL_LEFT_MARGIN, s)
 
         wattroff(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
+    }
+
+    private fun updateHelp() {
+        //wattron(window, COLOR_PAIR(GREEN_ON_WHITE.colorPairCode))
+        wattron(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
+        //wattron(window, A_BOLD.toInt())
+
+        val s = "| (?) Help"
+        val offsetX = STATUS_VIEW_AUTOSCROLL_LEFT_MARGIN + NO_AUTOSCROLL.length + 2
+        mvwprintw(window, 0, offsetX, s)
+
+        //wattroff(window, A_BOLD.toInt())
+        wattroff(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
+        //wattroff(window, COLOR_PAIR(GREEN_ON_WHITE.colorPairCode))
     }
 
     private fun updateDevice(device: String, running: Boolean) {

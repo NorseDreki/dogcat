@@ -35,7 +35,7 @@ object Keymap {
     @OptIn(ExperimentalForeignApi::class)
     val bindings =
         mapOf(
-            'h'.code to HELP,
+            '?'.code to HELP,
             'r'.code to AUTOSCROLL,
             'q'.code to QUIT,
             'f'.code to INPUT_FILTER_BY_SUBSTRING,

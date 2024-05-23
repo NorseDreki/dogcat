@@ -6,7 +6,6 @@
 package com.norsedreki.dogcat.app.ui.help
 
 import com.norsedreki.dogcat.app.ui.HasLifecycle
-import com.norsedreki.logger.Logger
 import kotlin.properties.Delegates
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -26,9 +25,7 @@ import ncurses.wresize
 @OptIn(ExperimentalForeignApi::class)
 class HelpView : HasLifecycle {
 
-    data class State(
-        val text: List<String> = listOf()
-    )
+    data class State(val text: List<String> = listOf())
 
     var state: State by Delegates.observable(State()) { _, _, newValue -> updateView(newValue) }
 
@@ -38,22 +35,26 @@ class HelpView : HasLifecycle {
         val sy = getmaxy(stdscr) / 2
         val sx = getmaxx(stdscr) / 2
 
-
         window = newwin(1, 1, sy, sx)!!
         werase(window) // clear the window
         wrefresh(window) // refresh the window to apply the clearing
-
     }
 
     override suspend fun stop() {
-        //werase(window)
         delwin(window)
     }
 
     private fun updateView(state: State) {
-        val padding = 2 // adjust this value as needed
-        val maxWidth = state.text.maxOf { it.length } + padding * 2
-        val height = state.text.size + padding * 2
+        val horizontalPadding = 4 // adjust this value as needed
+        val verticalPadding = 2 // adjust this value as needed
+
+        val maxWidth =
+            maxOf(state.text.maxOf { it.length }, "Help: hotkeys".length) + horizontalPadding * 2
+
+        val height =
+            state.text.size +
+                verticalPadding * 2 +
+                2 // add extra lines for the title and blank line
 
         val sy = getmaxy(stdscr)
         val sx = getmaxx(stdscr)
@@ -63,15 +64,23 @@ class HelpView : HasLifecycle {
 
         wresize(window, height, maxWidth)
         mvwin(window, startY, startX)
-        Logger.d("UPDATE HELP VIEW: $startX, $startY, $maxWidth, $height")
         box(window, 0U, 0U) // draw a box around the window
 
+        // Add title
+        val title = "Help: hotkeys"
+        val titleStartX = (maxWidth - title.length) / 2
+        mvwaddstr(window, verticalPadding, titleStartX, title)
+
+        // Add text
         state.text.forEachIndexed { index, line ->
-            mvwaddstr(window, index + padding, padding, line)
+            mvwaddstr(
+                window,
+                index + verticalPadding + 2,
+                horizontalPadding,
+                line,
+            ) // start from the third line
         }
 
         wrefresh(window)
-
-        Logger.d("HELP view refreshed")
     }
 }

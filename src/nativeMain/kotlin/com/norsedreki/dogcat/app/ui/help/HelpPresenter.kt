@@ -13,15 +13,12 @@ import com.norsedreki.dogcat.app.ui.Input
 import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 
 class HelpPresenter(
     private val input: Input,
     private val appState: AppState,
 ) : HasLifecycle {
-
-    private lateinit var view: HelpView
-
-    private var showing = false
 
     override suspend fun start() {
         val scope = CoroutineScope(coroutineContext)
@@ -34,6 +31,10 @@ class HelpPresenter(
     }
 
     private suspend fun collectKeypresses() {
+        lateinit var view: HelpView
+
+        var showing = false
+
         input.keypresses.collect { key ->
             when (Keymap.bindings[key]) {
                 HELP -> {
@@ -45,6 +46,7 @@ class HelpPresenter(
                         view = HelpView()
                         view.start()
 
+                        yield()
                         view.state = HelpView.State(h)
 
                         showing = true
@@ -55,7 +57,6 @@ class HelpPresenter(
                         appState.holdUi(false)
                     }
                 }
-
                 else -> {
                     // Other keys are handled elsewhere
                 }
