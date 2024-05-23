@@ -44,20 +44,14 @@ fun main(args: Array<String>) {
     if (appModule.appArguments.version == true) {
         val m =
             """
-            Dogcat version ${BuildConfig.VERSION} by Alex Dmitriev ()
+            Dogcat version ${BuildConfig.VERSION} by Alex Dmitriev <mr.alex.dmitriev@icloud.com>
 
-            A terminal-based Android Logcat reader with sane colouring
+            Terminal-based Android Logcat reader with a sane colouring
             https://github.com/NorseDreki/dogcat
             """
                 .trimIndent()
 
         println(m)
-        exit(0)
-    }
-
-    if (appModule.appArguments.printKeymap == true) {
-        Keymap.bindings.entries.forEach { println("${it.value.name} -- '${Char(it.key)}'") }
-
         exit(0)
     }
 

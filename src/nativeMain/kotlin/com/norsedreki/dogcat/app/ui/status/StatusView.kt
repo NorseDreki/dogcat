@@ -15,6 +15,7 @@ import com.norsedreki.dogcat.app.ui.CommonColors.RED_ON_WHITE
 import com.norsedreki.dogcat.app.ui.HasLifecycle
 import com.norsedreki.dogcat.app.ui.Strings.ALL_APPS
 import com.norsedreki.dogcat.app.ui.Strings.AUTOSCROLL
+import com.norsedreki.dogcat.app.ui.Strings.HELP_CAPTION
 import com.norsedreki.dogcat.app.ui.Strings.INPUT_FILTER_PREFIX
 import com.norsedreki.dogcat.app.ui.Strings.LOG_LEVEL_PREFIX
 import com.norsedreki.dogcat.app.ui.Strings.NO_AUTOSCROLL
@@ -137,17 +138,12 @@ class StatusView : HasLifecycle {
     }
 
     private fun updateHelp() {
-        //wattron(window, COLOR_PAIR(GREEN_ON_WHITE.colorPairCode))
         wattron(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
-        //wattron(window, A_BOLD.toInt())
 
-        val s = "| (?) Help"
         val offsetX = STATUS_VIEW_AUTOSCROLL_LEFT_MARGIN + NO_AUTOSCROLL.length + 2
-        mvwprintw(window, 0, offsetX, s)
+        mvwprintw(window, 0, offsetX, HELP_CAPTION)
 
-        //wattroff(window, A_BOLD.toInt())
         wattroff(window, COLOR_PAIR(BLACK_ON_WHITE.colorPairCode))
-        //wattroff(window, COLOR_PAIR(GREEN_ON_WHITE.colorPairCode))
     }
 
     private fun updateDevice(device: String, running: Boolean) {

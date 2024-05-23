@@ -20,4 +20,6 @@ object Strings {
     const val ALL_APPS = "All apps"
 
     const val HELP_WINDOW_TITLE = "Help: Shortcuts"
+
+    const val HELP_CAPTION = "| (?) Help"
 }
