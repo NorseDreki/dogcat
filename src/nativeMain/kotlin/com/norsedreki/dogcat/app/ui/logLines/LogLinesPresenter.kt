@@ -79,6 +79,7 @@ class LogLinesPresenter(
                     tagWidth = appArguments.tagWidth ?: DEFAULT_TAG_WIDTH,
                     isCursorHeld = it.isCursorHeld,
                     cursorReturnLocation = it.userInputLocation,
+                    isUiHeld = it.isUiHeld,
                 )
         }
     }

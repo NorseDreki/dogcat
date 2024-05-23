@@ -13,7 +13,8 @@ data class AppStateHolder(
     val autoscroll: Boolean,
     val packageFilter: Pair<ByPackage?, Boolean>,
     val userInputLocation: Pair<Int, Int>,
-    val isCursorHeld: Boolean
+    val isCursorHeld: Boolean,
+    val isUiHeld: Boolean
 )
 
 interface AppState {
@@ -27,6 +28,8 @@ interface AppState {
     fun setUserInputLocation(x: Int, y: Int)
 
     fun holdCursor(hold: Boolean)
+
+    fun holdUi(hold: Boolean)
 }
 
 class InternalAppState : AppState {
@@ -38,7 +41,8 @@ class InternalAppState : AppState {
                 null to false,
                 0 to 0,
                 false,
-            )
+                false,
+            ),
         )
 
     override fun autoscroll(on: Boolean) {
@@ -55,5 +59,9 @@ class InternalAppState : AppState {
 
     override fun holdCursor(hold: Boolean) {
         state.value = state.value.copy(isCursorHeld = hold)
+    }
+
+    override fun holdUi(hold: Boolean) {
+        state.value = state.value.copy(isUiHeld = hold)
     }
 }

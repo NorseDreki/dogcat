@@ -5,28 +5,61 @@
 
 package com.norsedreki.dogcat.app.ui.help
 
+import com.norsedreki.dogcat.app.AppState
+import com.norsedreki.dogcat.app.Keymap
+import com.norsedreki.dogcat.app.Keymap.Actions.HELP
 import com.norsedreki.dogcat.app.ui.HasLifecycle
+import com.norsedreki.dogcat.app.ui.Input
 import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
-class HelpPresenter : HasLifecycle {
+class HelpPresenter(
+    private val input: Input,
+    private val appState: AppState,
+) : HasLifecycle {
 
     private lateinit var view: HelpView
 
+    private var showing = false
+
     override suspend fun start() {
-        view = HelpView()
-        view.start()
-
-        view.state = HelpView.State("")
-
         val scope = CoroutineScope(coroutineContext)
 
-        //        scope.launch { collectAutoscroll() }
+        scope.launch { collectKeypresses() }
     }
 
     override suspend fun stop() {
-        if (this::view.isInitialized) {
-            view.stop()
+        // No op since views come and go along with hotkey for help.
+    }
+
+    private suspend fun collectKeypresses() {
+        input.keypresses.collect { key ->
+            when (Keymap.bindings[key]) {
+                HELP -> {
+                    val h = Keymap.bindings.entries.map { "${it.value.name} -- '${Char(it.key)}'" }
+
+                    if (!showing) {
+                        appState.holdUi(true)
+
+                        view = HelpView()
+                        view.start()
+
+                        view.state = HelpView.State(h)
+
+                        showing = true
+                    } else {
+                        showing = false
+                        view.stop()
+
+                        appState.holdUi(false)
+                    }
+                }
+
+                else -> {
+                    // Other keys are handled elsewhere
+                }
+            }
         }
     }
 }

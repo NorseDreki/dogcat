@@ -65,7 +65,10 @@ class AppModule {
                 )
             }
             bindSingleton<HelpPresenter> {
-                HelpPresenter()
+                HelpPresenter(
+                    instance(),
+                    instance(),
+                )
             }
         }
 
