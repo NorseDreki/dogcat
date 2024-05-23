@@ -34,7 +34,9 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 
-class AdbShell(private val dispatcherIo: CoroutineDispatcher) : Shell {
+class AdbShell(
+    private val dispatcherIo: CoroutineDispatcher,
+) : Shell {
 
     private lateinit var adbDevice: String
 
@@ -44,18 +46,10 @@ class AdbShell(private val dispatcherIo: CoroutineDispatcher) : Shell {
                 Logger.d("${context()} Starting ADB Logcat")
 
                 val logcat =
-                    callWithTimeout("Failed to start ADB Logcat to get log lines") {
+                    callWithTimeout("Unable to initiate ADB Logcat for log line retrieval") {
                         Command("adb")
                             .args(
-                                listOf(
-                                    "-s",
-                                    adbDevice,
-                                    "logcat",
-                                    "-v",
-                                    "brief",
-                                    appId,
-                                    minLogLevel
-                                ),
+                                listOf("-s", adbDevice, "logcat", "-v", "brief", appId, minLogLevel),
                             )
                             .stdout(Pipe)
                             .stderr(Pipe)
@@ -65,7 +59,7 @@ class AdbShell(private val dispatcherIo: CoroutineDispatcher) : Shell {
                 val stdoutReader =
                     logcat.bufferedStdout()
                         ?: throw DogcatException(
-                            "Error in a dependent library, could not get STDOUT of ADB Logcat"
+                            "Dependent library error: Unable to obtain STDOUT from Logcat",
                         )
 
                 coroutineScope {
@@ -86,9 +80,9 @@ class AdbShell(private val dispatcherIo: CoroutineDispatcher) : Shell {
                     try {
                         lines.consumeEach { emit(it) }
                     } catch (e: ClosedReceiveChannelException) {
-                        Logger.d("Could not consume all elements in 'lines' channel: $e ")
+                        Logger.d("Unable to process all elements in 'lines' channel: $e")
                     } finally {
-                        Logger.d("COMPLETION (0): Cleaning up resources after consuming log lines")
+                        Logger.d("COMPLETION (0): Resource cleanup post log line consumption")
 
                         logcat.shutdownSafely()
                         cancel()
@@ -97,7 +91,7 @@ class AdbShell(private val dispatcherIo: CoroutineDispatcher) : Shell {
             }
             .onCompletion { cause ->
                 Logger.d(
-                    "${context()} COMPLETION (1): ADB logcat has terminated, maybe with exception: $cause"
+                    "${context()} COMPLETION (1): ADB logcat has terminated, possibly due to an exception: $cause",
                 )
             }
             .flowOn(dispatcherIo)
@@ -142,19 +136,17 @@ class AdbShell(private val dispatcherIo: CoroutineDispatcher) : Shell {
                 .toRegex()
 
         val output =
-            callWithTimeout("Failed to start ADB to get a dump of installed applications") {
+            callWithTimeout("Unable to initiate ADB to retrieve a dump of installed applications") {
                 Command("adb")
-                    .args(
-                        listOf("-s", adbDevice, "shell", "dumpsys", "package"),
-                    )
+                    .args(listOf("-s", adbDevice, "shell", "dumpsys", "package"))
                     .arg(packageName)
                     .stdout(Pipe)
                     .output()
             }
 
         val appId =
-            output.stdout?.let {
-                val match = appIdContext.find(it)
+            output.stdout?.let { out ->
+                val match = appIdContext.find(out)
 
                 match?.let {
                     val (id) = it.destructured
@@ -164,33 +156,33 @@ class AdbShell(private val dispatcherIo: CoroutineDispatcher) : Shell {
 
         return appId
             ?: throw DogcatException(
-                "App ID is not found for the package '$packageName'. " +
-                    "Looks like this package is not installed on device.",
+                "Unable to find App ID for the package '$packageName'. The package appears to be not installed " +
+                    "on the device.",
             )
     }
 
     override suspend fun foregroundPackageName(): String {
-        val packageNamePattern =
-            """^ +ResumedActivity: +ActivityRecord\{[^ ]* [^ ]* ([^ ^/]*).*$""".toRegex()
-
         val child =
-            callWithTimeout("Failed to start ADB to get a dump of running activities") {
+            callWithTimeout("Unable to initiate ADB to retrieve a dump of running activities") {
                 Command("adb")
-                    .args(
-                        listOf("-s", adbDevice, "shell", "dumpsys", "activity", "activities"),
-                    )
+                    .args(listOf("-s", adbDevice, "shell", "dumpsys", "activity", "activities"))
                     .stdout(Pipe)
                     .spawn()
             }
+
         var packageName: String? = null
         val stdoutReader =
             child.bufferedStdout()
                 ?: throw DogcatException(
-                    "Error in a dependent library, could not get STDOUT of ADB Logcat"
+                    "Dependent library error: Unable to obtain STDOUT from ADB Logcat",
                 )
 
         while (coroutineContext.isActive) {
             val line = stdoutReader.readLine() ?: break
+
+            val packageNamePattern =
+                """^ +ResumedActivity: +ActivityRecord\{[^ ]* [^ ]* ([^ ^/]*).*$""".toRegex()
+
             val match = packageNamePattern.matchEntire(line)
 
             if (match != null) {
@@ -204,18 +196,15 @@ class AdbShell(private val dispatcherIo: CoroutineDispatcher) : Shell {
 
         return packageName
             ?: throw DogcatException(
-                "Failed to find foreground activity, " +
-                    "consider running without '--current' argument instead",
+                "Unable to locate foreground activity. Consider executing without the '--current' argument",
             )
     }
 
     override suspend fun deviceName(): String {
         val name =
-            callWithTimeout("Failed to start ADB to get a name for '$adbDevice'") {
+            callWithTimeout("Unable to initiate ADB to retrieve a name for '$adbDevice'") {
                 Command("adb")
-                    .args(
-                        listOf("-s", adbDevice, "emu", "avd", "name"),
-                    )
+                    .args(listOf("-s", adbDevice, "emu", "avd", "name"))
                     .stdout(Pipe)
                     .output()
                     .stdout
@@ -235,54 +224,48 @@ class AdbShell(private val dispatcherIo: CoroutineDispatcher) : Shell {
 
     override suspend fun clearLogLines() {
         val exitCode =
-            callWithTimeout("Failed to start ADB and clear logs") {
-                Command("adb")
-                    .args(
-                        listOf("-s", adbDevice, "logcat", "-c"),
-                    )
-                    .status()
+            callWithTimeout("Unable to initiate ADB and clear the log source") {
+                Command("adb").args(listOf("-s", adbDevice, "logcat", "-c")).status()
             }
 
         if (exitCode != 0) {
-            throw DogcatException("Failed to clear logs of Logcat, exit code: $exitCode")
+            throw DogcatException("Unable to clear ADB Logcat logs, exit code: $exitCode")
         }
 
-        Logger.d("${context()} Exit code for 'adb logcat -c': $exitCode")
+        Logger.d("${context()} Exit code for command 'adb logcat -c': $exitCode")
     }
 
     override suspend fun firstRunningDevice(): String {
         val output =
-            callWithTimeout("Failed to start ADB to get a list of running devices") {
-                Command("adb")
-                    .args(
-                        listOf("devices"),
-                    )
-                    .output()
+            callWithTimeout("Unable to initiate ADB to retrieve a list of running devices") {
+                Command("adb").args(listOf("devices")).output()
             }
 
         val device =
-            output.stdout?.let {
-                it.lines().firstNotNullOfOrNull {
+            output.stdout?.let { out ->
+                out.lines().firstNotNullOfOrNull {
                     val parts = it.split("\t")
 
-                    val d =
-                        when {
-                            parts.size < 2 -> null
-                            parts[1] == "device" -> parts[0]
-                            parts[1] == "unauthorized" ->
-                                throw DogcatException(
-                                    "Pending authorization, please refer to your device screen and " +
-                                        "grant a request for USB debugging",
-                                )
-                            parts[1] == "offline" ->
-                                throw DogcatException("Device is detected, but is in offline state")
-                            else -> null
-                        }
-                    d
+                    when {
+                        parts.size < 2 -> null
+                        parts[1] == "device" -> parts[0]
+                        parts[1] == "unauthorized" ->
+                            throw DogcatException(
+                                "Authorization pending. Please check your device screen and approve " +
+                                    "the USB debugging request",
+                            )
+
+                        parts[1] == "offline" ->
+                            throw DogcatException(
+                                "Device has been detected, but it is currently offline",
+                            )
+
+                        else -> null
+                    }
                 }
             }
                 ?: throw DogcatException(
-                    "No device is online, please start an emulator or connect a device via USB or WiFi"
+                    "No device is currently online. Please start an emulator or connect a device via USB or WiFi",
                 )
 
         return device
@@ -290,8 +273,8 @@ class AdbShell(private val dispatcherIo: CoroutineDispatcher) : Shell {
 
     override suspend fun validateShellOrThrow() {
         val m =
-            "Android Debug Bridge (ADB), a part of Android SDK, is not found. Please install Android SDK " +
-                "and make sure to add its installation location to the \$PATH environment variable"
+            "Android Debug Bridge (ADB), a component of Android SDK, is not found. Please install Android SDK " +
+                "and ensure its installation location is added to the \$PATH environment variable."
 
         val returnStatus =
             callWithTimeout(m) {
@@ -311,7 +294,7 @@ class AdbShell(private val dispatcherIo: CoroutineDispatcher) : Shell {
 
         if (returnStatus != 0) {
             throw DogcatException(
-                "Android Debug Bridge (ADB) is found but returned an error: $returnStatus."
+                "Android Debug Bridge (ADB) was found but it returned an error: $returnStatus.",
             )
         }
     }
@@ -333,7 +316,8 @@ class AdbShell(private val dispatcherIo: CoroutineDispatcher) : Shell {
             kill()
         } catch (e: KommandException) {
             Logger.d(
-                "Kommand library has thrown an exception when trying to kill a process: ${e.message} $e"
+                "An exception was thrown by the Kommand library while attempting " +
+                    "to terminate a process: ${e.message} $e",
             )
         }
     }
