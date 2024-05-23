@@ -11,6 +11,7 @@ import com.norsedreki.dogcat.app.AppConfig.LOG_LINES_VIEW_BOTTOM_MARGIN
 import com.norsedreki.dogcat.app.ui.HasLifecycle
 import com.norsedreki.logger.Logger
 import kotlin.math.min
+import kotlin.properties.Delegates
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import ncurses.WINDOW
@@ -35,10 +36,16 @@ class LogLinesView : HasLifecycle {
         val showLineNumbers: Boolean = false,
         val tagWidth: Int = DEFAULT_TAG_WIDTH,
         val isCursorHeld: Boolean = false,
-        val cursorReturnLocation: Pair<Int, Int>? = null
+        val cursorReturnLocation: Pair<Int, Int>? = null,
+        val isUiHeld: Boolean = false
     )
 
-    var state = State()
+    var state by
+    Delegates.observable(State()) { _, oldValue, newValue ->
+        if (oldValue.isUiHeld && !newValue.isUiHeld) {
+            refresh()
+        }
+    }
 
     internal var firstVisibleLine = 0
     internal var linesCount = 0
@@ -139,6 +146,10 @@ class LogLinesView : HasLifecycle {
     }
 
     internal fun refresh() {
+        if (state.isUiHeld) {
+            return
+        }
+
         val notSeeingLastLine = firstVisibleLine <= linesCount - pageSize
 
         if (state.isCursorHeld) {
