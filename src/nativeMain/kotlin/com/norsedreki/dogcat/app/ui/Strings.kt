@@ -18,4 +18,6 @@ object Strings {
     const val SEPARATOR = "  |  "
 
     const val ALL_APPS = "All apps"
+
+    const val HELP_WINDOW_TITLE = "Help: Shortcuts"
 }

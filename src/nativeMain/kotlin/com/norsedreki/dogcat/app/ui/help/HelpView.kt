@@ -6,6 +6,7 @@
 package com.norsedreki.dogcat.app.ui.help
 
 import com.norsedreki.dogcat.app.ui.HasLifecycle
+import com.norsedreki.dogcat.app.ui.Strings.HELP_WINDOW_TITLE
 import kotlin.properties.Delegates
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -36,8 +37,8 @@ class HelpView : HasLifecycle {
         val sx = getmaxx(stdscr) / 2
 
         window = newwin(1, 1, sy, sx)!!
-        werase(window) // clear the window
-        wrefresh(window) // refresh the window to apply the clearing
+        werase(window)
+        wrefresh(window)
     }
 
     override suspend fun stop() {
@@ -45,11 +46,11 @@ class HelpView : HasLifecycle {
     }
 
     private fun updateView(state: State) {
-        val horizontalPadding = 4 // adjust this value as needed
-        val verticalPadding = 2 // adjust this value as needed
+        val horizontalPadding = 4
+        val verticalPadding = 2
 
         val maxWidth =
-            maxOf(state.text.maxOf { it.length }, "Help: hotkeys".length) + horizontalPadding * 2
+            maxOf(state.text.maxOf { it.length }, HELP_WINDOW_TITLE.length) + horizontalPadding * 2
 
         val height =
             state.text.size +
@@ -64,21 +65,18 @@ class HelpView : HasLifecycle {
 
         wresize(window, height, maxWidth)
         mvwin(window, startY, startX)
-        box(window, 0U, 0U) // draw a box around the window
+        box(window, 0U, 0U)
 
-        // Add title
-        val title = "Help: hotkeys"
-        val titleStartX = (maxWidth - title.length) / 2
-        mvwaddstr(window, verticalPadding, titleStartX, title)
+        val titleStartX = (maxWidth - HELP_WINDOW_TITLE.length) / 2
+        mvwaddstr(window, verticalPadding, titleStartX, HELP_WINDOW_TITLE)
 
-        // Add text
         state.text.forEachIndexed { index, line ->
             mvwaddstr(
                 window,
                 index + verticalPadding + 2,
                 horizontalPadding,
                 line,
-            ) // start from the third line
+            )
         }
 
         wrefresh(window)

@@ -27,18 +27,26 @@ class HelpPresenter(
     }
 
     override suspend fun stop() {
-        // No op since views come and go along with hotkey for help.
+        // No op since views come and go along with shortcut for help.
     }
 
     private suspend fun collectKeypresses() {
         lateinit var view: HelpView
-
         var showing = false
 
         input.keypresses.collect { key ->
             when (Keymap.bindings[key]) {
                 HELP -> {
-                    val h = Keymap.bindings.entries.map { "${it.value.name} -- '${Char(it.key)}'" }
+                    val maxDescriptionLength =
+                        Keymap.bindings.values.maxOf { it.description.length } + 3
+
+                    val lines =
+                        Keymap.bindings.entries.map {
+                            val dotsCount =
+                                maxOf(3, maxDescriptionLength - it.value.description.length + 1)
+
+                            "${it.value.description}${".".repeat(dotsCount)}${Keymap.printedShortcut(it.key)}"
+                        }
 
                     if (!showing) {
                         appState.holdUi(true)
@@ -47,7 +55,7 @@ class HelpPresenter(
                         view.start()
 
                         yield()
-                        view.state = HelpView.State(h)
+                        view.state = HelpView.State(lines)
 
                         showing = true
                     } else {
