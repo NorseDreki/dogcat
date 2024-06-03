@@ -1,6 +1,6 @@
 [versions]
 kotlin = "1.9.22"
-coroutines = "1.8.0"
+coroutines = "1.8.1"
 kodein = "7.22.0"
 kommand = "2.0.1"
 kotlinx-cli = "0.3.6"
@@ -10,7 +10,7 @@ detekt = "1.23.6"
 sonar = "5.0.0.4638"
 kotest-assertions-core = "5.9.0"
 turbine = "1.1.0"
-mockative = "2.2.1"
+mockative = "2.2.2"
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
