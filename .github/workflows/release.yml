@@ -27,7 +27,7 @@ jobs:
           release_notes_file: RELEASE_NOTES.md
 
       - name: Upload release notes
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.3.4
         with:
           name: release-notes
           path: RELEASE_NOTES.md

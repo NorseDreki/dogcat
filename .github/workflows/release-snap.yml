@@ -35,7 +35,7 @@ jobs:
         with:
           snapcraft-args: --debug
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4.3.4
         with:
           name: snap
           path: ${{ steps.snapcraft.outputs.snap }}
